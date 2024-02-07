@@ -21,6 +21,8 @@ typedef unsigned char  boolean;
 
 #define PI 3.14159265
 
+#define dSqrt sqrt
+
 /* Vector Math Float */
 extern float dSqrt( float number );
 
