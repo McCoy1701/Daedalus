@@ -59,20 +59,22 @@ extern void dIntersect2d( double *output, double *lineA0, double *lineA1, double
 
 /* Vector Integer Math */
 extern long dSqrti( int number );
-extern boolean dNormalize2di( int *point, int multiplyer );
-extern boolean dNormalize3di( int *point, int multiplyer );
+extern unsigned char dNormalize2di( int *point, int multiplyer );
+extern unsigned char dNormalize3di( int *point, int multiplyer );
 extern void dIntersect2di( int *output, int *lineA0, int *lineA1,int *lineB0, int *lineB1 );
 
 /* Matrix Operations */
 extern void dMatrixClearf( float *matrix );
-extern void dMatrixCleard( float *matrix );
 extern void dMatrixTransform3f( float *output, const float *matrix, const float x, const float y, const float z );
-extern void dMatrixTransform3d( double *output, const double *matrix, const double x, const double y, const double z );
+extern void dMatrixInverseTransform3f( float *output, const float *matrix, float x, float y, float z );
 extern void dMatrixTransform4f( float *output, const float *matrix, const float x, const float y, const float z, const float w );
-extern void dMatrixTransform4d( double *output, const double *matrix, const double x, const double y, const double z, const double w );
 extern void dMatrixMultiplyf( float *output, const float *a, const float *b );
-extern void dMatrixMultiplyd( double *output, const double *a, const double *b );
 extern void dMatrixInversef( float *output, const float *matrix );
+extern void dMatrixCleard( float *matrix );
+extern void dMatrixTransform3d( double *output, const double *matrix, const double x, const double y, const double z );
+extern void dMatrixInverseTransform3d( double *output, const double *matrix, double x, double y, double z );
+extern void dMatrixTransform4d( double *output, const double *matrix, const double x, const double y, const double z, const double w );
+extern void dMatrixMultiplyd( double *output, const double *a, const double *b );
 extern void dMatrixInversed( double* output, const double *matrix );
 
 /* Matrix Creation */
