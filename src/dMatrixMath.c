@@ -76,6 +76,99 @@ void dMatrixInversef( float *output, const float *matrix )
 
 }
 
+void dMatrixRotateXf( float *matrix, const float angleRad )
+{
+  matrix[0]  = 1.0f;
+  matrix[1]  = 0.0f;
+  matrix[2]  = 0.0f;
+  matrix[3]  = 0.0f;
+  
+  matrix[4]  = 0.0f;
+  matrix[5]  = cosf( angleRad );
+  matrix[6]  = sinf( angleRad );
+  matrix[7]  = 0.0f;
+
+  matrix[8]  = 0.0f;
+  matrix[9]  = -sinf( angleRad );
+  matrix[10] = cosf( angleRad );
+  matrix[11] = 0.0f;
+
+  matrix[12] = 0.0f;
+  matrix[13] = 0.0f;
+  matrix[14] = 0.0f;
+  matrix[15] = 1.0f;
+}
+
+void dMatrixRotateYf( float *matrix, const float angleRad )
+{
+  matrix[0]  = cosf( angleRad );
+  matrix[1]  = 0.0f;
+  matrix[2]  = sinf( angleRad );
+  matrix[3]  = 0.0f;
+  
+  matrix[4]  = 0.0f;
+  matrix[5]  = 1.0f;
+  matrix[6]  = 0.0f;
+  matrix[7]  = 0.0f;
+
+  matrix[8]  = -sinf( angleRad );
+  matrix[9]  = 0.0f;
+  matrix[10] = cosf( angleRad );
+  matrix[11] = 0.0f;
+
+  matrix[12] = 0.0f;
+  matrix[13] = 0.0f;
+  matrix[14] = 0.0f;
+  matrix[15] = 1.0f;
+}
+
+void dMatrixRotateZf( float *matrix, const float angleRad )
+{
+  matrix[0]  = cosf( angleRad );
+  matrix[1]  = sinf( angleRad );
+  matrix[2]  = 0.0f;
+  matrix[3]  = 0.0f;
+  
+  matrix[4]  = -sinf( angleRad );
+  matrix[5]  = cosf( angleRad );
+  matrix[6]  = 0.0f;
+  matrix[7]  = 0.0f;
+
+  matrix[8]  = 0.0f;
+  matrix[9]  = 0.0f;
+  matrix[10] = 1.0f;
+  matrix[11] = 0.0f;
+
+  matrix[12] = 0.0f;
+  matrix[13] = 0.0f;
+  matrix[14] = 0.0f;
+  matrix[15] = 1.0f;
+}
+
+void dMatrixTranslation3f( float *matrix, const float x, const float y, const float z )
+{
+  matrix[0]  = 1.0f;
+  matrix[1]  = 0.0f;
+  matrix[2]  = 0.0f;
+  matrix[3]  = 0.0f;
+  
+  matrix[4]  = 0.0f;
+  matrix[5]  = 1.0f;
+  matrix[6]  = 0.0f;
+  matrix[7]  = 0.0f;
+
+  matrix[8]  = 0.0f;
+  matrix[9]  = 0.0f;
+  matrix[10] = 1.0f;
+  matrix[11] = 0.0f;
+
+  matrix[12] = x;
+  matrix[13] = y;
+  matrix[14] = z;
+  matrix[15] = 1.0f;
+}
+
+/*---------------- Matrix Double Math ----------------*/
 
 void dMatrixCleard( double *matrix )
 {
@@ -138,4 +231,97 @@ void dMatrixMultiplyd( double *output, const double *a, const double *b )
 void dMatrixInversed( double* output, const double *matrix )
 {
 
+}
+
+
+void dMatrixRotateXd( double *matrix, const double angleRad )
+{
+  matrix[0]  = 1;
+  matrix[1]  = 0;
+  matrix[2]  = 0;
+  matrix[3]  = 0;
+  
+  matrix[4]  = 0;
+  matrix[5]  = cos( angleRad );
+  matrix[6]  = sin( angleRad );
+  matrix[7]  = 0;
+
+  matrix[8]  = 0;
+  matrix[9]  = sin( angleRad );
+  matrix[10] = cos( angleRad );
+  matrix[11] = 0;
+
+  matrix[12] = 0;
+  matrix[13] = 0;
+  matrix[14] = 0;
+  matrix[15] = 1;
+}
+
+void dMatrixRotateYd( double *matrix, const double angleRad )
+{
+  matrix[0]  = cos( angleRad );
+  matrix[1]  = 0;
+  matrix[2]  = sin( angleRad );
+  matrix[3]  = 0;
+  
+  matrix[4]  = 0;
+  matrix[5]  = 1;
+  matrix[6]  = 0;
+  matrix[7]  = 0;
+
+  matrix[8]  = -sin( angleRad );
+  matrix[9]  = 0;
+  matrix[10] = cos( angleRad );
+  matrix[11] = 0;
+
+  matrix[12] = 0;
+  matrix[13] = 0;
+  matrix[14] = 0;
+  matrix[15] = 1;
+}
+
+void dMatrixRotateZd( double *matrix, const double angleRad )
+{
+  matrix[0]  = cos( angleRad );
+  matrix[1]  = sin( angleRad );
+  matrix[2]  = 0;
+  matrix[3]  = 0;
+  
+  matrix[4]  = -sin( angleRad );
+  matrix[5]  = cos( angleRad );
+  matrix[6]  = 0;
+  matrix[7]  = 0;
+
+  matrix[8]  = 0;
+  matrix[9]  = 0;
+  matrix[10] = 1;
+  matrix[11] = 0;
+
+  matrix[12] = 0;
+  matrix[13] = 0;
+  matrix[14] = 0;
+  matrix[15] = 1;
+}
+
+void dMatrixTranslation3d( double *matrix, const double x, const double y, const double z )
+{
+  matrix[0]  = 1;
+  matrix[1]  = 0;
+  matrix[2]  = 0;
+  matrix[3]  = 0;
+  
+  matrix[4]  = 0;
+  matrix[5]  = 1;
+  matrix[6]  = 0;
+  matrix[7]  = 0;
+
+  matrix[8]  = 0;
+  matrix[9]  = 0;
+  matrix[10] = 1;
+  matrix[11] = 0;
+
+  matrix[12] = x;
+  matrix[13] = y;
+  matrix[14] = z;
+  matrix[15] = 1;
 }

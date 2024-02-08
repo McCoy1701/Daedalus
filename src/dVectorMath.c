@@ -33,6 +33,41 @@ float dSqrt( float number )
 
 /*---------------- Vector 2 float Math ----------------*/
 
+void dAddVec2f( float *output, const float *a, const float *b )
+{
+
+}
+
+void dSubVec2f( float *output, const float *a, const float *b )
+{
+
+}
+
+void dMinVec2f( float *output, const float *a, const float *b )
+{
+
+}
+
+void dMaxVec2f( float *output, const float *a, const float *b )
+{
+
+}
+
+void dMultiplyVec2f( float *output, const float *a, const float value )
+{
+
+}
+
+void dDivideVec2f( float *output, const float *a, const float value )
+{
+
+}
+
+void dLimitVec2f( float *a, const float value )
+{
+
+}
+
 /*
   Find the length of a vector 2
 
@@ -152,6 +187,41 @@ void dIntersect2f( float *output, float *lineA0, float *lineA1, float *lineB0, f
 
 /*---------------- Vector 3 float Math ----------------*/
 
+void dAddVec3f( float *output, const float *a, const float *b )
+{
+
+}
+
+void dSubVec3f( float *output, const float *a, const float *b )
+{
+
+}
+
+void dMinVec3f( float *output, const float *a, const float *b )
+{
+
+}
+
+void dMaxVec3f( float *output, const float *a, const float *b )
+{
+
+}
+
+void dMultiplyVec3f( float *output, const float *a, const float value )
+{
+
+}
+
+void dDivideVec3f( float *output, const float *a, const float value )
+{
+
+}
+
+void dLimitVec3f( float *a, const float value )
+{
+
+}
+
 float dLength3f( float *vec )
 {
   return dSqrt( vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2] );
@@ -221,6 +291,41 @@ void dNormalize4f( float *vec )
 
 /*---------------- Vector 2 double Math ----------------*/
 
+void dAddVec2d( double *output, const double *a, const double *b )
+{
+
+}
+
+void dSubVec2d( double *output, const double *a, const double *b )
+{
+
+}
+
+void dMinVec2d( double *output, const double *a, const double *b )
+{
+
+}
+
+void dMaxVec2d( double *output, const double *a, const double *b )
+{
+
+}
+
+void dMultiplyVec2d( double *output, const double *a, const double value )
+{
+
+}
+
+void dDivideVec2d( double *output, const double *a, const double value )
+{
+
+}
+
+void dLimitVec2d( double *a, const double value )
+{
+
+}
+
 double dLength2d( double *vec )
 {
   return sqrt( vec[0] * vec[0] + vec[1] * vec[1] );
@@ -279,6 +384,41 @@ void dIntersect2d( double *output, double *lineA0, double *lineA1, double *lineB
 }
 
 /*---------------- Vector 3 double Math ----------------*/
+
+void dAddVec3d( double *output, const double *a, const double *b )
+{
+
+}
+
+void dSubVec3d( double *output, const double *a, const double *b )
+{
+
+}
+
+void dMinVec3d( double *output, const double *a, const double *b )
+{
+
+}
+
+void dMaxVec3d( double *output, const double *a, const double *b )
+{
+
+}
+
+void dMultiplyVec3d( double *output, const double *a, const double value )
+{
+
+}
+
+void dDivideVec3d( double *output, const double *a, const double value )
+{
+
+}
+
+void dLimitVec3d( double *a, const double value )
+{
+
+}
 
 double dLength3d( double *vec )
 {

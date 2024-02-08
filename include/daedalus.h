@@ -26,36 +26,66 @@ typedef unsigned char  boolean;
 /* Vector Math Float */
 extern float dSqrt( float number );
 
-extern float dLength2f( float *vec );
-extern float dLength3f( float *vec );
-extern float dDistance2f( float *a, float *b );
-extern float dDistance3f( float *a, float *b );
-extern float dDot2f( float *a, float *b );
-extern float dDot3f( float *a, float *b );
-extern void dCross2f( float *output, float *a, float *b );
-extern void dCross3f( float *output, float *a, float *b );
+extern void dAddVec2f( float *output, const float *a, const float *b );
+extern void dSubVec2f( float *output, const float *a, const float *b );
+extern void dMinVec2f( float *output, const float *a, const float *b );
+extern void dMaxVec2f( float *output, const float *a, const float *b );
+extern void dMultiplyVec2f( float *output, const float *a, const float value );
+extern void dDivideVec2f( float *output, const float *a, const float value );
+extern void dLimitVec2f( float *a, const float value );
+extern float dLength2f( const float *vec );
+extern float dDistance2f( const float *a, const float *b );
+extern float dDot2f( const float *a, const float *b );
+extern void dCross2f( float *output, const float *a, const float *b );
 extern void dNormalize2f( float *vec );
+extern void dNormal2f( float *output, const float *a, const float *b );
+extern void dIntersect2f( float *output, const float *lineA0, const float *lineA1, const float *lineB0, const float *lineB1 );
+
+extern void dAddVec3f( float *output, const float *a, const float *b );
+extern void dSubVec3f( float *output, const float *a, const float *b );
+extern void dMinVec3f( float *output, const float *a, const float *b );
+extern void dMaxVec3f( float *output, const float *a, const float *b );
+extern void dMultiplyVec3f( float *output, const float *a, const float value );
+extern void dDivideVec3f( float *output, const float *a, const float value );
+extern void dLimitVec3f( float *a, const float value );
+extern float dLength3f( const float *vec );
+extern float dDistance3f( const float *a, const float *b );
+extern float dDot3f( const float *a, const float *b );
+extern void dCross3f( float *output, const float *a, const float *b );
 extern void dNormalize3f( float *vec );
+extern void dNormal3f( float *output, const float *a, const float *b, const float *c );
 extern void dNormalize4f( float *vec );
-extern void dNormal2f( float *output, float *a, float *b );
-extern void dNormal3f( float *output, float *a, float *b, float *c );
-extern void dIntersect2f( float *output, float *lineA0, float *lineA1, float *lineB0, float *lineB1 );
 
 /* Vector Math Double */
-extern double dLength2d( double *vec );
-extern double dLength3d( double *vec );
-extern double dDistance2d( double *a, double *b );
-extern double dDistance3d( double *a, double *b );
-extern double dDot2d( double *a, double *b );
-extern double dDot3d( double *a, double *b );
-extern void dCross2d( double *output, double *a, double *b );
-extern void dCross3d( double *output, double *a, double *b );
+extern void dAddVec2d( double *output, const double *a, const double *b );
+extern void dSubVec2d( double *output, const double *a, const double *b );
+extern void dMinVec2d( double *output, const double *a, const double *b );
+extern void dMaxVec2d( double *output, const double *a, const double *b );
+extern void dMultiplyVec2d( double *output, const double *a, const double value );
+extern void dDivideVec2d( double *output, const double *a, const double value );
+extern void dLimitVec2d( double *a, const double value );
+extern double dLength2d( const double *vec );
+extern double dDistance2d( const double *a, const double *b );
+extern double dDot2d( const double *a, const double *b );
+extern void dCross2d( double *output, const double *a, const double *b );
 extern void dNormalize2d( double *vec );
+extern void dNormal2d( double *output, const double *a, const double *b );
+extern void dIntersect2d( const double *output, const double *lineA0, const double *lineA1, const double *lineB0, const double *lineB1 );
+
+extern void dAddVec3d( double *output, const double *a, const double *b );
+extern void dSubVec3d( double *output, const double *a, const double *b );
+extern void dMinVec3d( double *output, const double *a, const double *b );
+extern void dMaxVec3d( double *output, const double *a, const double *b );
+extern void dMultiplyVec3d( double *output, const double *a, const double value );
+extern void dDivideVec3d( double *output, const double *a, const double value );
+extern void dLimitVec3d( double *a, const double value );
+extern double dLength3d( const double *vec );
+extern double dDistance3d( const double *a, const double *b );
+extern double dDot3d( const double *a, const double *b );
+extern void dCross3d( double *output, const double *a, const double *b );
 extern void dNormalize3d( double *vec );
+extern void dNormal3d( double *output, const double *a, const double *b, const double *c );
 extern void dNormalize4d( double *vec );
-extern void dNormal2d( double *output, double *a, double *b );
-extern void dNormal3d( double *output, double *a, double *b, double *c );
-extern void dIntersect2d( double *output, double *lineA0, double *lineA1, double *lineB0, double *lineB1 );
 
 /* Vector Integer Math */
 extern long dSqrti( int number );
@@ -70,12 +100,21 @@ extern void dMatrixInverseTransform3f( float *output, const float *matrix, float
 extern void dMatrixTransform4f( float *output, const float *matrix, const float x, const float y, const float z, const float w );
 extern void dMatrixMultiplyf( float *output, const float *a, const float *b );
 extern void dMatrixInversef( float *output, const float *matrix );
+extern void dMatrixRotateXf( float *matrix, const float angleRad );
+extern void dMatrixRotateYf( float *matrix, const float angleRad );
+extern void dMatrixRotateZf( float *matrix, const float angleRad );
+extern void dMatrixTranslation3f( float *matrix, const float x, const float y, const float z );
+
 extern void dMatrixCleard( float *matrix );
 extern void dMatrixTransform3d( double *output, const double *matrix, const double x, const double y, const double z );
 extern void dMatrixInverseTransform3d( double *output, const double *matrix, double x, double y, double z );
 extern void dMatrixTransform4d( double *output, const double *matrix, const double x, const double y, const double z, const double w );
 extern void dMatrixMultiplyd( double *output, const double *a, const double *b );
 extern void dMatrixInversed( double* output, const double *matrix );
+extern void dMatrixRotateYd( double *matrix, const double angleRad );
+extern void dMatrixRotateXd( double *matrix, const double angleRad );
+extern void dMatrixRotateZd( double *matrix, const double angleRad );
+extern void dMatrixTranslation3d( double *matrix, const double x, const double y, const double z );
 
 /* Matrix Creation */
 extern void dMatrixXYf( float *output, const float *origin, const float *point0, const float *point1 );
