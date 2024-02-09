@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <math.h>
 
+#ifndef __DAEDALUS_H__
+#define PI 3.14159265
+#endif
+
 /* Matrix Operations */
 void dMatrixClearf( float *matrix )
 {
@@ -168,6 +172,30 @@ void dMatrixTranslation3f( float *matrix, const float x, const float y, const fl
   matrix[15] = 1.0f;
 }
 
+void dMatrixProjectionf( float *matrix, const float aspectRatio, const float fov, const float far, const float near )
+{
+  float fovRad = 1.0f / tanf( fov * 0.5f / 180.0f * PI );
+  matrix[0]  = aspectRatio * fovRad;
+  matrix[1]  = 0.0f;
+  matrix[2]  = 0.0f;
+  matrix[3]  = 0.0f;
+  
+  matrix[4]  = 0.0f;
+  matrix[5]  = fovRad;
+  matrix[6]  = 0.0f;
+  matrix[7]  = 0.0f;
+  
+  matrix[8]  = 0.0f;
+  matrix[9]  = 0.0f;
+  matrix[10] = far / far - near;
+  matrix[11] = 0.0f;
+  
+  matrix[12] = 0.0f;
+  matrix[13] = 0.0f;
+  matrix[14] = ( -far * near ) / far - near;
+  matrix[15] = 0.0f;
+}
+
 /*---------------- Matrix Double Math ----------------*/
 
 void dMatrixCleard( double *matrix )
@@ -324,4 +352,28 @@ void dMatrixTranslation3d( double *matrix, const double x, const double y, const
   matrix[13] = y;
   matrix[14] = z;
   matrix[15] = 1;
+}
+
+void dMatrixProjectionf( double *matrix, const double aspectRatio, const double fov, const double far, const double near )
+{
+  double fovRad = 1 / tan( fov * 0.5 / 180 * PI );
+  matrix[0]  = aspectRatio * fovRad;
+  matrix[1]  = 0;
+  matrix[2]  = 0;
+  matrix[3]  = 0;
+  
+  matrix[4]  = 0;
+  matrix[5]  = fovRad;
+  matrix[6]  = 0;
+  matrix[7]  = 0;
+  
+  matrix[8]  = 0;
+  matrix[9]  = 0;
+  matrix[10] = far / far - near;
+  matrix[11] = 0;
+  
+  matrix[12] = 0;
+  matrix[13] = 0;
+  matrix[14] = ( -far * near ) / far - near;
+  matrix[15] = 0;
 }
