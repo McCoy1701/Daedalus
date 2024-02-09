@@ -7,6 +7,16 @@
 #endif
 
 /* Matrix Operations */
+
+/*
+  Clears a 4x4 Matrix with to an Identity Matrix
+
+  Parameters:
+    matrix: pointer to matrix
+  
+  Returns:
+    void
+*/
 void dMatrixClearf( float *matrix )
 {
   matrix[0]  = 1.0f;
@@ -27,6 +37,19 @@ void dMatrixClearf( float *matrix )
   matrix[15] = 1.0f;
 }
 
+/*
+  Transform a 3D Point into a 4x4 Matrix
+
+  Parameters:
+    output: pointer to trasnformed matrix
+    matrix: pointer to matrix
+    x:      x coord
+    y:      y coord
+    z:      z coord
+  
+  Returns:
+    void
+*/
 void dMatrixTransform3f( float *output, const float *matrix, const float x, const float y, const float z )
 {
   output[0] = ( matrix[0] * x ) + ( matrix[4] * y ) + ( matrix[8]  * z ) + matrix[12];
@@ -34,6 +57,19 @@ void dMatrixTransform3f( float *output, const float *matrix, const float x, cons
   output[2] = ( matrix[2] * x ) + ( matrix[6] * y ) + ( matrix[10] * z ) + matrix[14];
 }
 
+/*
+  Computes the Inverse Transformation of a 3D Point into a 4x4 Matrix
+
+  Parameters:
+    output: pointer to inverse of trasnformed matrix
+    matrix: pointer to matrix
+    x:      x coord
+    y:      y coord
+    z:      z coord
+  
+  Returns:
+    void
+*/
 void dMatrixInverseTransform3f( float *output, const float *matrix, float x, float y, float z )
 {
   x -= matrix[12];
@@ -44,6 +80,20 @@ void dMatrixInverseTransform3f( float *output, const float *matrix, float x, flo
   output[2] = ( matrix[8] * x ) + ( matrix[9] * y ) + ( matrix[10] * z );
 }
 
+/*
+  Transform a 4D Point to a 4x4 Matrix
+
+  Parameters:
+    output: pointer to inverse of trasnformed matrix
+    matrix: pointer to matrix
+    x:      x coord
+    y:      y coord
+    z:      z coord
+    w:      w coord
+  
+  Returns:
+    void
+*/
 void dMatrixTransform4f( float *output, const float *matrix, const float x, const float y, const float z, const float w )
 {
   output[0] = ( matrix[0] * x ) + ( matrix[4] * y ) + ( matrix[8]  * z ) + ( matrix[12] * w );
@@ -52,6 +102,17 @@ void dMatrixTransform4f( float *output, const float *matrix, const float x, cons
   output[3] = ( matrix[3] * x ) + ( matrix[7] * y ) + ( matrix[11] * z ) + ( matrix[15] * w );
 }
 
+/*
+  Multiply Two Matrices Together
+
+  Parameters:
+    output: pointer to finished computation
+    a:      pointer to first matrix
+    b:      pointer to second matrix
+  
+  Returns:
+    void
+*/
 void dMatrixMultiplyf( float *output, const float *a, const float *b )
 {
   output[0]  = ( b[0]  * a[0] ) + ( b[1]  * a[4] ) + ( b[2]  * a[8] ) + ( b[3]  * a[12] );
@@ -80,6 +141,16 @@ void dMatrixInversef( float *output, const float *matrix )
 
 }
 
+/*
+  Rotate a Matrix about the X Axis
+
+  Parameters:
+    matrix:   pointer to matrix
+    angleRad: angle to rotate in radians
+  
+  Returns:
+    void
+*/
 void dMatrixRotateXf( float *matrix, const float angleRad )
 {
   matrix[0]  = 1.0f;
@@ -103,6 +174,16 @@ void dMatrixRotateXf( float *matrix, const float angleRad )
   matrix[15] = 1.0f;
 }
 
+/*
+  Rotate a Matrix about the Y Axis
+
+  Parameters:
+    matrix:   pointer to matrix
+    angleRad: angle to rotate in radians
+  
+  Returns:
+    void
+*/
 void dMatrixRotateYf( float *matrix, const float angleRad )
 {
   matrix[0]  = cosf( angleRad );
@@ -126,6 +207,16 @@ void dMatrixRotateYf( float *matrix, const float angleRad )
   matrix[15] = 1.0f;
 }
 
+/*
+  Rotate a Matrix about the Z Axis
+
+  Parameters:
+    matrix:   pointer to matrix
+    angleRad: angle to rotate in radians
+  
+  Returns:
+    void
+*/
 void dMatrixRotateZf( float *matrix, const float angleRad )
 {
   matrix[0]  = cosf( angleRad );
@@ -149,6 +240,18 @@ void dMatrixRotateZf( float *matrix, const float angleRad )
   matrix[15] = 1.0f;
 }
 
+/*
+  Translate a Matrix by a 3D Point
+
+  Parameters:
+    matrix: pointer to matrix
+    x:      x coord
+    y:      y coord
+    z:      z coord  
+  
+  Returns:
+    void
+*/
 void dMatrixTranslation3f( float *matrix, const float x, const float y, const float z )
 {
   matrix[0]  = 1.0f;
@@ -172,6 +275,19 @@ void dMatrixTranslation3f( float *matrix, const float x, const float y, const fl
   matrix[15] = 1.0f;
 }
 
+/*
+  Create a 4x4 Projection Matrix
+
+  Parameters:
+    matrix: pointer to matrix
+    aspectRatio:
+    fov:
+    far:
+    near:
+  
+  Returns:
+    void
+*/
 void dMatrixProjectionf( float *matrix, const float aspectRatio, const float fov, const float far, const float near )
 {
   float fovRad = 1.0f / tanf( fov * 0.5f / 180.0f * PI );
@@ -198,6 +314,15 @@ void dMatrixProjectionf( float *matrix, const float aspectRatio, const float fov
 
 /*---------------- Matrix Double Math ----------------*/
 
+/*
+  Clears a 4x4 Matrix with to an Identity Matrix
+
+  Parameters:
+    matrix: pointer to matrix
+  
+  Returns:
+    void
+*/
 void dMatrixCleard( double *matrix )
 {
   matrix[0]  = 1.0;
@@ -218,6 +343,19 @@ void dMatrixCleard( double *matrix )
   matrix[15] = 1.0;
 }
 
+/*
+  Transform a 3D Point into a 4x4 Matrix
+
+  Parameters:
+    output: pointer to trasnformed matrix
+    matrix: pointer to matrix
+    x:      x coord
+    y:      y coord
+    z:      z coord
+  
+  Returns:
+    void
+*/
 void dMatrixTransform3d( double *output, const double *matrix, const double x, const double y, const double z )
 {
   output[0] = ( matrix[0] * x ) + ( matrix[4] * y ) + ( matrix[8]  * z ) + matrix[12];
@@ -225,6 +363,43 @@ void dMatrixTransform3d( double *output, const double *matrix, const double x, c
   output[2] = ( matrix[2] * x ) + ( matrix[6] * y ) + ( matrix[10] * z ) + matrix[14];
 }
 
+/*
+  Computes the Inverse Transformation of a 3D Point into a 4x4 Matrix
+
+  Parameters:
+    output: pointer to inverse of trasnformed matrix
+    matrix: pointer to matrix
+    x:      x coord
+    y:      y coord
+    z:      z coord
+  
+  Returns:
+    void
+*/
+void dMatrixInverseTransform3d( double *output, const double *matrix, double x, double y, double z )
+{
+  x -= matrix[12];
+  y -= matrix[13];
+  z -= matrix[14];
+  output[0] = ( matrix[0] * x ) + ( matrix[1] * y ) + ( matrix[2]  * z );
+  output[1] = ( matrix[4] * x ) + ( matrix[5] * y ) + ( matrix[6]  * z );
+  output[2] = ( matrix[8] * x ) + ( matrix[9] * y ) + ( matrix[10] * z );
+}
+
+/*
+  Transform a 4D Point to a 4x4 Matrix
+
+  Parameters:
+    output: pointer to inverse of trasnformed matrix
+    matrix: pointer to matrix
+    x:      x coord
+    y:      y coord
+    z:      z coord
+    w:      w coord
+  
+  Returns:
+    void
+*/
 void dMatrixTransform4d( double *output, const double *matrix, const double x, const double y, const double z, const double w )
 {
   output[0] = ( matrix[0] * x ) + ( matrix[4] * y ) + ( matrix[8]  * z ) + ( matrix[12] * w );
@@ -233,6 +408,17 @@ void dMatrixTransform4d( double *output, const double *matrix, const double x, c
   output[3] = ( matrix[3] * x ) + ( matrix[7] * y ) + ( matrix[11] * z ) + ( matrix[15] * w );
 }
 
+/*
+  Multiply Two Matrices Together
+
+  Parameters:
+    output: pointer to finished computation
+    a:      pointer to first matrix
+    b:      pointer to second matrix
+  
+  Returns:
+    void
+*/
 void dMatrixMultiplyd( double *output, const double *a, const double *b )
 {
   output[0]  = ( b[0]  * a[0] ) + ( b[1]  * a[4] ) + ( b[2]  * a[8] ) + ( b[3]  * a[12] );
@@ -261,7 +447,16 @@ void dMatrixInversed( double* output, const double *matrix )
 
 }
 
+/*
+  Rotate a Matrix about the X Axis
 
+  Parameters:
+    matrix:   pointer to matrix
+    angleRad: angle to rotate in radians
+  
+  Returns:
+    void
+*/
 void dMatrixRotateXd( double *matrix, const double angleRad )
 {
   matrix[0]  = 1;
@@ -285,6 +480,16 @@ void dMatrixRotateXd( double *matrix, const double angleRad )
   matrix[15] = 1;
 }
 
+/*
+  Rotate a Matrix about the Y Axis
+
+  Parameters:
+    matrix:   pointer to matrix
+    angleRad: angle to rotate in radians
+  
+  Returns:
+    void
+*/
 void dMatrixRotateYd( double *matrix, const double angleRad )
 {
   matrix[0]  = cos( angleRad );
@@ -308,6 +513,16 @@ void dMatrixRotateYd( double *matrix, const double angleRad )
   matrix[15] = 1;
 }
 
+/*
+  Rotate a Matrix about the Z Axis
+
+  Parameters:
+    matrix:   pointer to matrix
+    angleRad: angle to rotate in radians
+  
+  Returns:
+    void
+*/
 void dMatrixRotateZd( double *matrix, const double angleRad )
 {
   matrix[0]  = cos( angleRad );
@@ -331,6 +546,18 @@ void dMatrixRotateZd( double *matrix, const double angleRad )
   matrix[15] = 1;
 }
 
+/*
+  Translate a Matrix by a 3D Point
+
+  Parameters:
+    matrix: pointer to matrix
+    x:      x coord
+    y:      y coord
+    z:      z coord  
+  
+  Returns:
+    void
+*/
 void dMatrixTranslation3d( double *matrix, const double x, const double y, const double z )
 {
   matrix[0]  = 1;
@@ -354,6 +581,19 @@ void dMatrixTranslation3d( double *matrix, const double x, const double y, const
   matrix[15] = 1;
 }
 
+/*
+  Create a 4x4 Projection Matrix
+
+  Parameters:
+    matrix: pointer to matrix
+    aspectRatio:
+    fov:
+    far:
+    near:
+  
+  Returns:
+    void
+*/
 void dMatrixProjectionf( double *matrix, const double aspectRatio, const double fov, const double far, const double near )
 {
   double fovRad = 1 / tan( fov * 0.5 / 180 * PI );
