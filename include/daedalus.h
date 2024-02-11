@@ -19,6 +19,18 @@ typedef float          real32;
 typedef double         real64;
 typedef unsigned char  boolean;
 
+typedef struct _deltaTime {
+  uint32 lastTime;
+  uint32 currentTime;
+} DeltaTime;
+
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
+#define STRNCPY(dest, src, n) strncpy(dest, src, n); dest[n - 1] = '\0'
+
+#define RANDF(upper, lower) (((float)rand() / (float)(RAND_MAX)) * (upper - lower)) + lower
+
 #define PI 3.14159265
 
 #define dSqrt sqrt
@@ -131,5 +143,8 @@ extern void dMatrixYXd( double *output, const double *origin, const double *poin
 extern void dMatrixYZd( double *output, const double *origin, const double *point0, const double *point1 );
 extern void dMatrixZXd( double *output, const double *origin, const double *point0, const double *point1 );
 extern void dMatrixZYd( double *output, const double *origin, const double *point0, const double *point1 );
+
+/* Delta Time */
+extern float getDeltaTime( unsigned int *currentTime, unsigned int *lastTime );
 
 #endif
