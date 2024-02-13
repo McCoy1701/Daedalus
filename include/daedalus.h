@@ -24,6 +24,11 @@ typedef struct _deltaTime {
   uint32 currentTime;
 } DeltaTime;
 
+typedef struct _dLinkedList {
+  void *data;
+  struct _dLinkedList *next;
+} dLinkedList;
+
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
@@ -33,7 +38,7 @@ typedef struct _deltaTime {
 
 #define PI 3.14159265
 
-#define dSqrt sqrt
+#define dSqrt sqrtf
 
 /* Vector Math Float */
 extern float dSqrt( float number ); //Quake fast inverse square root
@@ -146,5 +151,15 @@ extern void dMatrixZYd( double *output, const double *origin, const double *poin
 
 /* Delta Time */
 extern float getDeltaTime( unsigned int *currentTime, unsigned int *lastTime );
+
+/* Linked List */
+
+extern dLinkedList* dCreateLinkedList( void *data, size_t size );
+extern void* dGetDataInLinkedListByIndex( dLinkedList *head, int index );
+extern void dRemoveNodeInLinkedListByIndex( dLinkedList *head, int index );
+extern void dClearLinkedList( dLinkedList *head );
+extern void dPush( dLinkedList **head, void *data, size_t size );
+extern void* dPop( dLinkedList *head );
+extern void dPrintLinkedList( dLinkedList *head );
 
 #endif

@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS = -Iinclude/
+CFLAGS = -Iinclude/ -g
 
 SRC_DIR=src
 INCLUDE_DIR=include
@@ -11,9 +11,9 @@ OBJ_DIR=obj
 
 all: $(BIN_DIR)
 
-$(BIN_DIR): $(OBJ_DIR)/main.o $(OBJ_DIR)/dVectorMath.o
+$(BIN_DIR): $(OBJ_DIR)/main.o $(OBJ_DIR)/dLinkedList.o
 	mkdir -p $(BIN_DIR)
-	$(CC) $(OBJ_DIR)/main.o $(OBJ_DIR)/dVectorMath.o  $(CFLAGS) -o $(BIN_DIR)/$@
+	$(CC) $(OBJ_DIR)/main.o $(OBJ_DIR)/dLinkedList.o $(CFLAGS) -o $(BIN_DIR)/$@.o
 
 
 $(OBJ_DIR)/main.o: $(SRC_DIR)/main.c
@@ -29,6 +29,14 @@ $(OBJ_DIR)/dMatrixMath.o: $(SRC_DIR)/dMatrixMath.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/dMatrixCreation.o: $(SRC_DIR)/dMatrixCreation.c
+	mkdir -p $(OBJ_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/dDeltaTime.o: $(SRC_DIR)/dDeltaTime.c
+	mkdir -p $(OBJ_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/dLinkedList.o: $(SRC_DIR)/dLinkedList.c
 	mkdir -p $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 

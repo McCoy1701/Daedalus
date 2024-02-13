@@ -5,11 +5,23 @@
 
 int main( int argc, char* argv[] )
 {
-  float a[2] = { 0.0f };
-  float b[2] = { 0.0f };
-  b[0] = 1.0f; b[1] = 1.0f;
-  float test = dDistance2f( a, b );
-  printf("Test: %f\n", test);
-  float test1 = dLength2f( b );
-  printf("Test1: %f\n", test1);
+  int data = 10;
+  dLinkedList *testList = dCreateLinkedList( &data, sizeof( int ) );
+  
+  for ( int i = 11; i < 20; i++ )
+  {
+    printf("%d\n", i);
+    dPush( &testList, &i, sizeof( int ) );
+  }
+
+  dPrintLinkedList( testList );
+
+  for ( int i = 0; i < 10; i++ )
+  {
+    int *temp = dGetDataInLinkedListByIndex( testList, i );
+    printf( "Should be: %d | Is: %d\n", i + 10, *temp );
+  }
+  
+  dClearLinkedList( testList );
+  //dPrintLinkedList( testList );
 }
