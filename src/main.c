@@ -11,17 +11,16 @@ int main( int argc, char* argv[] )
   for ( int i = 11; i < 20; i++ )
   {
     printf("%d\n", i);
-    dPush( &testList, &i, sizeof( int ) );
+    dPushFront( &testList, &i, sizeof( int ) );
   }
 
   dPrintLinkedList( testList );
 
   for ( int i = 0; i < 10; i++ )
   {
-    int *temp = dGetDataInLinkedListByIndex( testList, i );
+    int *temp = dPopFront( &testList );
     printf( "Should be: %d | Is: %d\n", i + 10, *temp );
   }
   
-  dClearLinkedList( testList );
   //dPrintLinkedList( testList );
 }

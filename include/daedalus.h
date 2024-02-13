@@ -158,8 +158,10 @@ extern dLinkedList* dCreateLinkedList( void *data, size_t size );
 extern void* dGetDataInLinkedListByIndex( dLinkedList *head, int index );
 extern void dRemoveNodeInLinkedListByIndex( dLinkedList *head, int index );
 extern void dClearLinkedList( dLinkedList *head );
-extern void dPush( dLinkedList **head, void *data, size_t size );
-extern void* dPop( dLinkedList *head );
+extern void dPushBack( dLinkedList *head, void *data, size_t size );
+extern void* dPopBack( dLinkedList *head );
+extern void dPushFront( dLinkedList **head, void *data, size_t size );
+extern void* dPopFront( dLinkedList **head );
 extern void dPrintLinkedList( dLinkedList *head );
 
 #endif

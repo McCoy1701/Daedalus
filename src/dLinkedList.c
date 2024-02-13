@@ -28,9 +28,17 @@ dLinkedList* dCreateLinkedList( void *data, size_t size )
   return newList;
 }
 
-void dPush( dLinkedList **head, void *data, size_t size )
+void dPushFront( dLinkedList **head, void *data, size_t size )
 {
-  dLinkedList *current = *head;
+  dLinkedList *temp = dCreateLinkedList( data, size );
+  
+  temp->next = *head;
+  *head = temp;
+}
+
+void dPushBack( dLinkedList *head, void *data, size_t size )
+{
+  dLinkedList *current = head;
   dLinkedList *newList = dCreateLinkedList( data, size );
 
   while ( current->next != NULL )
@@ -41,7 +49,25 @@ void dPush( dLinkedList **head, void *data, size_t size )
   current->next = newList;
 }
 
-void* dPop( dLinkedList *head )
+void* dPopFront( dLinkedList **head )
+{
+  dLinkedList *temp = NULL;
+  void *data;
+
+  if ( head == NULL )
+  {
+    exit(1);
+  }
+
+  temp = (*head)->next;
+  data = (*head)->data;
+  free( *head );
+  *head = temp;
+
+  return data;
+}
+
+void* dPopBack( dLinkedList *head )
 {
   dLinkedList *current = head;
   void *temp;
@@ -89,7 +115,7 @@ void dRemoveNodeInLinkedListByIndex( dLinkedList *head, int index )
 
   if ( current->next == NULL )
   {
-    return;
+    exit(1);
   }
 
   temp = current->next;
