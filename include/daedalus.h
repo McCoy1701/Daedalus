@@ -48,7 +48,7 @@ extern float dSqrt( float number ); //Quake fast inverse square root
 extern float dLength2f( const float *vec ); //Lenght of a vector 2f
 extern float dDistance2f( const float *a, const float *b ); //Distance between two vector 2fs
 extern float dDot2f( const float *a, const float *b ); //Dot product between two vector 2fs
-extern float dCross2f( float *output, const float *a, const float *b ); //Cross product of two vector 2fs
+extern float dCross2f( const float *a, const float *b ); //Cross product of two vector 2fs
 extern void dAddVec2f( float *output, const float *a, const float *b ); //Add two vector 2fs
 extern void dSubVec2f( float *output, const float *a, const float *b ); //Subtract two vector 2fs
 extern void dMinVec2f( float *output, const float *a, const float *b ); //Return the smaller of two vector 2fs
@@ -79,7 +79,7 @@ extern void dNormalize4f( float *vec ); //Normalize a vector 4f
 extern double dLength2d( const double *vec ); //Lenght of a vector 2d
 extern double dDistance2d( const double *a, const double *b ); //Distance between two vector 2ds
 extern double dDot2d( const double *a, const double *b ); //Dot product between two vector 2ds
-extern double dCross2d( double *output, const double *a, const double *b ); //Cross product of two vector 2ds
+extern double dCross2d( const double *a, const double *b ); //Cross product of two vector 2ds
 extern void dAddVec2d( double *output, const double *a, const double *b ); //Add two vector 2ds
 extern void dSubVec2d( double *output, const double *a, const double *b ); //Subtract two vector 2ds
 extern void dMinVec2d( double *output, const double *a, const double *b ); //Return the smaller of two vector 2ds
