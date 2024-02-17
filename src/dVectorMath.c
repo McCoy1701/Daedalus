@@ -154,8 +154,8 @@ void dLimitVec2f( float *a, const float value )
     a[0] /= temp;
     a[1] /= temp;
 
-    a[0] * value; //scale to value
-    a[1] * value;
+    a[0] *= value; //scale to value
+    a[1] *= value;
   }
 }
 
@@ -419,9 +419,9 @@ void dLimitVec3f( float *a, const float value )
     a[1] /= temp;
     a[2] /= temp;
 
-    a[0] * value; //scale to value
-    a[1] * value;
-    a[2] * value;
+    a[0] *= value; //scale to value
+    a[1] *= value;
+    a[2] *= value;
   }
 }
 
@@ -685,8 +685,8 @@ void dLimitVec2d( double *a, const double value )
     a[0] /= temp;
     a[1] /= temp;
 
-    a[0] * value; //scale to value
-    a[0] * value;
+    a[0] *= value; //scale to value
+    a[0] *= value;
   }
 }
 
@@ -950,9 +950,9 @@ void dLimitVec3d( double *a, const double value )
     a[1] /= temp;
     a[2] /= temp;
 
-    a[0] * value; //scale to value
-    a[1] * value;
-    a[2] * value;
+    a[0] *= value; //scale to value
+    a[1] *= value;
+    a[2] *= value;
   }
 }
 
@@ -1092,10 +1092,10 @@ void dNormalize4d( double *vec )
 
 /*---------------- Vector Integer Math ----------------*/
 
-long dSqrti( int number )
+/* long dSqrti( int number )
 {
 
-}
+} */
 
 void dIntersect2di( int *output, int *lineA0, int *lineA1,int *lineB0, int *lineB1 )
 {
@@ -1110,7 +1110,7 @@ void dIntersect2di( int *output, int *lineA0, int *lineA1,int *lineB0, int *line
   output[1] /= ( ( lineA0[0] - lineA1[0] ) * ( lineB0[1] - lineB1[1] ) ) - ( ( lineA0[1] - lineA1[1] ) * ( lineB0[0] - lineB1[0] ) );
 }
 
-unsigned char dNormalize2di( int *point, int multiplyer )
+/* unsigned char dNormalize2di( int *point, int multiplyer )
 {
 
 }
@@ -1118,4 +1118,4 @@ unsigned char dNormalize2di( int *point, int multiplyer )
 unsigned char dNormalize3di( int *point, int multiplyer )
 {
 
-}
+} */

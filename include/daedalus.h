@@ -1,6 +1,8 @@
 #ifndef __DAEDALUS_H__
 #define __DAEDALUS_H__
 
+#include <stdlib.h>
+
 #ifndef TRUE
 #define TRUE 1
 #endif
