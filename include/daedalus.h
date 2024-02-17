@@ -162,7 +162,9 @@ extern float getDeltaTime( unsigned int *currentTime, unsigned int *lastTime );
 
 extern dLinkedList* dCreateLinkedList( void *data, char *name, size_t size );
 extern void* dGetDataInLinkedListByIndex( dLinkedList *head, int index );
+extern void* dGetDataInLinkedListByName( dLinkedList *head, char *name );
 extern void dRemoveNodeInLinkedListByIndex( dLinkedList *head, int index );
+extern void dRemoveNodeInLinkedListByName( dLinkedList *head, char *name );
 extern void dClearLinkedList( dLinkedList *head );
 extern void dPushBack( dLinkedList *head, void *data, char *name, size_t size );
 extern void* dPopBack( dLinkedList *head );

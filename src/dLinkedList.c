@@ -104,6 +104,21 @@ void* dGetDataInLinkedListByIndex( dLinkedList *head, int index )
   return current->data;
 }
 
+void* dGetDataInLinkedListByName( dLinkedList *head, char *name )
+{
+  dLinkedList *current;
+
+  for ( current = head; current->next != NULL; current = current->next )
+  { 
+    if ( strcmp( current->buffer, name ) == 0 )
+    {
+      return current->data;
+    }
+  }
+  
+  return NULL;
+}
+
 void dRemoveNodeInLinkedListByIndex( dLinkedList *head, int index )
 {
   dLinkedList *current = head;
@@ -122,6 +137,22 @@ void dRemoveNodeInLinkedListByIndex( dLinkedList *head, int index )
   temp = current->next;
   current->next = temp->next;
   free( temp );
+}
+
+void dRemoveNodeInLinkedListByName( dLinkedList *head, char *name )
+{
+  dLinkedList *current;
+  dLinkedList *temp = NULL;
+
+  for ( current = head; current->next != NULL; current = current->next )
+  {
+    if ( strcmp( current->buffer, name ) == 0 )
+    { 
+      temp = current->next;
+      current->next = temp->next;
+      free( temp );
+    }
+  }
 }
 
 void dClearLinkedList( dLinkedList *head )
@@ -145,7 +176,7 @@ void dPrintLinkedList( dLinkedList *head )
 
   while( current != NULL )
   {
-    printf( "Data: %d\n", *( int * )current->data );
+    printf( "Data: %s\n", current->buffer );
     current = current->next;
   }
 }
