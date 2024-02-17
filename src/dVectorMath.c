@@ -217,10 +217,9 @@ float dDot2f( float *a, float *b )
   Returns:
     void
 */
-void dCross2f( float *output, float *a, float *b )
+float dCross2f( float *a, float *b )
 {
-  output[0] = a[1];
-  output[1] = -a[0];
+  return (a[0] * b[1] - a[1] * b[0]);
 }
 
 /*
@@ -748,10 +747,9 @@ double dDot2d( double *a, double *b )
   Returns:
     void
 */
-void dCross2d( double *output, double *a, double *b )
+double dCross2d( double *a, double *b )
 {
-  output[0] = a[1];
-  output[1] = -a[0];
+  return (a[0] * b[1] - a[1] * b[0]);
 }
 
 /*

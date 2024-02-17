@@ -48,6 +48,7 @@ extern float dSqrt( float number ); //Quake fast inverse square root
 extern float dLength2f( const float *vec ); //Lenght of a vector 2f
 extern float dDistance2f( const float *a, const float *b ); //Distance between two vector 2fs
 extern float dDot2f( const float *a, const float *b ); //Dot product between two vector 2fs
+extern float dCross2f( float *output, const float *a, const float *b ); //Cross product of two vector 2fs
 extern void dAddVec2f( float *output, const float *a, const float *b ); //Add two vector 2fs
 extern void dSubVec2f( float *output, const float *a, const float *b ); //Subtract two vector 2fs
 extern void dMinVec2f( float *output, const float *a, const float *b ); //Return the smaller of two vector 2fs
@@ -55,7 +56,6 @@ extern void dMaxVec2f( float *output, const float *a, const float *b ); //Return
 extern void dMultiplyVec2f( float *output, const float *a, const float value ); //Multiply a vector 2f by a value
 extern void dDivideVec2f( float *output, const float *a, const float value ); //Divide a vector 2f by a value
 extern void dLimitVec2f( float *a, const float value ); //Limit a vector 2f within a range
-extern void dCross2f( float *output, const float *a, const float *b ); //Cross product of two vector 2fs
 extern void dNormalize2f( float *vec ); //Normalize a vector 2f
 extern void dNormal2f( float *output, const float *a, const float *b ); //Create a normal vector from two vector 2fs
 extern void dIntersect2f( float *output, const float *lineA0, const float *lineA1, const float *lineB0, const float *lineB1 ); //Find the intersection between two vector 2fs
@@ -79,6 +79,7 @@ extern void dNormalize4f( float *vec ); //Normalize a vector 4f
 extern double dLength2d( const double *vec ); //Lenght of a vector 2d
 extern double dDistance2d( const double *a, const double *b ); //Distance between two vector 2ds
 extern double dDot2d( const double *a, const double *b ); //Dot product between two vector 2ds
+extern double dCross2d( double *output, const double *a, const double *b ); //Cross product of two vector 2ds
 extern void dAddVec2d( double *output, const double *a, const double *b ); //Add two vector 2ds
 extern void dSubVec2d( double *output, const double *a, const double *b ); //Subtract two vector 2ds
 extern void dMinVec2d( double *output, const double *a, const double *b ); //Return the smaller of two vector 2ds
@@ -86,7 +87,6 @@ extern void dMaxVec2d( double *output, const double *a, const double *b ); //Ret
 extern void dMultiplyVec2d( double *output, const double *a, const double value ); //Multiply a vector 2d by a value
 extern void dDivideVec2d( double *output, const double *a, const double value ); //Divide a vector 2d by a value
 extern void dLimitVec2d( double *a, const double value ); //Limit a vector 2d within a range
-extern void dCross2d( double *output, const double *a, const double *b ); //Cross product of two vector 2ds
 extern void dNormalize2d( double *vec ); //Normalize a vector 2d
 extern void dNormal2d( double *output, const double *a, const double *b ); //Create a normal vector from two vector 2ds
 extern void dIntersect2d( const double *output, const double *lineA0, const double *lineA1, const double *lineB0, const double *lineB1 ); //Find the intersection between two vector 2ds
