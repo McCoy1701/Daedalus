@@ -4,7 +4,7 @@
 
 #include "daedalus.h"
 
-dLinkedList* dCreateLinkedList( void *data, size_t size )
+dLinkedList* dCreateLinkedList( void *data, char *name, size_t size )
 {
   dLinkedList* newList = ( dLinkedList* )malloc( sizeof( dLinkedList ) );
   
@@ -23,23 +23,24 @@ dLinkedList* dCreateLinkedList( void *data, size_t size )
   }
   
   memcpy( newList->data, data, size );
+  STRNCPY( newList->buffer, name, MAX_FILENAME_LENGTH );
   newList->next = NULL;
   
   return newList;
 }
 
-void dPushFront( dLinkedList **head, void *data, size_t size )
+void dPushFront( dLinkedList **head, void *data, char *name, size_t size )
 {
-  dLinkedList *temp = dCreateLinkedList( data, size );
+  dLinkedList *temp = dCreateLinkedList( data, name, size );
   
   temp->next = *head;
   *head = temp;
 }
 
-void dPushBack( dLinkedList *head, void *data, size_t size )
+void dPushBack( dLinkedList *head, void *data, char *name, size_t size )
 {
   dLinkedList *current = head;
-  dLinkedList *newList = dCreateLinkedList( data, size );
+  dLinkedList *newList = dCreateLinkedList( data, name, size );
 
   while ( current->next != NULL )
   {

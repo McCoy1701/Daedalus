@@ -11,6 +11,9 @@
 #define FALSE 0
 #endif
 
+#define MAX_LINE_LENGTH     1024
+#define MAX_FILENAME_LENGTH 256
+
 typedef signed char    int8;
 typedef unsigned char  uint8;
 typedef signed short   int16;
@@ -28,6 +31,7 @@ typedef struct _deltaTime {
 
 typedef struct _dLinkedList {
   void *data;
+  char buffer[MAX_FILENAME_LENGTH];
   struct _dLinkedList *next;
 } dLinkedList;
 
@@ -156,13 +160,13 @@ extern float getDeltaTime( unsigned int *currentTime, unsigned int *lastTime );
 
 /* Linked List */
 
-extern dLinkedList* dCreateLinkedList( void *data, size_t size );
+extern dLinkedList* dCreateLinkedList( void *data, char *name, size_t size );
 extern void* dGetDataInLinkedListByIndex( dLinkedList *head, int index );
 extern void dRemoveNodeInLinkedListByIndex( dLinkedList *head, int index );
 extern void dClearLinkedList( dLinkedList *head );
-extern void dPushBack( dLinkedList *head, void *data, size_t size );
+extern void dPushBack( dLinkedList *head, void *data, char *name, size_t size );
 extern void* dPopBack( dLinkedList *head );
-extern void dPushFront( dLinkedList **head, void *data, size_t size );
+extern void dPushFront( dLinkedList **head, void *data, char *name, size_t size );
 extern void* dPopFront( dLinkedList **head );
 extern void dPrintLinkedList( dLinkedList *head );
 
