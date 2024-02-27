@@ -45,6 +45,8 @@ typedef struct _dLinkedList {
 
 #define RANDF(upper, lower) (((float)rand() / (float)(RAND_MAX)) * (upper - lower)) + lower
 
+#define MAP( vlaue, start0, start1, end0, end1 ) ( ( value - start0 ) * ( ( end1 - end0 ) / ( start1 - start0 ) ) + end0 )
+
 #define PI 3.14159265
 
 #define dSqrt sqrtf
