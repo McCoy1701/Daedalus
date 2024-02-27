@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS = -Iinclude/ -Wall -pedantic -lm
+CFLAGS = -Iinclude/ -Wall -Wextra -fPIC -pedantic -lm
 
 SRC_DIR=src
 INC_DIR=include

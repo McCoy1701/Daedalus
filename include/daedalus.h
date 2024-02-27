@@ -14,7 +14,7 @@
 #define MAX_LINE_LENGTH     1024
 #define MAX_FILENAME_LENGTH 256
 
-#define NULL ( ( void * ) 0 )
+//#define NULL ( ( void * ) 0 )
 
 typedef signed char    int8;
 typedef unsigned char  uint8;
