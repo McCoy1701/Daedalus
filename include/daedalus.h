@@ -1,7 +1,7 @@
 #ifndef __DAEDALUS_H__
 #define __DAEDALUS_H__
 
-#include <stdlib.h>
+//#include <stdlib.h>
 
 #ifndef TRUE
 #define TRUE 1
@@ -14,6 +14,8 @@
 #define MAX_LINE_LENGTH     1024
 #define MAX_FILENAME_LENGTH 256
 
+#define NULL ( ( void * ) 0 )
+
 typedef signed char    int8;
 typedef unsigned char  uint8;
 typedef signed short   int16;
@@ -23,6 +25,7 @@ typedef unsigned int   uint32;
 typedef float          real32;
 typedef double         real64;
 typedef unsigned char  boolean;
+typedef long unsigned int size_t;
 
 typedef struct _deltaTime {
   uint32 lastTime;

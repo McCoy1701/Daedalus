@@ -1,5 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
+/* #include <stdio.h>
+#include <stdlib.h> */
 #include <math.h>
 
 #ifndef __DAEDALUS_H__

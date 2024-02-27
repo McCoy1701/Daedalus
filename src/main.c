@@ -1,6 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#
+/*#include <stdio.h>
+#include <stdlib.h>*/
 
 #include "daedalus.h"
 
@@ -22,14 +21,18 @@ int main( int argc, char* argv[] )
 
   dPrintLinkedList( testList );
 
-/*   for ( int i = 0; i < 10; i++ )
+  for ( int i = 0; i < 9; i++ )
   {
     int *temp = dPopFront( &testList );
     printf( "Should be: %d | Is: %d\n", i + 10, *temp );
-  } */
+  }
   
-    int *temp = dGetDataInLinkedListByName( testList, "test13" );
-    printf( "Is: %d\n", *temp );
+  int *temp = dGetDataInLinkedListByName( testList, "test11" );
+  if ( temp == NULL )
+  {
+    exit(0);
+  }
+  printf( "Is: %d\n", *temp );
 
   //dPrintLinkedList( testList );
 }

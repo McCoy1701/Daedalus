@@ -32,22 +32,38 @@ dLinkedList* dCreateLinkedList( void *data, char *name, size_t size )
 void dPushFront( dLinkedList **head, void *data, char *name, size_t size )
 {
   dLinkedList *temp = dCreateLinkedList( data, name, size );
-  
-  temp->next = *head;
-  *head = temp;
+  if ( *head != NULL )
+  {
+    temp->next = *head;
+    *head = temp;
+  }
+
+  else
+  {
+    *head = temp;
+  }
 }
 
 void dPushBack( dLinkedList *head, void *data, char *name, size_t size )
 {
-  dLinkedList *current = head;
   dLinkedList *newList = dCreateLinkedList( data, name, size );
-
-  while ( current->next != NULL )
+  
+  if ( head != NULL )
   {
-    current = current->next;
+    dLinkedList *current = head;
+
+    while ( current->next != NULL )
+    {
+      current = current->next;
+    }
+
+    current->next = newList;
   }
 
-  current->next = newList;
+  else
+  {
+    head = newList;
+  }
 }
 
 void* dPopFront( dLinkedList **head )
@@ -108,7 +124,7 @@ void* dGetDataInLinkedListByName( dLinkedList *head, char *name )
 {
   dLinkedList *current;
 
-  for ( current = head; current->next != NULL; current = current->next )
+  for ( current = head; current != NULL; current = current->next )
   { 
     if ( strcmp( current->buffer, name ) == 0 )
     {
