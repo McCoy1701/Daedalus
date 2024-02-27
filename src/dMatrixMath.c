@@ -136,10 +136,10 @@ void dMatrixMultiplyf( float *output, const float *a, const float *b )
   output[15] = ( b[12] * a[3] ) + ( b[13] * a[7] ) + ( b[14] * a[11] ) + ( b[15] * a[15] );
 }
 
-void dMatrixInversef( float *output, const float *matrix )
+/* void dMatrixInversef( float *output, const float *matrix )
 {
 
-}
+} */
 
 /*
   Rotate a Matrix about the X Axis
@@ -442,10 +442,10 @@ void dMatrixMultiplyd( double *output, const double *a, const double *b )
   output[15] = ( b[12] * a[3] ) + ( b[13] * a[7] ) + ( b[14] * a[11] ) + ( b[15] * a[15] );
 }
 
-void dMatrixInversed( double* output, const double *matrix )
+/* void dMatrixInversed( double* output, const double *matrix )
 {
 
-}
+} */
 
 /*
   Rotate a Matrix about the X Axis

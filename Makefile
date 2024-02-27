@@ -12,9 +12,9 @@ OBJ_DIR=obj
 all: shared debug
 
 
-shared: $(OBJ_DIR)/dVectorMath.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dMatrixCreation.o $(OBJ_DIR)/dDeltaTime.o $(OBJ_DIR)/dLinkedList.o
+shared: $(OBJ_DIR)/dVectorMath.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dDeltaTime.o $(OBJ_DIR)/dLinkedList.o
 	mkdir -p $(BIN_DIR)
-	$(CC) -shared $(OBJ_DIR)/dVectorMath.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dMatrixCreation.o $(OBJ_DIR)/dDeltaTime.o $(OBJ_DIR)/dLinkedList.o -o $(BIN_DIR)/libdaedalus.so $(CFLAGS)
+	$(CC) -shared $(OBJ_DIR)/dVectorMath.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dDeltaTime.o $(OBJ_DIR)/dLinkedList.o -o $(BIN_DIR)/libdaedalus.so $(CFLAGS)
 
 
 $(OBJ_DIR)/dVectorMath.o: $(SRC_DIR)/dVectorMath.c
