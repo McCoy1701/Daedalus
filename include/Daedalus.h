@@ -60,6 +60,7 @@ extern float dDot2f( const float *a, const float *b ); //Dot product between two
 extern float dCross2f( const float *a, const float *b ); //Cross product of two vector 2fs
 extern void dAddVec2f( float *output, const float *a, const float *b ); //Add two vector 2fs
 extern void dSubVec2f( float *output, const float *a, const float *b ); //Subtract two vector 2fs
+extern void dVec2FromAnglef( float *output, float angle );
 extern void dMinVec2f( float *output, const float *a, const float *b ); //Return the smaller of two vector 2fs
 extern void dMaxVec2f( float *output, const float *a, const float *b ); //Return the larger of two vector 2fs
 extern void dMultiplyVec2f( float *output, const float *a, const float value ); //Multiply a vector 2f by a value
@@ -91,6 +92,7 @@ extern double dDot2d( const double *a, const double *b ); //Dot product between 
 extern double dCross2d( const double *a, const double *b ); //Cross product of two vector 2ds
 extern void dAddVec2d( double *output, const double *a, const double *b ); //Add two vector 2ds
 extern void dSubVec2d( double *output, const double *a, const double *b ); //Subtract two vector 2ds
+extern void dVec2FromAngled( double *output, double angle );
 extern void dMinVec2d( double *output, const double *a, const double *b ); //Return the smaller of two vector 2ds
 extern void dMaxVec2d( double *output, const double *a, const double *b ); //Return the larger of two vector 2ds
 extern void dMultiplyVec2d( double *output, const double *a, const double value ); //Multiply a vector 2d by a value

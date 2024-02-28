@@ -67,6 +67,12 @@ void dSubVec2f( float *output, const float *a, const float *b )
   output[1] = ( a[1] - b[1] );
 }
 
+void dVec2FromAnglef( float *output, float angle )
+{
+  output[0] = cosf(angle);
+  output[1] = sinf(angle);
+}
+
 /*
   Returns the smaller of the two vector 2fs
 
@@ -595,6 +601,12 @@ void dSubVec2d( double *output, const double *a, const double *b )
 {
   output[0] = ( a[0] - b[0] );
   output[1] = ( a[1] - b[1] );
+}
+
+void dVec2FromAngled( double *output, double angle )
+{
+  output[0] = cosf(angle);
+  output[1] = sinf(angle);
 }
 
 /*
