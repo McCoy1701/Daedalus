@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "daedalus.h"
+#include "Daedalus.h"
 
 dLinkedList* dCreateLinkedList( void *data, char *name, size_t size )
 {

@@ -14,7 +14,7 @@ all: shared debug
 
 shared: $(OBJ_DIR)/dVectorMath.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dDeltaTime.o $(OBJ_DIR)/dLinkedList.o
 	mkdir -p $(BIN_DIR)
-	$(CC) -shared $(OBJ_DIR)/dVectorMath.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dDeltaTime.o $(OBJ_DIR)/dLinkedList.o -o $(BIN_DIR)/libdaedalus.so $(CFLAGS)
+	$(CC) -shared $(OBJ_DIR)/dVectorMath.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dDeltaTime.o $(OBJ_DIR)/dLinkedList.o -o $(BIN_DIR)/libDaedalus.so $(CFLAGS)
 
 
 $(OBJ_DIR)/dVectorMath.o: $(SRC_DIR)/dVectorMath.c
@@ -34,12 +34,12 @@ $(OBJ_DIR)/dLinkedList.o: $(SRC_DIR)/dLinkedList.c
 	$(CC) -c $< -o $@ $(CFLAGS)
 
 install:
-	sudo cp $(BIN_DIR)/libdaedalus.so /usr/lib/libdaedalus.so
-	sudo cp $(INC_DIR)/daedalus.h /usr/include/daedalus.h
+	sudo cp $(BIN_DIR)/libDaedalus.so /usr/lib/libDaedalus.so
+	sudo cp $(INC_DIR)/Daedalus.h /usr/include/Daedalus.h
 
 uninstall:
-	sudo rm /usr/lib/libdaedalus.so
-	sudo rm /usr/include/daedalus.h
+	sudo rm /usr/lib/libDaedalus.so
+	sudo rm /usr/include/Daedalus.h
 
 
 debug: $(OBJ_DIR)/debug_main.o $(OBJ_DIR)/debug_dVectorMath.o $(OBJ_DIR)/debug_dMatrixMath.o $(OBJ_DIR)/debug_dMatrixCreation.o $(OBJ_DIR)/debug_dDeltaTime.o $(OBJ_DIR)/debug_dLinkedList.o

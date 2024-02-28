@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "daedalus.h"
+#include "Daedalus.h"
 
 /* Matrix Creation */
 void dMatrixXYf( float *output, const float *origin, const float *point0, const float *point1 )
