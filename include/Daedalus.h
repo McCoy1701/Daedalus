@@ -60,7 +60,7 @@ extern float dDot2f( const float *a, const float *b ); //Dot product between two
 extern float dCross2f( const float *a, const float *b ); //Cross product of two vector 2fs
 extern void dAddVec2f( float *output, const float *a, const float *b ); //Add two vector 2fs
 extern void dSubVec2f( float *output, const float *a, const float *b ); //Subtract two vector 2fs
-extern void dAddValueVec2f( float *output, const float value );
+extern void dAddOffsetVec2f( float *output, const float xOff, const float yOff );
 extern void dVec2FromAnglef( float *output, float angle );
 extern void dMinVec2f( float *output, const float *a, const float *b ); //Return the smaller of two vector 2fs
 extern void dMaxVec2f( float *output, const float *a, const float *b ); //Return the larger of two vector 2fs
@@ -76,7 +76,7 @@ extern float dDistance3f( const float *a, const float *b ); //Distance between t
 extern float dDot3f( const float *a, const float *b ); //Dot product between two vector 3fs
 extern void dAddVec3f( float *output, const float *a, const float *b ); //Add two vector 3fs
 extern void dSubVec3f( float *output, const float *a, const float *b ); //Subtract two vector 3fs
-extern void dAddValueVec3f( float *output, const float value );
+extern void dAddOffsetVec3f( float *output, const float xOff, const float yOff, const float zOff );
 extern void dMinVec3f( float *output, const float *a, const float *b ); //Return the smaller of two vector 3fs
 extern void dMaxVec3f( float *output, const float *a, const float *b ); //Return the larger of two vector 3fs
 extern void dMultiplyVec3f( float *output, const float value ); //Multiply a vector 3f by a value
@@ -94,7 +94,7 @@ extern double dDot2d( const double *a, const double *b ); //Dot product between 
 extern double dCross2d( const double *a, const double *b ); //Cross product of two vector 2ds
 extern void dAddVec2d( double *output, const double *a, const double *b ); //Add two vector 2ds
 extern void dSubVec2d( double *output, const double *a, const double *b ); //Subtract two vector 2ds
-extern void dAddValueVec2d( double *output, const double value );
+extern void dAddOffsetVec2d( double *output, const double xOff, const double yOff );
 extern void dVec2FromAngled( double *output, double angle );
 extern void dMinVec2d( double *output, const double *a, const double *b ); //Return the smaller of two vector 2ds
 extern void dMaxVec2d( double *output, const double *a, const double *b ); //Return the larger of two vector 2ds
@@ -110,7 +110,7 @@ extern double dDistance3d( const double *a, const double *b ); //Distance betwee
 extern double dDot3d( const double *a, const double *b ); //Dot product between two vector 3ds
 extern void dAddVec3d( double *output, const double *a, const double *b ); //Add two vector 3ds
 extern void dSubVec3d( double *output, const double *a, const double *b ); //Subtract two vector 3ds
-extern void dAddValueVec3d( double *output, const double value );
+extern void dAddOffsetVec3d( double *output, const double xOff, const double yOff, const double zOff );
 extern void dMinVec3d( double *output, const double *a, const double *b ); //Return the smaller of two vector 3ds
 extern void dMaxVec3d( double *output, const double *a, const double *b ); //Return the larger of two vector 3ds
 extern void dMultiplyVec3d( double *output, const double value ); //Multiply a vector 3d by a value
