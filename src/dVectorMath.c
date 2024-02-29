@@ -118,10 +118,10 @@ void dMaxVec2f( float *output, const float *a, const float *b )
   Returns:
     void
 */
-void dMultiplyVec2f( float *output, const float *a, const float value )
+void dMultiplyVec2f( float *output, const float value )
 {
-  output[0] = a[0] * value;
-  output[1] = a[1] * value;
+  output[0] *= value;
+  output[1] *= value;
 }
 
 /*
@@ -135,10 +135,10 @@ void dMultiplyVec2f( float *output, const float *a, const float value )
   Returns:
     void
 */
-void dDivideVec2f( float *output, const float *a, const float value )
+void dDivideVec2f( float *output, const float value )
 {
-  output[0] = a[0] / value;
-  output[1] = a[1] / value;
+  output[0] /= value;
+  output[1] /= value;
 }
 
 /*
@@ -379,11 +379,11 @@ void dMaxVec3f( float *output, const float *a, const float *b )
   Returns:
     void
 */
-void dMultiplyVec3f( float *output, const float *a, const float value )
+void dMultiplyVec3f( float *output, const float value )
 {
-  output[0] = a[0] * value;
-  output[1] = a[1] * value;
-  output[2] = a[2] * value;
+  output[0] *= value;
+  output[1] *= value;
+  output[2] *= value;
 }
 
 /*
@@ -397,11 +397,11 @@ void dMultiplyVec3f( float *output, const float *a, const float value )
   Returns:
     void
 */
-void dDivideVec3f( float *output, const float *a, const float value )
+void dDivideVec3f( float *output, const float value )
 {
-  output[0] = a[0] / value;
-  output[1] = a[1] / value;
-  output[2] = a[2] / value;
+  output[0] /= value;
+  output[1] /= value;
+  output[2] /= value;
 }
 
 /*
@@ -654,10 +654,10 @@ void dMaxVec2d( double *output, const double *a, const double *b )
   Returns:
     void
 */
-void dMultiplyVec2d( double *output, const double *a, const double value )
+void dMultiplyVec2d( double *output, const double value )
 {
-  output[0] = a[0] * value;
-  output[1] = a[1] * value;
+  output[0] *= value;
+  output[1] *= value;
 }
 
 /*
@@ -671,10 +671,10 @@ void dMultiplyVec2d( double *output, const double *a, const double value )
   Returns:
     void
 */
-void dDivideVec2d( double *output, const double *a, const double value )
+void dDivideVec2d( double *output, const double value )
 {
-  output[0] = a[0] / value;
-  output[1] = a[1] / value;
+  output[0] /= value;
+  output[1] /= value;
 }
 
 /*
@@ -915,11 +915,11 @@ void dMaxVec3d( double *output, const double *a, const double *b )
   Returns:
     void
 */
-void dMultiplyVec3d( double *output, const double *a, const double value )
+void dMultiplyVec3d( double *output, const double value )
 {
-  output[0] = a[0] * value;
-  output[1] = a[1] * value;
-  output[2] = a[2] * value;
+  output[0] *= value;
+  output[1] *= value;
+  output[2] *= value;
 }
 
 /*
@@ -933,11 +933,11 @@ void dMultiplyVec3d( double *output, const double *a, const double value )
   Returns:
     void
 */
-void dDivideVec3d( double *output, const double *a, const double value )
+void dDivideVec3d( double *output, const double value )
 {
-  output[0] = a[0] / value;
-  output[1] = a[1] / value;
-  output[2] = a[2] / value;
+  output[0] /= value;
+  output[1] /= value;
+  output[2] /= value;
 }
 
 /*

@@ -63,8 +63,8 @@ extern void dSubVec2f( float *output, const float *a, const float *b ); //Subtra
 extern void dVec2FromAnglef( float *output, float angle );
 extern void dMinVec2f( float *output, const float *a, const float *b ); //Return the smaller of two vector 2fs
 extern void dMaxVec2f( float *output, const float *a, const float *b ); //Return the larger of two vector 2fs
-extern void dMultiplyVec2f( float *output, const float *a, const float value ); //Multiply a vector 2f by a value
-extern void dDivideVec2f( float *output, const float *a, const float value ); //Divide a vector 2f by a value
+extern void dMultiplyVec2f( float *, const float value ); //Multiply a vector 2f by a value
+extern void dDivideVec2f( float *output, const float value ); //Divide a vector 2f by a value
 extern void dLimitVec2f( float *a, const float value ); //Limit a vector 2f within a range
 extern void dNormalize2f( float *vec ); //Normalize a vector 2f
 extern void dNormal2f( float *output, const float *a, const float *b ); //Create a normal vector from two vector 2fs
@@ -77,8 +77,8 @@ extern void dAddVec3f( float *output, const float *a, const float *b ); //Add tw
 extern void dSubVec3f( float *output, const float *a, const float *b ); //Subtract two vector 3fs
 extern void dMinVec3f( float *output, const float *a, const float *b ); //Return the smaller of two vector 3fs
 extern void dMaxVec3f( float *output, const float *a, const float *b ); //Return the larger of two vector 3fs
-extern void dMultiplyVec3f( float *output, const float *a, const float value ); //Multiply a vector 3f by a value
-extern void dDivideVec3f( float *output, const float *a, const float value ); //Divide a vector 3f by a value
+extern void dMultiplyVec3f( float *output, const float value ); //Multiply a vector 3f by a value
+extern void dDivideVec3f( float *output, const float value ); //Divide a vector 3f by a value
 extern void dLimitVec3f( float *a, const float value ); //Limit a vector 3f within a range
 extern void dCross3f( float *output, const float *a, const float *b ); //Cross product of two vector 3fs
 extern void dNormalize3f( float *vec ); //Normalize a vector 3f
@@ -95,8 +95,8 @@ extern void dSubVec2d( double *output, const double *a, const double *b ); //Sub
 extern void dVec2FromAngled( double *output, double angle );
 extern void dMinVec2d( double *output, const double *a, const double *b ); //Return the smaller of two vector 2ds
 extern void dMaxVec2d( double *output, const double *a, const double *b ); //Return the larger of two vector 2ds
-extern void dMultiplyVec2d( double *output, const double *a, const double value ); //Multiply a vector 2d by a value
-extern void dDivideVec2d( double *output, const double *a, const double value ); //Divide a vector 2d by a value
+extern void dMultiplyVec2d( double *output, const double value ); //Multiply a vector 2d by a value
+extern void dDivideVec2d( double *output, const double value ); //Divide a vector 2d by a value
 extern void dLimitVec2d( double *a, const double value ); //Limit a vector 2d within a range
 extern void dNormalize2d( double *vec ); //Normalize a vector 2d
 extern void dNormal2d( double *output, const double *a, const double *b ); //Create a normal vector from two vector 2ds
@@ -109,8 +109,8 @@ extern void dAddVec3d( double *output, const double *a, const double *b ); //Add
 extern void dSubVec3d( double *output, const double *a, const double *b ); //Subtract two vector 3ds
 extern void dMinVec3d( double *output, const double *a, const double *b ); //Return the smaller of two vector 3ds
 extern void dMaxVec3d( double *output, const double *a, const double *b ); //Return the larger of two vector 3ds
-extern void dMultiplyVec3d( double *output, const double *a, const double value ); //Multiply a vector 3d by a value
-extern void dDivideVec3d( double *output, const double *a, const double value ); //Divide a vector 3d by a value
+extern void dMultiplyVec3d( double *output, const double value ); //Multiply a vector 3d by a value
+extern void dDivideVec3d( double *output, const double value ); //Divide a vector 3d by a value
 extern void dLimitVec3d( double *a, const double value ); //Limit a vector 3d within a range
 extern void dCross3d( double *output, const double *a, const double *b ); //Cross product of two vector 3ds
 extern void dNormalize3d( double *vec ); //Normalize a vector 3d
