@@ -182,5 +182,6 @@ extern void* dPopBack( dLinkedList *head );
 extern void dPushFront( dLinkedList **head, void *data, char *name, size_t size );
 extern void* dPopFront( dLinkedList **head );
 extern void dPrintLinkedList( dLinkedList *head );
+extern int dGetLengthOfLinkedList( dLinkedList *head );
 
 #endif

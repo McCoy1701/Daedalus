@@ -196,3 +196,16 @@ void dPrintLinkedList( dLinkedList *head )
     current = current->next;
   }
 }
+
+int dGetLengthOfLinkedList( dLinkedList *head )
+{
+  dLinkedList *current = head;
+  int count = 0;
+
+  while( current != NULL )
+  {
+    current = current->next;
+    ++count;
+  }
+  return count;
+}
