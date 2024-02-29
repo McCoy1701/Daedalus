@@ -67,6 +67,12 @@ void dSubVec2f( float *output, const float *a, const float *b )
   output[1] = ( a[1] - b[1] );
 }
 
+void dAddValueVec2f( float *output, const float value )
+{
+  output[0] += value;
+  output[1] += value;
+}
+
 void dVec2FromAnglef( float *output, float angle )
 {
   output[0] = cosf(angle);
@@ -330,6 +336,13 @@ void dSubVec3f( float *output, const float *a, const float *b )
   output[0] = ( a[0] - b[0] );
   output[1] = ( a[1] - b[1] );
   output[2] = ( a[2] - b[2] );
+}
+
+void dAddValueVec3f( float *output, const float value )
+{
+  output[0] += value;
+  output[1] += value;
+  output[2] += value;
 }
 
 /*
@@ -603,6 +616,12 @@ void dSubVec2d( double *output, const double *a, const double *b )
   output[1] = ( a[1] - b[1] );
 }
 
+void dAddValueVec2d( double *output, const double value )
+{
+  output[0] += value;
+  output[1] += value;
+}
+
 void dVec2FromAngled( double *output, double angle )
 {
   output[0] = cosf(angle);
@@ -866,6 +885,13 @@ void dSubVec3d( double *output, const double *a, const double *b )
   output[0] = ( a[0] - b[0] );
   output[1] = ( a[1] - b[1] );
   output[2] = ( a[2] - b[2] );
+}
+
+void dAddValueVec3d( double *output, const double value )
+{
+  output[0] += value;
+  output[1] += value;
+  output[2] += value;
 }
 
 /*
