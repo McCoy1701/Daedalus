@@ -44,7 +44,6 @@ typedef struct _dLinkedList {
 #define STRNCPY(dest, src, n) strncpy(dest, src, n); dest[n - 1] = '\0'
 
 #define RANDF(lower, upper) (((float)rand() / (float)(RAND_MAX)) * (upper - lower)) + lower
-#define RAND(lower, upper) (((int)rand() / (int)(RAND_MAX)) * (upper - lower)) + lower
 
 #define MAP( value, start0, start1, end0, end1 ) ( ( value - start0 ) * ( ( end1 - end0 ) / ( start1 - start0 ) ) + end0 )
 
