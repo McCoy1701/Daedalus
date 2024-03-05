@@ -1,10 +1,8 @@
-/* #include <stdio.h>
-#include <stdlib.h> */
+#include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 
-#ifndef __DAEDALUS_H__
-#define PI 3.14159265
-#endif
+#include "Daedalus.h"
 
 /* Matrix Operations */
 
@@ -50,11 +48,11 @@ void dMatrixClearf( float *matrix )
   Returns:
     void
 */
-void dMatrixTransform3f( float *output, const float *matrix, const float x, const float y, const float z )
+void dMatrixTransform3f( float *output, const float *matrix, const float *vec )
 {
-  output[0] = ( matrix[0] * x ) + ( matrix[4] * y ) + ( matrix[8]  * z ) + matrix[12];
-  output[1] = ( matrix[1] * x ) + ( matrix[5] * y ) + ( matrix[9]  * z ) + matrix[13];
-  output[2] = ( matrix[2] * x ) + ( matrix[6] * y ) + ( matrix[10] * z ) + matrix[14];
+  output[0] = ( matrix[0] * vec[0] ) + ( matrix[4] * vec[1] ) + ( matrix[8]  * vec[2] ) + matrix[12];
+  output[1] = ( matrix[1] * vec[0] ) + ( matrix[5] * vec[1] ) + ( matrix[9]  * vec[2] ) + matrix[13];
+  output[2] = ( matrix[2] * vec[0] ) + ( matrix[6] * vec[1] ) + ( matrix[10] * vec[2] ) + matrix[14];
 }
 
 /*
@@ -70,14 +68,14 @@ void dMatrixTransform3f( float *output, const float *matrix, const float x, cons
   Returns:
     void
 */
-void dMatrixInverseTransform3f( float *output, const float *matrix, float x, float y, float z )
+void dMatrixInverseTransform3f( float *output, const float *matrix, float *vec )
 {
-  x -= matrix[12];
-  y -= matrix[13];
-  z -= matrix[14];
-  output[0] = ( matrix[0] * x ) + ( matrix[1] * y ) + ( matrix[2]  * z );
-  output[1] = ( matrix[4] * x ) + ( matrix[5] * y ) + ( matrix[6]  * z );
-  output[2] = ( matrix[8] * x ) + ( matrix[9] * y ) + ( matrix[10] * z );
+  vec[0] -= matrix[12];
+  vec[1] -= matrix[13];
+  vec[2] -= matrix[14];
+  output[0] = ( matrix[0] * vec[0] ) + ( matrix[1] * vec[1] ) + ( matrix[2]  * vec[2] );
+  output[1] = ( matrix[4] * vec[0] ) + ( matrix[5] * vec[1] ) + ( matrix[6]  * vec[2] );
+  output[2] = ( matrix[8] * vec[0] ) + ( matrix[9] * vec[1] ) + ( matrix[10] * vec[2] );
 }
 
 /*
@@ -94,12 +92,12 @@ void dMatrixInverseTransform3f( float *output, const float *matrix, float x, flo
   Returns:
     void
 */
-void dMatrixTransform4f( float *output, const float *matrix, const float x, const float y, const float z, const float w )
+void dMatrixTransform4f( float *output, const float *matrix, const float *vec4 )
 {
-  output[0] = ( matrix[0] * x ) + ( matrix[4] * y ) + ( matrix[8]  * z ) + ( matrix[12] * w );
-  output[1] = ( matrix[1] * x ) + ( matrix[5] * y ) + ( matrix[9]  * z ) + ( matrix[13] * w );
-  output[2] = ( matrix[2] * x ) + ( matrix[6] * y ) + ( matrix[10] * z ) + ( matrix[14] * w );
-  output[3] = ( matrix[3] * x ) + ( matrix[7] * y ) + ( matrix[11] * z ) + ( matrix[15] * w );
+  output[0] = ( matrix[0] * vec4[0] ) + ( matrix[4] * vec4[1] ) + ( matrix[8]  * vec4[2] ) + ( matrix[12] * vec4[3] );
+  output[1] = ( matrix[1] * vec4[0] ) + ( matrix[5] * vec4[1] ) + ( matrix[9]  * vec4[2] ) + ( matrix[13] * vec4[3] );
+  output[2] = ( matrix[2] * vec4[0] ) + ( matrix[6] * vec4[1] ) + ( matrix[10] * vec4[2] ) + ( matrix[14] * vec4[3] );
+  output[3] = ( matrix[3] * vec4[0] ) + ( matrix[7] * vec4[1] ) + ( matrix[11] * vec4[2] ) + ( matrix[15] * vec4[3] );
 }
 
 /*
@@ -252,7 +250,7 @@ void dMatrixRotateZf( float *matrix, const float angleRad )
   Returns:
     void
 */
-void dMatrixTranslation3f( float *matrix, const float x, const float y, const float z )
+void dMatrixTranslation3f( float *matrix, const float *vec )
 {
   matrix[0]  = 1.0f;
   matrix[1]  = 0.0f;
@@ -269,9 +267,9 @@ void dMatrixTranslation3f( float *matrix, const float x, const float y, const fl
   matrix[10] = 1.0f;
   matrix[11] = 0.0f;
 
-  matrix[12] = x;
-  matrix[13] = y;
-  matrix[14] = z;
+  matrix[12] = vec[0];
+  matrix[13] = vec[1];
+  matrix[14] = vec[2];
   matrix[15] = 1.0f;
 }
 
@@ -356,11 +354,11 @@ void dMatrixCleard( double *matrix )
   Returns:
     void
 */
-void dMatrixTransform3d( double *output, const double *matrix, const double x, const double y, const double z )
+void dMatrixTransform3d( double *output, const double *matrix, const double *vec )
 {
-  output[0] = ( matrix[0] * x ) + ( matrix[4] * y ) + ( matrix[8]  * z ) + matrix[12];
-  output[1] = ( matrix[1] * x ) + ( matrix[5] * y ) + ( matrix[9]  * z ) + matrix[13];
-  output[2] = ( matrix[2] * x ) + ( matrix[6] * y ) + ( matrix[10] * z ) + matrix[14];
+  output[0] = ( matrix[0] * vec[0] ) + ( matrix[4] * vec[1] ) + ( matrix[8]  * vec[2] ) + matrix[12];
+  output[1] = ( matrix[1] * vec[0] ) + ( matrix[5] * vec[1] ) + ( matrix[9]  * vec[2] ) + matrix[13];
+  output[2] = ( matrix[2] * vec[0] ) + ( matrix[6] * vec[1] ) + ( matrix[10] * vec[2] ) + matrix[14];
 }
 
 /*
@@ -376,14 +374,14 @@ void dMatrixTransform3d( double *output, const double *matrix, const double x, c
   Returns:
     void
 */
-void dMatrixInverseTransform3d( double *output, const double *matrix, double x, double y, double z )
+void dMatrixInverseTransform3d( double *output, const double *matrix, double *vec )
 {
-  x -= matrix[12];
-  y -= matrix[13];
-  z -= matrix[14];
-  output[0] = ( matrix[0] * x ) + ( matrix[1] * y ) + ( matrix[2]  * z );
-  output[1] = ( matrix[4] * x ) + ( matrix[5] * y ) + ( matrix[6]  * z );
-  output[2] = ( matrix[8] * x ) + ( matrix[9] * y ) + ( matrix[10] * z );
+  vec[0] -= matrix[12];
+  vec[1] -= matrix[13];
+  vec[2] -= matrix[14];
+  output[0] = ( matrix[0] * vec[0] ) + ( matrix[1] * vec[1] ) + ( matrix[2]  * vec[2] );
+  output[1] = ( matrix[4] * vec[0] ) + ( matrix[5] * vec[1] ) + ( matrix[6]  * vec[2] );
+  output[2] = ( matrix[8] * vec[0] ) + ( matrix[9] * vec[1] ) + ( matrix[10] * vec[2] );
 }
 
 /*
@@ -400,12 +398,12 @@ void dMatrixInverseTransform3d( double *output, const double *matrix, double x, 
   Returns:
     void
 */
-void dMatrixTransform4d( double *output, const double *matrix, const double x, const double y, const double z, const double w )
+void dMatrixTransform4d( double *output, const double *matrix, const double *vec4 )
 {
-  output[0] = ( matrix[0] * x ) + ( matrix[4] * y ) + ( matrix[8]  * z ) + ( matrix[12] * w );
-  output[1] = ( matrix[1] * x ) + ( matrix[5] * y ) + ( matrix[9]  * z ) + ( matrix[13] * w );
-  output[2] = ( matrix[2] * x ) + ( matrix[6] * y ) + ( matrix[10] * z ) + ( matrix[14] * w );
-  output[3] = ( matrix[3] * x ) + ( matrix[7] * y ) + ( matrix[11] * z ) + ( matrix[15] * w );
+  output[0] = ( matrix[0] * vec4[0] ) + ( matrix[4] * vec4[1] ) + ( matrix[8]  * vec4[2] ) + ( matrix[12] * vec4[3] );
+  output[1] = ( matrix[1] * vec4[0] ) + ( matrix[5] * vec4[1] ) + ( matrix[9]  * vec4[2] ) + ( matrix[13] * vec4[3] );
+  output[2] = ( matrix[2] * vec4[0] ) + ( matrix[6] * vec4[1] ) + ( matrix[10] * vec4[2] ) + ( matrix[14] * vec4[3] );
+  output[3] = ( matrix[3] * vec4[0] ) + ( matrix[7] * vec4[1] ) + ( matrix[11] * vec4[2] ) + ( matrix[15] * vec4[3] );
 }
 
 /*
@@ -558,7 +556,7 @@ void dMatrixRotateZd( double *matrix, const double angleRad )
   Returns:
     void
 */
-void dMatrixTranslation3d( double *matrix, const double x, const double y, const double z )
+void dMatrixTranslation3d( double *matrix, const double *vec )
 {
   matrix[0]  = 1;
   matrix[1]  = 0;
@@ -575,9 +573,9 @@ void dMatrixTranslation3d( double *matrix, const double x, const double y, const
   matrix[10] = 1;
   matrix[11] = 0;
 
-  matrix[12] = x;
-  matrix[13] = y;
-  matrix[14] = z;
+  matrix[12] = vec[0];
+  matrix[13] = vec[1];
+  matrix[14] = vec[2];
   matrix[15] = 1;
 }
 

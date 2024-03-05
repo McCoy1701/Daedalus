@@ -141,25 +141,25 @@ extern void dMatrixClearf( float *matrix ); //Clear a 4x4 matrix to an identity 
 extern void dMatrixRotateXf( float *matrix, const float angleRad ); //Rotate matrix by angle in radians about the x axis
 extern void dMatrixRotateYf( float *matrix, const float angleRad ); //Rotate matrix by angle in radians about the y axis
 extern void dMatrixRotateZf( float *matrix, const float angleRad ); //Rotate matrix by angle in radians about the z axis
-extern void dMatrixTransform3f( float *output, const float *matrix, const float x, const float y, const float z ); //Transform a 3D point into a 4x4 matrix 
+extern void dMatrixTransform3f( float *output, const float *matrix, const float *vec ); //Transform a 3D point into a 4x4 matrix 
 extern void dMatrixProjectionf( float *matrix, const float aspectRatio, const float fov, const float near, const float far ); //Create a projection matrix 
-extern void dMatrixInverseTransform3f( float *output, const float *matrix, const float x, const float y, const float z ); //Inverse transform 3D point into a 4x4 matrix
+extern void dMatrixInverseTransform3f( float *output, const float *matrix, float *vec ); //Inverse transform 3D point into a 4x4 matrix
 extern void dMatrixMultiplyf( float *output, const float *a, const float *b ); //Multiply two 4x4 Matrices together
-extern void dMatrixInversef( float *output, const float *matrix ); //Inverse of current matrix
-extern void dMatrixTranslation3f( float *matrix, const float x, const float y, const float z ); //Translate a matrix by a 3D point
-extern void dMatrixTransform4f( float *output, const float *matrix, const float x, const float y, const float z, const float w ); //Transform a 4D point into a 4x4 matrix
+//extern void dMatrixInversef( float *output, const float *matrix ); //Inverse of current matrix
+extern void dMatrixTranslation3f( float *matrix, const float *vec ); //Translate a matrix by a 3D point
+extern void dMatrixTransform4f( float *output, const float *matrix, const float *vec4 ); //Transform a 4D point into a 4x4 matrix
 
-extern void dMatrixCleard( float *matrix ); //Clear a 4x4 matrix to an identity matrix
+extern void dMatrixCleard( double *matrix ); //Clear a 4x4 matrix to an identity matrix
 extern void dMatrixRotateYd( double *matrix, const double angleRad ); //Rotate matrix by angle in radians about the x axis
 extern void dMatrixRotateXd( double *matrix, const double angleRad ); //Rotate matrix by angle in radians about the y axis
 extern void dMatrixRotateZd( double *matrix, const double angleRad ); //Rotate matrix by angle in radians about the z axis
-extern void dMatrixTransform3d( double *output, const double *matrix, const double x, const double y, const double z ); //Transform a 3D point into a 4x4 matrix 
+extern void dMatrixTransform3d( double *output, const double *matrix, const double *vec ); //Transform a 3D point into a 4x4 matrix 
 extern void dMatrixProjectiond( double *matrix, const double aspectRatio, const double fov, const double near, const double far ); //Create a projection matrix 
-extern void dMatrixInverseTransform3d( double *output, const double *matrix, double x, double y, double z ); //Inverse transform 3D point into a 4x4 matrix
+extern void dMatrixInverseTransform3d( double *output, const double *matrix, double *vec ); //Inverse transform 3D point into a 4x4 matrix
 extern void dMatrixMultiplyd( double *output, const double *a, const double *b ); //Multiply two 4x4 Matrices together
-extern void dMatrixInversed( double* output, const double *matrix ); //Inverse of current matrix
-extern void dMatrixTranslation3d( double *matrix, const double x, const double y, const double z ); //Translate a matrix by a 3D point
-extern void dMatrixTransform4d( double *output, const double *matrix, const double x, const double y, const double z, const double w ); //Transform a 4D point into a 4x4 matrix
+//extern void dMatrixInversed( double* output, const double *matrix ); //Inverse of current matrix
+extern void dMatrixTranslation3d( double *matrix, const double *vec ); //Translate a matrix by a 3D point
+extern void dMatrixTransform4d( double *output, const double *matrix, const double *vec4 ); //Transform a 4D point into a 4x4 matrix
 
 /* Matrix Creation */
 extern void dMatrixXYf( float *output, const float *origin, const float *point0, const float *point1 );
