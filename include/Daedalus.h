@@ -149,7 +149,7 @@ extern void dMatrixClearf( float *matrix ); //Clear a 4x4 matrix to an identity 
 extern void dMatrixRotateXf( float *matrix, const float angleRad ); //Rotate matrix by angle in radians about the x axis
 extern void dMatrixRotateYf( float *matrix, const float angleRad ); //Rotate matrix by angle in radians about the y axis
 extern void dMatrixRotateZf( float *matrix, const float angleRad ); //Rotate matrix by angle in radians about the z axis
-extern void dMatrixTransform3f( float *output, const float *matrix, const dVec4 vec ); //Transform a 3D point into a 4x4 matrix 
+extern void dMatrixTransform3f( float *output, const float *matrix, const float *vec ); //Transform a 3D point into a 4x4 matrix 
 extern void dMatrixProjectionf( float *matrix, const float aspectRatio, const float fov, const float near, const float far ); //Create a projection matrix 
 extern void dMatrixInverseTransform3f( float *output, const float *matrix, float *vec ); //Inverse transform 3D point into a 4x4 matrix
 extern void dMatrixMultiplyf( float *output, const float *a, const float *b ); //Multiply two 4x4 Matrices together
