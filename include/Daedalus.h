@@ -47,6 +47,14 @@ typedef struct _dQuadTree
   dLinkedList *objects;
 } dQuadTree;
 
+typedef struct _dVec4
+{
+  float x;
+  float y;
+  float z;
+  float w;
+} dVec4;
+
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
@@ -141,7 +149,7 @@ extern void dMatrixClearf( float *matrix ); //Clear a 4x4 matrix to an identity 
 extern void dMatrixRotateXf( float *matrix, const float angleRad ); //Rotate matrix by angle in radians about the x axis
 extern void dMatrixRotateYf( float *matrix, const float angleRad ); //Rotate matrix by angle in radians about the y axis
 extern void dMatrixRotateZf( float *matrix, const float angleRad ); //Rotate matrix by angle in radians about the z axis
-extern void dMatrixTransform3f( float *output, const float *matrix, const float *vec ); //Transform a 3D point into a 4x4 matrix 
+extern void dMatrixTransform3f( float *output, const float *matrix, const dVec4 vec ); //Transform a 3D point into a 4x4 matrix 
 extern void dMatrixProjectionf( float *matrix, const float aspectRatio, const float fov, const float near, const float far ); //Create a projection matrix 
 extern void dMatrixInverseTransform3f( float *output, const float *matrix, float *vec ); //Inverse transform 3D point into a 4x4 matrix
 extern void dMatrixMultiplyf( float *output, const float *a, const float *b ); //Multiply two 4x4 Matrices together
@@ -160,6 +168,11 @@ extern void dMatrixMultiplyd( double *output, const double *a, const double *b )
 //extern void dMatrixInversed( double* output, const double *matrix ); //Inverse of current matrix
 extern void dMatrixTranslation3d( double *matrix, const double *vec ); //Translate a matrix by a 3D point
 extern void dMatrixTransform4d( double *output, const double *matrix, const double *vec4 ); //Transform a 4D point into a 4x4 matrix
+
+extern void dMatrixTransformVec3f( dVec4 output, const float *matrix, const dVec4 vec ); //Transform a 3D point into a 4x4 matrix 
+extern void dMatrixTranslateVec4f( float *matrix, const dVec4 vec ); //Translate a matrix by a 4D point
+extern void dMatrixInverseTransformVec3f( dVec4 output, const float *matrix, dVec4 vec ); //Inverse transform 3D point into a 4x4 matrix
+extern void dMatrixTransformVec4f( dVec4 output, const float *matrix, const dVec4 vec4 ); //Transform a 4D point into a 4x4 matrix
 
 /* Matrix Creation */
 extern void dMatrixXYf( float *output, const float *origin, const float *point0, const float *point1 );
