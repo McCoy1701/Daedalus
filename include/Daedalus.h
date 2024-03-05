@@ -27,16 +27,25 @@ typedef double         real64;
 typedef unsigned char  boolean;
 typedef long unsigned int size_t;
 
-typedef struct _deltaTime {
+typedef struct _deltaTime
+{
   uint32 lastTime;
   uint32 currentTime;
 } DeltaTime;
 
-typedef struct _dLinkedList {
+typedef struct _dLinkedList
+{
   void *data;
   char buffer[MAX_FILENAME_LENGTH];
   struct _dLinkedList *next;
 } dLinkedList;
+
+typedef struct _dQuadTree
+{
+  float rect[4];
+  int capacity;
+  dLinkedList *objects;
+} dQuadTree;
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
@@ -183,5 +192,11 @@ extern void dPushFront( dLinkedList **head, void *data, char *name, size_t size 
 extern void* dPopFront( dLinkedList **head );
 extern void dPrintLinkedList( dLinkedList *head );
 extern int dGetLengthOfLinkedList( dLinkedList *head );
+
+/* Quad Tree */
+
+extern dQuadTree *dCreateQuadTree( float *rect, int capacity );
+extern void dInsertObjectInQuadTree( dQuadTree *tree, void *object );
+extern void dSubdivideQuadTree( dQuadTree *tree );
 
 #endif

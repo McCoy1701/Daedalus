@@ -6,7 +6,7 @@ INC_DIR=include
 BIN_DIR=bin
 OBJ_DIR=obj
 
-.PHONY: all clean install uninstall
+.PHONY: all clean install uninstall updateHeader
 
 
 all: shared debug
@@ -40,6 +40,9 @@ install:
 uninstall:
 	sudo rm /usr/lib/libDaedalus.so
 	sudo rm /usr/include/Daedalus.h
+
+updateHeader:
+	sudo cp $(INC_DIR)/Daedalus.h /usr/include/Daedalus.h
 
 
 debug: $(OBJ_DIR)/debug_main.o $(OBJ_DIR)/debug_dVectorMath.o $(OBJ_DIR)/debug_dMatrixMath.o $(OBJ_DIR)/debug_dMatrixCreation.o $(OBJ_DIR)/debug_dDeltaTime.o $(OBJ_DIR)/debug_dLinkedList.o
