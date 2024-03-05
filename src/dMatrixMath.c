@@ -288,7 +288,7 @@ void dMatrixTranslation3f( float *matrix, const float x, const float y, const fl
   Returns:
     void
 */
-void dMatrixProjectionf( float *matrix, const float aspectRatio, const float fov, const float far, const float near )
+void dMatrixProjectionf( float *matrix, const float aspectRatio, const float fov, const float near, const float far )
 {
   float fovRad = 1.0f / tanf( fov * 0.5f / 180.0f * PI );
   matrix[0]  = aspectRatio * fovRad;
@@ -594,7 +594,7 @@ void dMatrixTranslation3d( double *matrix, const double x, const double y, const
   Returns:
     void
 */
-void dMatrixProjectiond( double *matrix, const double aspectRatio, const double fov, const double far, const double near )
+void dMatrixProjectiond( double *matrix, const double aspectRatio, const double fov, const double near, const double far )
 {
   double fovRad = 1 / tan( fov * 0.5 / 180 * PI );
   matrix[0]  = aspectRatio * fovRad;
