@@ -68,7 +68,6 @@ extern float d_dot_product_dVec2f( const dVec2_t a, const dVec2_t b ); //Dot pro
 extern float d_cross_product_dVec2f( const dVec2_t a, const dVec2_t b ); //Cross product of two vector 2fs
 extern void  d_add_two_dVec2f( dVec2_t *output, const dVec2_t a, const dVec2_t b ); //Add two vector 2fs
 extern void  d_sub_two_dVec2f( dVec2_t *output, const dVec2_t a, const dVec2_t b ); //Subtract two vector 2fs
-extern void  d_add_offset_dVec2f( dVec2_t *output, const float xOff, const float yOff );
 extern void  d_get_dVec2f_from_anglef( dVec2_t *output, float angle );
 extern void  d_scale_multiply_dVec2f( dVec2_t *output, const float value ); //Multiply a vector 2f by a value
 extern void  d_scale_divide_dVec2f( dVec2_t *output, const float value ); //Divide a vector 2f by a value
@@ -83,26 +82,25 @@ extern float d_dot_product_dVec3f( const dVec3_t a, const dVec3_t b ); //Dot pro
 extern void  d_cross_product_dVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b ); //Cross product of two vector 3fs
 extern void  d_add_two_dVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b ); //Add two vector 3fs
 extern void  d_sub_two_dVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b ); //Subtract two vector 3fs
-extern void  d_add_offset_dVec3f( dVec3_t *output, const float xOff, const float yOff, const float zOff );
 extern void  d_scale_multiply_dVec3f( dVec3_t *output, const float value ); //Multiply a vector 3f by a value
 extern void  d_scale_divide_dVec3f( dVec3_t *output, const float value ); //Divide a vector 3f by a value
 extern void  d_limit_dVec3f( dVec3_t *a, const float value ); //Limit a vector 3f within a range
 extern void  d_normalize_dVec3f( dVec3_t *vec ); //Normalize a vector 3f
 extern void  d_create_normal_dVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b, const dVec3_t c ); //Create a normal vector from two vector 3fs
-extern void  d_normalize_dVec4f( dVec3_t *vec ); //Normalize a vector 4f
+extern void  d_normalize_dVec4f( dVec4_t *vec ); //Normalize a vector 4f
 
 /* Matrix Operations */
 extern void d_matrix_clearf( dMat4x4_t *matrix ); //Clear a 4x4 matrix to an identity matrix
-extern void d_matrix_multiplyf( dMat4x4_t *output, const dMat4x4_t a, const dMat4x4_t b ); //Multiply two 4x4 Matrices together
 extern void d_matrix_rotate_xf( dMat4x4_t *matrix, const float angleRad ); //Rotate matrix by angle in radians about the x axis
 extern void d_matrix_rotate_yf( dMat4x4_t *matrix, const float angleRad ); //Rotate matrix by angle in radians about the y axis
 extern void d_matrix_rotate_zf( dMat4x4_t *matrix, const float angleRad ); //Rotate matrix by angle in radians about the z axis
 extern void d_matrix_create_projectionf( dMat4x4_t *matrix, const float aspectRatio, const float fov, const float near, const float far ); //Create a projection matrix 
-extern void d_matrix_multiply_dVec3f( dVec3_t *output, const dMat4x4_t matrix, const dVec3_t vec ); //Transform a 3D point into a 4x4 matrix 
+extern void d_matrix_multiplyf( dMat4x4_t *output, const dMat4x4_t a, const dMat4x4_t b ); //Multiply two 4x4 Matrices together
 extern void d_matrix_translate_dVec3f( dMat4x4_t *matrix, const dVec3_t vec ); //Translate a matrix by a 3D point
+extern void d_matrix_translate_dVec4f( dMat4x4_t *matrix, const dVec4_t vec ); //Translate a matrix by a 4D point
+extern void d_matrix_multiply_dVec3f( dVec3_t *output, const dMat4x4_t matrix, const dVec3_t vec ); //Transform a 3D point into a 4x4 matrix 
 extern void d_matrix_inverse_transform_dVec3f( dVec3_t *output, const dMat4x4_t matrix, dVec3_t vec ); //Inverse transform 3D point into a 4x4 matrix
 extern void d_matrix_multiply_dVec4f( dVec4_t *output, const dMat4x4_t matrix, const dVec4_t vec4 ); //Transform a 4D point into a 4x4 matrix
-extern void d_matrix_translate_dVec4f( dMat4x4_t *matrix, const dVec4_t vec ); //Translate a matrix by a 4D point
 
 /* Matrix Creation */
 extern void d_matrix_XYf( dMat4x4_t output, const dVec3_t origin, const dVec3_t point0, const dVec3_t point1 );

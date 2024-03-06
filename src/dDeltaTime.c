@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-float getDeltaTime( unsigned int *currentTime, unsigned int *lastTime )
+float d_get_delta_time( unsigned int *currentTime, unsigned int *lastTime )
 {
   unsigned int elapsedTime = currentTime - lastTime;
   *lastTime = *currentTime;

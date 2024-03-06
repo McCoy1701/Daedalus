@@ -4,62 +4,33 @@
 #include "Daedalus.h"
 
 /* Matrix Creation */
-void dMatrixXYf( float *output, const float *origin, const float *point0, const float *point1 )
+void d_matrix_XYf( dMat4x4_t output, const dVec3_t origin, const dVec3_t point0, const dVec3_t point1 )
 {
 
 }
 
-void dMatrixXZf( float *output, const float *origin, const float *point0, const float *point1 )
+void d_matrix_XZf( dMat4x4_t output, const dVec3_t origin, const dVec3_t point0, const dVec3_t point1 )
 {
 
 }
 
-void dMatrixYXf( float *output, const float *origin, const float *point0, const float *point1 )
+void d_matrix_YXf( dMat4x4_t output, const dVec3_t origin, const dVec3_t point0, const dVec3_t point1 )
 {
 
 }
 
-void dMatrixYZf( float *output, const float *origin, const float *point0, const float *point1 )
+void d_matrix_YZf( dMat4x4_t output, const dVec3_t origin, const dVec3_t point0, const dVec3_t point1 )
 {
 
 }
 
-void dMatrixZXf( float *output, const float *origin, const float *point0, const float *point1 )
+void d_matrix_ZXf( dMat4x4_t output, const dVec3_t origin, const dVec3_t point0, const dVec3_t point1 )
 {
 
 }
 
-void dMatrixZYf( float *output, const float *origin, const float *point0, const float *point1 )
+void d_matrix_ZYf( dMat4x4_t output, const dVec3_t origin, const dVec3_t point0, const dVec3_t point1 )
 {
 
 }
 
-
-void dMatrixXYd( double *output, const double *origin, const double *point0, const double *point1 )
-{
-
-}
-
-void dMatrixXZd( double *output, const double *origin, const double *point0, const double *point1 )
-{
-
-}
-
-void dMatrixYXd( double *output, const double *origin, const double *point0, const double *point1 )
-{
-
-}
-void dMatrixYZd( double *output, const double *origin, const double *point0, const double *point1 )
-{
-
-}
-
-void dMatrixZXd( double *output, const double *origin, const double *point0, const double *point1 )
-{
-
-}
-
-void dMatrixZYd( double *output, const double *origin, const double *point0, const double *point1 )
-{
-  
-}

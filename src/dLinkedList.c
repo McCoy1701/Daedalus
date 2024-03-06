@@ -4,7 +4,7 @@
 
 #include "Daedalus.h"
 
-dLinkedList_t* dCreateLinkedList( void *data, char *name, size_t size )
+dLinkedList_t* d_create_linked_list( void *data, char *name, size_t size )
 {
   dLinkedList_t* newList = ( dLinkedList_t* )malloc( sizeof( dLinkedList_t ) );
   
@@ -29,24 +29,87 @@ dLinkedList_t* dCreateLinkedList( void *data, char *name, size_t size )
   return newList;
 }
 
-void dPushFront( dLinkedList_t **head, void *data, char *name, size_t size )
+void* d_get_data_in_linked_list_by_index( dLinkedList_t *head, int index )
 {
-  dLinkedList_t *temp = dCreateLinkedList( data, name, size );
-  if ( *head != NULL )
+  dLinkedList_t *current = head;
+
+  for ( int i = 0; i < index; i ++ )
   {
-    temp->next = *head;
-    *head = temp;
+    current = current->next;
+  }
+  
+  return current->data;
+}
+
+void* d_get_data_in_linked_list_by_name( dLinkedList_t *head, char *name )
+{
+  dLinkedList_t *current;
+
+  for ( current = head; current != NULL; current = current->next )
+  { 
+    if ( strcmp( current->buffer, name ) == 0 )
+    {
+      return current->data;
+    }
+  }
+  
+  return NULL;
+}
+
+void d_remove_node_in_linked_list_by_index( dLinkedList_t *head, int index )
+{
+  dLinkedList_t *current = head;
+  dLinkedList_t *temp = NULL;
+
+  for ( int i = 0; i < index; i ++ )
+  {
+    current = current->next;
   }
 
-  else
+  if ( current->next == NULL )
   {
-    *head = temp;
+    exit(1);
+  }
+
+  temp = current->next;
+  current->next = temp->next;
+  free( temp );
+}
+
+void d_remove_node_in_linked_list_by_name( dLinkedList_t *head, char *name )
+{
+  dLinkedList_t *current;
+  dLinkedList_t *temp = NULL;
+
+  for ( current = head; current->next != NULL; current = current->next )
+  {
+    if ( strcmp( current->buffer, name ) == 0 )
+    { 
+      temp = current->next;
+      current->next = temp->next;
+      free( temp );
+    }
   }
 }
 
-void dPushBack( dLinkedList_t *head, void *data, char *name, size_t size )
+void d_clear_linked_list( dLinkedList_t *head )
 {
-  dLinkedList_t *newList = dCreateLinkedList( data, name, size );
+  dLinkedList_t *current = head;
+  dLinkedList_t *next = NULL;
+
+  while ( current != NULL )
+  {
+    next = current->next;
+    free( current );
+    current = next;
+  }
+  
+  head = NULL;
+}
+
+void d_push_back( dLinkedList_t *head, void *data, char *name, size_t size )
+{
+  dLinkedList_t *newList = d_create_linked_list( data, name, size );
   
   if ( head != NULL )
   {
@@ -66,25 +129,22 @@ void dPushBack( dLinkedList_t *head, void *data, char *name, size_t size )
   }
 }
 
-void* dPopFront( dLinkedList_t **head )
+void d_push_front( dLinkedList_t **head, void *data, char *name, size_t size )
 {
-  dLinkedList_t *temp = NULL;
-  void *data;
-
-  if ( head == NULL )
+  dLinkedList_t *temp = d_create_linked_list( data, name, size );
+  if ( *head != NULL )
   {
-    exit(1);
+    temp->next = *head;
+    *head = temp;
   }
 
-  temp = (*head)->next;
-  data = (*head)->data;
-  free( *head );
-  *head = temp;
-
-  return data;
+  else
+  {
+    *head = temp;
+  }
 }
 
-void* dPopBack( dLinkedList_t *head )
+void* d_pop_back( dLinkedList_t *head )
 {
   dLinkedList_t *current = head;
   void *temp;
@@ -108,85 +168,25 @@ void* dPopBack( dLinkedList_t *head )
   return temp;
 }
 
-void* dGetDataInLinkedListByIndex( dLinkedList_t *head, int index )
+void* d_pop_front( dLinkedList_t **head )
 {
-  dLinkedList_t *current = head;
-
-  for ( int i = 0; i < index; i ++ )
-  {
-    current = current->next;
-  }
-  
-  return current->data;
-}
-
-void* dGetDataInLinkedListByName( dLinkedList_t *head, char *name )
-{
-  dLinkedList_t *current;
-
-  for ( current = head; current != NULL; current = current->next )
-  { 
-    if ( strcmp( current->buffer, name ) == 0 )
-    {
-      return current->data;
-    }
-  }
-  
-  return NULL;
-}
-
-void dRemoveNodeInLinkedListByIndex( dLinkedList_t *head, int index )
-{
-  dLinkedList_t *current = head;
   dLinkedList_t *temp = NULL;
+  void *data;
 
-  for ( int i = 0; i < index; i ++ )
-  {
-    current = current->next;
-  }
-
-  if ( current->next == NULL )
+  if ( head == NULL )
   {
     exit(1);
   }
 
-  temp = current->next;
-  current->next = temp->next;
-  free( temp );
+  temp = (*head)->next;
+  data = (*head)->data;
+  free( *head );
+  *head = temp;
+
+  return data;
 }
 
-void dRemoveNodeInLinkedListByName( dLinkedList_t *head, char *name )
-{
-  dLinkedList_t *current;
-  dLinkedList_t *temp = NULL;
-
-  for ( current = head; current->next != NULL; current = current->next )
-  {
-    if ( strcmp( current->buffer, name ) == 0 )
-    { 
-      temp = current->next;
-      current->next = temp->next;
-      free( temp );
-    }
-  }
-}
-
-void dClearLinkedList( dLinkedList_t *head )
-{
-  dLinkedList_t *current = head;
-  dLinkedList_t *next = NULL;
-
-  while ( current != NULL )
-  {
-    next = current->next;
-    free( current );
-    current = next;
-  }
-  
-  head = NULL;
-}
-
-void dPrintLinkedList( dLinkedList_t *head )
+void d_print_linked_list( dLinkedList_t *head )
 {
   dLinkedList_t *current = head;
 
@@ -197,7 +197,7 @@ void dPrintLinkedList( dLinkedList_t *head )
   }
 }
 
-int dGetLengthOfLinkedList( dLinkedList_t *head )
+int d_get_length_of_linked_list( dLinkedList_t *head )
 {
   dLinkedList_t *current = head;
   int count = 0;
