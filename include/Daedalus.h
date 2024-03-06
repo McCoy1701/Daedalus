@@ -112,7 +112,7 @@ extern void d_matrix_ZXf( dMat4x4_t output, const dVec3_t origin, const dVec3_t 
 extern void d_matrix_ZYf( dMat4x4_t output, const dVec3_t origin, const dVec3_t point0, const dVec3_t point1 );
 
 /* Delta Time */
-extern float d_get_delta_time( unsigned int *currentTime, unsigned int *lastTime );
+extern double d_get_delta_time( dDeltaTime_t *time );
 
 /* Linked List */
 
