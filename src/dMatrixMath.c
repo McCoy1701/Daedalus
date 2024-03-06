@@ -302,7 +302,7 @@ void dMatrixProjectionf( float *matrix, const float aspectRatio, const float fov
   matrix[8]  = 0.0f;
   matrix[9]  = 0.0f;
   matrix[10] = far / far - near;
-  matrix[11] = 0.0f;
+  matrix[11] = 1.0f;
   
   matrix[12] = 0.0f;
   matrix[13] = 0.0f;
@@ -618,11 +618,19 @@ void dMatrixProjectiond( double *matrix, const double aspectRatio, const double 
 
 /* ----------------------------Shit-------------------------------- */
 
-void dMatrixTransformVec3f( dVec4 output, const float *matrix, const dVec4 vec )
+void dMatrixTransformVec3f( dVec4 *output, const float *matrix, const dVec4 vec )
 {
-  output.x = ( matrix[0] * vec.x ) + ( matrix[4] * vec.y ) + ( matrix[8]  * vec.z ) + matrix[12];
-  output.y = ( matrix[1] * vec.x ) + ( matrix[5] * vec.y ) + ( matrix[9]  * vec.z ) + matrix[13];
-  output.z = ( matrix[2] * vec.x ) + ( matrix[6] * vec.y ) + ( matrix[10] * vec.z ) + matrix[14];
+  output->x = ( matrix[0] * vec.x ) + ( matrix[4] * vec.y ) + ( matrix[8]  * vec.z ) + matrix[12];
+  output->y = ( matrix[1] * vec.x ) + ( matrix[5] * vec.y ) + ( matrix[9]  * vec.z ) + matrix[13];
+  output->z = ( matrix[2] * vec.x ) + ( matrix[6] * vec.y ) + ( matrix[10] * vec.z ) + matrix[14];
+  float w   = ( matrix[3] * vec.x ) + ( matrix[7] * vec.y ) + ( matrix[11] * vec.z ) + matrix[15];
+
+  if ( w != 0.0f )
+  {
+    output->x /= w;
+    output->y /= w;
+    output->z /= w;
+  }
 }
 
 void dMatrixTranslateVec4f( float *matrix, const dVec4 vec )
@@ -648,20 +656,20 @@ void dMatrixTranslateVec4f( float *matrix, const dVec4 vec )
   matrix[15] = vec.w;
 }
 
-void dMatrixInverseTransformVec3f( dVec4 output, const float *matrix, dVec4 vec )
+void dMatrixInverseTransformVec3f( dVec4 *output, const float *matrix, dVec4 vec )
 {
   vec.x -= matrix[12];
   vec.y -= matrix[13];
   vec.z -= matrix[14];
-  output.x = ( matrix[0] * vec.x ) + ( matrix[1] * vec.y ) + ( matrix[2]  * vec.z );
-  output.y = ( matrix[4] * vec.x ) + ( matrix[5] * vec.y ) + ( matrix[6]  * vec.z );
-  output.z = ( matrix[8] * vec.x ) + ( matrix[9] * vec.y ) + ( matrix[10] * vec.z );
+  output->x = ( matrix[0] * vec.x ) + ( matrix[1] * vec.y ) + ( matrix[2]  * vec.z );
+  output->y = ( matrix[4] * vec.x ) + ( matrix[5] * vec.y ) + ( matrix[6]  * vec.z );
+  output->z = ( matrix[8] * vec.x ) + ( matrix[9] * vec.y ) + ( matrix[10] * vec.z );
 }
 
-void dMatrixTransformVec4f( dVec4 output, const float *matrix, const dVec4 vec4 )
+void dMatrixTransformVec4f( dVec4 *output, const float *matrix, const dVec4 vec4 )
 {
-  output.x = ( matrix[0] * vec4.x ) + ( matrix[4] * vec4.y ) + ( matrix[8]  * vec4.z ) + ( matrix[12] * vec4.w );
-  output.y = ( matrix[1] * vec4.x ) + ( matrix[5] * vec4.y ) + ( matrix[9]  * vec4.z ) + ( matrix[13] * vec4.w );
-  output.z = ( matrix[2] * vec4.x ) + ( matrix[6] * vec4.y ) + ( matrix[10] * vec4.z ) + ( matrix[14] * vec4.w );
-  output.w = ( matrix[3] * vec4.x ) + ( matrix[7] * vec4.y ) + ( matrix[11] * vec4.z ) + ( matrix[15] * vec4.w );
+  output->x = ( matrix[0] * vec4.x ) + ( matrix[4] * vec4.y ) + ( matrix[8]  * vec4.z ) + ( matrix[12] * vec4.w );
+  output->y = ( matrix[1] * vec4.x ) + ( matrix[5] * vec4.y ) + ( matrix[9]  * vec4.z ) + ( matrix[13] * vec4.w );
+  output->z = ( matrix[2] * vec4.x ) + ( matrix[6] * vec4.y ) + ( matrix[10] * vec4.z ) + ( matrix[14] * vec4.w );
+  output->w = ( matrix[3] * vec4.x ) + ( matrix[7] * vec4.y ) + ( matrix[11] * vec4.z ) + ( matrix[15] * vec4.w );
 }
