@@ -169,10 +169,10 @@ extern void dMatrixMultiplyd( double *output, const double *a, const double *b )
 extern void dMatrixTranslation3d( double *matrix, const double *vec ); //Translate a matrix by a 3D point
 extern void dMatrixTransform4d( double *output, const double *matrix, const double *vec4 ); //Transform a 4D point into a 4x4 matrix
 
-extern void dMatrixTransformVec3f( dVec4 output, const float *matrix, const dVec4 vec ); //Transform a 3D point into a 4x4 matrix 
+extern void dMatrixTransformVec3f( dVec4 *output, const float *matrix, const dVec4 vec ); //Transform a 3D point into a 4x4 matrix 
 extern void dMatrixTranslateVec4f( float *matrix, const dVec4 vec ); //Translate a matrix by a 4D point
-extern void dMatrixInverseTransformVec3f( dVec4 output, const float *matrix, dVec4 vec ); //Inverse transform 3D point into a 4x4 matrix
-extern void dMatrixTransformVec4f( dVec4 output, const float *matrix, const dVec4 vec4 ); //Transform a 4D point into a 4x4 matrix
+extern void dMatrixInverseTransformVec3f( dVec4 *output, const float *matrix, dVec4 vec ); //Inverse transform 3D point into a 4x4 matrix
+extern void dMatrixTransformVec4f( dVec4 *output, const float *matrix, const dVec4 vec4 ); //Transform a 4D point into a 4x4 matrix
 
 /* Matrix Creation */
 extern void dMatrixXYf( float *output, const float *origin, const float *point0, const float *point1 );
