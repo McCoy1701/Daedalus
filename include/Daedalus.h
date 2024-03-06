@@ -2,14 +2,15 @@
 #define __DAEDALUS_H__
 
 #include <stdlib.h>
+#include <time.h>
 
 #define MAX_LINE_LENGTH     1024
 #define MAX_FILENAME_LENGTH 256
 
 typedef struct _dDeltaTime_t
 {
-  unsigned int lastTime;
-  unsigned int currentTime;
+  clock_t lastTime;
+  clock_t currentTime;
 } dDeltaTime_t;
 
 typedef struct _dLinkedList_t

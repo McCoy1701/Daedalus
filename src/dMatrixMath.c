@@ -21,14 +21,17 @@ void d_matrix_clearf( dMat4x4_t *matrix )
   matrix->matrix[1]  = 0.0f;
   matrix->matrix[2]  = 0.0f;
   matrix->matrix[3]  = 0.0f;
+
   matrix->matrix[4]  = 0.0f;
   matrix->matrix[5]  = 1.0f;
   matrix->matrix[6]  = 0.0f;
   matrix->matrix[7]  = 0.0f;
+
   matrix->matrix[8]  = 0.0f;
   matrix->matrix[9]  = 0.0f;
   matrix->matrix[10] = 1.0f;
   matrix->matrix[11] = 0.0f;
+  
   matrix->matrix[12] = 0.0f;
   matrix->matrix[13] = 0.0f;
   matrix->matrix[14] = 0.0f;

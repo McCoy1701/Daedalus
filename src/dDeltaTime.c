@@ -1,9 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
-float d_get_delta_time( unsigned int *currentTime, unsigned int *lastTime )
+#include "Daedalus.h"
+
+double d_get_delta_time( dDeltaTime_t *time )
 {
-  unsigned int elapsedTime = currentTime - lastTime;
-  *lastTime = *currentTime;
-  return ( float )elapsedTime / 1000.0f;
+  time->lastTime = time->currentTime;
+  time->currentTime = clock();
+  double elapsedTime = (double)( time->currentTime - time->lastTime ) / CLOCKS_PER_SEC;
+  return elapsedTime / 1000.0f;
 }
