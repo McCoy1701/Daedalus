@@ -618,7 +618,7 @@ void dMatrixProjectiond( double *matrix, const double aspectRatio, const double 
 
 /* ----------------------------Shit-------------------------------- */
 
-void dMatrixTransformVec3f( dVec4 *output, const float *matrix, const dVec4 vec )
+void dMatrixTransformVec3f( dVec4_t *output, const float *matrix, const dVec4_t vec )
 {
   output->x = ( matrix[0] * vec.x ) + ( matrix[4] * vec.y ) + ( matrix[8]  * vec.z ) + matrix[12];
   output->y = ( matrix[1] * vec.x ) + ( matrix[5] * vec.y ) + ( matrix[9]  * vec.z ) + matrix[13];
@@ -633,7 +633,7 @@ void dMatrixTransformVec3f( dVec4 *output, const float *matrix, const dVec4 vec 
   }
 }
 
-void dMatrixTranslateVec4f( float *matrix, const dVec4 vec )
+void dMatrixTranslateVec4f( float *matrix, const dVec4_t vec )
 {
   matrix[0]  = 1.0f;
   matrix[1]  = 0.0f;
@@ -656,7 +656,7 @@ void dMatrixTranslateVec4f( float *matrix, const dVec4 vec )
   matrix[15] = vec.w;
 }
 
-void dMatrixInverseTransformVec3f( dVec4 *output, const float *matrix, dVec4 vec )
+void dMatrixInverseTransformVec3f( dVec4_t *output, const float *matrix, dVec4_t vec )
 {
   vec.x -= matrix[12];
   vec.y -= matrix[13];
@@ -666,7 +666,7 @@ void dMatrixInverseTransformVec3f( dVec4 *output, const float *matrix, dVec4 vec
   output->z = ( matrix[8] * vec.x ) + ( matrix[9] * vec.y ) + ( matrix[10] * vec.z );
 }
 
-void dMatrixTransformVec4f( dVec4 *output, const float *matrix, const dVec4 vec4 )
+void dMatrixTransformVec4f( dVec4_t *output, const float *matrix, const dVec4_t vec4 )
 {
   output->x = ( matrix[0] * vec4.x ) + ( matrix[4] * vec4.y ) + ( matrix[8]  * vec4.z ) + ( matrix[12] * vec4.w );
   output->y = ( matrix[1] * vec4.x ) + ( matrix[5] * vec4.y ) + ( matrix[9]  * vec4.z ) + ( matrix[13] * vec4.w );

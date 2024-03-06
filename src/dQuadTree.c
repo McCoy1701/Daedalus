@@ -4,9 +4,9 @@
 
 #include "Daedalus.h"
 
-dQuadTree *dCreateQuadTree( float *rect, int capacity )
+dQuadTree_t *dCreateQuadTree( float *rect, int capacity )
 {
-  dQuadTree *newTree = ( dQuadTree* )malloc( sizeof( dQuadTree ) );
+  dQuadTree_t *newTree = ( dQuadTree_t* )malloc( sizeof( dQuadTree_t ) );
   if (newTree == NULL )
   {
     printf( "Failed to allocate memory for quad tree");
@@ -20,7 +20,7 @@ dQuadTree *dCreateQuadTree( float *rect, int capacity )
   return newTree;
 }
 
-void dInsertObjectInQuadTree( dQuadTree *tree, void *object )
+void dInsertObjectInQuadTree( dQuadTree_t *tree, void *object )
 {
   if ( tree->objects == NULL || dGetLengthOfLinkedList( tree->objects ) < tree->capacity )
   {
@@ -29,7 +29,7 @@ void dInsertObjectInQuadTree( dQuadTree *tree, void *object )
 
 }
 
-void dSubdivideQuadTree( dQuadTree *tree )
+void dSubdivideQuadTree( dQuadTree_t *tree )
 {
 
 }

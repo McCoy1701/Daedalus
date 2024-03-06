@@ -4,9 +4,9 @@
 
 #include "Daedalus.h"
 
-dLinkedList* dCreateLinkedList( void *data, char *name, size_t size )
+dLinkedList_t* dCreateLinkedList( void *data, char *name, size_t size )
 {
-  dLinkedList* newList = ( dLinkedList* )malloc( sizeof( dLinkedList ) );
+  dLinkedList_t* newList = ( dLinkedList_t* )malloc( sizeof( dLinkedList_t ) );
   
   if ( newList == NULL )
   {
@@ -29,9 +29,9 @@ dLinkedList* dCreateLinkedList( void *data, char *name, size_t size )
   return newList;
 }
 
-void dPushFront( dLinkedList **head, void *data, char *name, size_t size )
+void dPushFront( dLinkedList_t **head, void *data, char *name, size_t size )
 {
-  dLinkedList *temp = dCreateLinkedList( data, name, size );
+  dLinkedList_t *temp = dCreateLinkedList( data, name, size );
   if ( *head != NULL )
   {
     temp->next = *head;
@@ -44,13 +44,13 @@ void dPushFront( dLinkedList **head, void *data, char *name, size_t size )
   }
 }
 
-void dPushBack( dLinkedList *head, void *data, char *name, size_t size )
+void dPushBack( dLinkedList_t *head, void *data, char *name, size_t size )
 {
-  dLinkedList *newList = dCreateLinkedList( data, name, size );
+  dLinkedList_t *newList = dCreateLinkedList( data, name, size );
   
   if ( head != NULL )
   {
-    dLinkedList *current = head;
+    dLinkedList_t *current = head;
 
     while ( current->next != NULL )
     {
@@ -66,9 +66,9 @@ void dPushBack( dLinkedList *head, void *data, char *name, size_t size )
   }
 }
 
-void* dPopFront( dLinkedList **head )
+void* dPopFront( dLinkedList_t **head )
 {
-  dLinkedList *temp = NULL;
+  dLinkedList_t *temp = NULL;
   void *data;
 
   if ( head == NULL )
@@ -84,9 +84,9 @@ void* dPopFront( dLinkedList **head )
   return data;
 }
 
-void* dPopBack( dLinkedList *head )
+void* dPopBack( dLinkedList_t *head )
 {
-  dLinkedList *current = head;
+  dLinkedList_t *current = head;
   void *temp;
 
   if ( current->next == NULL )
@@ -108,9 +108,9 @@ void* dPopBack( dLinkedList *head )
   return temp;
 }
 
-void* dGetDataInLinkedListByIndex( dLinkedList *head, int index )
+void* dGetDataInLinkedListByIndex( dLinkedList_t *head, int index )
 {
-  dLinkedList *current = head;
+  dLinkedList_t *current = head;
 
   for ( int i = 0; i < index; i ++ )
   {
@@ -120,9 +120,9 @@ void* dGetDataInLinkedListByIndex( dLinkedList *head, int index )
   return current->data;
 }
 
-void* dGetDataInLinkedListByName( dLinkedList *head, char *name )
+void* dGetDataInLinkedListByName( dLinkedList_t *head, char *name )
 {
-  dLinkedList *current;
+  dLinkedList_t *current;
 
   for ( current = head; current != NULL; current = current->next )
   { 
@@ -135,10 +135,10 @@ void* dGetDataInLinkedListByName( dLinkedList *head, char *name )
   return NULL;
 }
 
-void dRemoveNodeInLinkedListByIndex( dLinkedList *head, int index )
+void dRemoveNodeInLinkedListByIndex( dLinkedList_t *head, int index )
 {
-  dLinkedList *current = head;
-  dLinkedList *temp = NULL;
+  dLinkedList_t *current = head;
+  dLinkedList_t *temp = NULL;
 
   for ( int i = 0; i < index; i ++ )
   {
@@ -155,10 +155,10 @@ void dRemoveNodeInLinkedListByIndex( dLinkedList *head, int index )
   free( temp );
 }
 
-void dRemoveNodeInLinkedListByName( dLinkedList *head, char *name )
+void dRemoveNodeInLinkedListByName( dLinkedList_t *head, char *name )
 {
-  dLinkedList *current;
-  dLinkedList *temp = NULL;
+  dLinkedList_t *current;
+  dLinkedList_t *temp = NULL;
 
   for ( current = head; current->next != NULL; current = current->next )
   {
@@ -171,10 +171,10 @@ void dRemoveNodeInLinkedListByName( dLinkedList *head, char *name )
   }
 }
 
-void dClearLinkedList( dLinkedList *head )
+void dClearLinkedList( dLinkedList_t *head )
 {
-  dLinkedList *current = head;
-  dLinkedList *next = NULL;
+  dLinkedList_t *current = head;
+  dLinkedList_t *next = NULL;
 
   while ( current != NULL )
   {
@@ -186,9 +186,9 @@ void dClearLinkedList( dLinkedList *head )
   head = NULL;
 }
 
-void dPrintLinkedList( dLinkedList *head )
+void dPrintLinkedList( dLinkedList_t *head )
 {
-  dLinkedList *current = head;
+  dLinkedList_t *current = head;
 
   while( current != NULL )
   {
@@ -197,9 +197,9 @@ void dPrintLinkedList( dLinkedList *head )
   }
 }
 
-int dGetLengthOfLinkedList( dLinkedList *head )
+int dGetLengthOfLinkedList( dLinkedList_t *head )
 {
-  dLinkedList *current = head;
+  dLinkedList_t *current = head;
   int count = 0;
 
   while( current != NULL )
