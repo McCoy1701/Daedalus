@@ -7,12 +7,6 @@
 #define MAX_LINE_LENGTH     1024
 #define MAX_FILENAME_LENGTH 256
 
-typedef struct _dDeltaTime_t
-{
-  clock_t lastTime;
-  clock_t currentTime;
-} dDeltaTime_t;
-
 typedef struct _dLinkedList_t
 {
   void *data;
@@ -110,9 +104,6 @@ extern void d_matrix_YXf( dMat4x4_t output, const dVec3_t origin, const dVec3_t 
 extern void d_matrix_YZf( dMat4x4_t output, const dVec3_t origin, const dVec3_t point0, const dVec3_t point1 );
 extern void d_matrix_ZXf( dMat4x4_t output, const dVec3_t origin, const dVec3_t point0, const dVec3_t point1 );
 extern void d_matrix_ZYf( dMat4x4_t output, const dVec3_t origin, const dVec3_t point0, const dVec3_t point1 );
-
-/* Delta Time */
-extern double d_get_delta_time( dDeltaTime_t *time );
 
 /* Linked List */
 
