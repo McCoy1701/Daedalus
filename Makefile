@@ -12,9 +12,9 @@ OBJ_DIR=obj
 all: shared debug
 
 
-shared: $(OBJ_DIR)/dVectorMath.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dDeltaTime.o $(OBJ_DIR)/dLinkedList.o
+shared: $(OBJ_DIR)/dVectorMath.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dLinkedList.o
 	mkdir -p $(BIN_DIR)
-	$(CC) -shared $(OBJ_DIR)/dVectorMath.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dDeltaTime.o $(OBJ_DIR)/dLinkedList.o -o $(BIN_DIR)/libDaedalus.so $(CFLAGS)
+	$(CC) -shared $(OBJ_DIR)/dVectorMath.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dLinkedList.o -o $(BIN_DIR)/libDaedalus.so $(CFLAGS)
 
 
 $(OBJ_DIR)/dVectorMath.o: $(SRC_DIR)/dVectorMath.c
@@ -25,9 +25,6 @@ $(OBJ_DIR)/dMatrixMath.o: $(SRC_DIR)/dMatrixMath.c
 	$(CC) -c $< -o $@ $(CFLAGS)
 
 $(OBJ_DIR)/dMatrixCreation.o: $(SRC_DIR)/dMatrixCreation.c
-	$(CC) -c $< -o $@ $(CFLAGS)
-
-$(OBJ_DIR)/dDeltaTime.o: $(SRC_DIR)/dDeltaTime.c
 	$(CC) -c $< -o $@ $(CFLAGS)
 
 $(OBJ_DIR)/dLinkedList.o: $(SRC_DIR)/dLinkedList.c
@@ -45,9 +42,9 @@ updateHeader:
 	sudo cp $(INC_DIR)/Daedalus.h /usr/include/Daedalus.h
 
 
-debug: $(OBJ_DIR)/debug_main.o $(OBJ_DIR)/debug_dVectorMath.o $(OBJ_DIR)/debug_dMatrixMath.o $(OBJ_DIR)/debug_dMatrixCreation.o $(OBJ_DIR)/debug_dDeltaTime.o $(OBJ_DIR)/debug_dLinkedList.o
+debug: $(OBJ_DIR)/debug_main.o $(OBJ_DIR)/debug_dVectorMath.o $(OBJ_DIR)/debug_dMatrixMath.o $(OBJ_DIR)/debug_dMatrixCreation.o $(OBJ_DIR)/debug_dLinkedList.o
 	mkdir -p $(BIN_DIR)
-	$(CC) -ggdb $(OBJ_DIR)/debug_main.o $(OBJ_DIR)/debug_dVectorMath.o $(OBJ_DIR)/debug_dMatrixMath.o $(OBJ_DIR)/debug_dMatrixCreation.o $(OBJ_DIR)/debug_dDeltaTime.o $(OBJ_DIR)/debug_dLinkedList.o -o $(BIN_DIR)/$@.o $(CFLAGS)
+	$(CC) -ggdb $(OBJ_DIR)/debug_main.o $(OBJ_DIR)/debug_dVectorMath.o $(OBJ_DIR)/debug_dMatrixMath.o $(OBJ_DIR)/debug_dMatrixCreation.o $(OBJ_DIR)/debug_dLinkedList.o -o $(BIN_DIR)/$@.o $(CFLAGS)
 
 $(OBJ_DIR)/debug_main.o: $(SRC_DIR)/main.c
 	mkdir -p $(OBJ_DIR)
@@ -60,9 +57,6 @@ $(OBJ_DIR)/debug_dMatrixMath.o: $(SRC_DIR)/dMatrixMath.c
 	$(CC) -ggdb -c $< -o $@ $(CFLAGS)
 
 $(OBJ_DIR)/debug_dMatrixCreation.o: $(SRC_DIR)/dMatrixCreation.c
-	$(CC) -ggdb -c $< -o $@ $(CFLAGS)
-
-$(OBJ_DIR)/debug_dDeltaTime.o: $(SRC_DIR)/dDeltaTime.c
 	$(CC) -ggdb -c $< -o $@ $(CFLAGS)
 
 $(OBJ_DIR)/debug_dLinkedList.o: $(SRC_DIR)/dLinkedList.c
