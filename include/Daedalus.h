@@ -38,7 +38,7 @@ typedef struct _dVec4_t
 
 typedef struct _dMat4x4_t
 {
-  float matrix [16];
+  float matrix[16];
 } dMat4x4_t;
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
