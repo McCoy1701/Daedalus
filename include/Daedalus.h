@@ -90,7 +90,7 @@ extern void d_matrix_rotate_xf( dMat4x4_t *matrix, const float angleRad ); //Rot
 extern void d_matrix_rotate_yf( dMat4x4_t *matrix, const float angleRad ); //Rotate matrix by angle in radians about the y axis
 extern void d_matrix_rotate_zf( dMat4x4_t *matrix, const float angleRad ); //Rotate matrix by angle in radians about the z axis
 extern void d_matrix_create_projectionf( dMat4x4_t *matrix, const float aspectRatio, const float fov, const float near, const float far ); //Create a projection matrix 
-extern void d_matrix_multiplyf( dMat4x4_t *output, const float *a, const float *b ); //Multiply two 4x4 Matrices together
+extern void d_matrix_multiplyf( float *output, const float *a, const float *b ); //Multiply two 4x4 Matrices together
 extern void d_matrix_translate_dVec3f( dMat4x4_t *matrix, const dVec3_t vec ); //Translate a matrix by a 3D point
 extern void d_matrix_translate_dVec4f( dMat4x4_t *matrix, const dVec4_t vec ); //Translate a matrix by a 4D point
 extern void d_matrix_multiply_dVec3f( dVec3_t *output, const dMat4x4_t matrix, const dVec3_t vec ); //Transform a 3D point into a 4x4 matrix 
