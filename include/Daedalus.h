@@ -7,6 +7,29 @@
 #define MAX_LINE_LENGTH     1024
 #define MAX_FILENAME_LENGTH 256
 
+typedef struct _dVec2_t
+{
+  float x, y;
+} dVec2_t;
+
+typedef struct _dVec3_t
+{
+  float x, y, z, w;
+} dVec3_t;
+
+typedef struct _dVec4_t
+{
+  float x;
+  float y;
+  float z;
+  float w;
+} dVec4_t;
+
+typedef struct _dMat4x4_t
+{
+  float m[4][4];
+} dMat4x4_t;
+
 typedef struct _dLinkedList_t
 {
   void *data;
@@ -20,26 +43,6 @@ typedef struct _dQuadTree_t
   int capacity;
   dLinkedList_t *objects;
 } dQuadTree_t;
-
-typedef struct _dVec2_t
-{
-  float x, y;
-} dVec2_t;
-
-typedef struct _dVec3_t
-{
-  float x, y, z;
-} dVec3_t;
-
-typedef struct _dVec4_t
-{
-  float x, y, z, w;
-} dVec4_t;
-
-typedef struct _dMat4x4_t
-{
-  float matrix[16];
-} dMat4x4_t;
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
@@ -82,7 +85,7 @@ extern void  d_scale_divide_dVec3f( dVec3_t *output, const float value ); //Divi
 extern void  d_limit_dVec3f( dVec3_t *a, const float value ); //Limit a vector 3f within a range
 extern void  d_normalize_dVec3f( dVec3_t *vec ); //Normalize a vector 3f
 extern void  d_create_normal_dVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b, const dVec3_t c ); //Create a normal vector from two vector 3fs
-extern void  d_normalize_dVec4f( dVec4_t *vec ); //Normalize a vector 4f
+extern void  d_normalize_dVec4f( dVec4_t *vec );
 
 /* Matrix Operations */
 extern void d_matrix_clearf( dMat4x4_t *matrix ); //Clear a 4x4 matrix to an identity matrix
@@ -90,10 +93,10 @@ extern void d_matrix_rotate_xf( dMat4x4_t *matrix, const float angleRad ); //Rot
 extern void d_matrix_rotate_yf( dMat4x4_t *matrix, const float angleRad ); //Rotate matrix by angle in radians about the y axis
 extern void d_matrix_rotate_zf( dMat4x4_t *matrix, const float angleRad ); //Rotate matrix by angle in radians about the z axis
 extern void d_matrix_create_projectionf( dMat4x4_t *matrix, const float aspectRatio, const float fov, const float near, const float far ); //Create a projection matrix 
-extern void d_matrix_multiplyf( float *output, const float *a, const float *b ); //Multiply two 4x4 Matrices together
+extern void d_matrix_multiplyf( dMat4x4_t *output, const dMat4x4_t a, const dMat4x4_t b ); //Multiply two 4x4 Matrices together
 extern void d_matrix_translate_dVec3f( dMat4x4_t *matrix, const dVec3_t vec ); //Translate a matrix by a 3D point
 extern void d_matrix_translate_dVec4f( dMat4x4_t *matrix, const dVec4_t vec ); //Translate a matrix by a 4D point
-extern void d_matrix_multiply_dVec3f( dVec3_t *output, const dMat4x4_t matrix, const dVec3_t vec ); //Transform a 3D point into a 4x4 matrix 
+extern void d_matrix_multiply_dVec3f( dVec3_t *output, dMat4x4_t matrix, const dVec3_t vec ); //Transform a 3D point into a 4x4 matrix 
 extern void d_matrix_inverse_transform_dVec3f( dVec3_t *output, const dMat4x4_t matrix, dVec3_t vec ); //Inverse transform 3D point into a 4x4 matrix
 extern void d_matrix_multiply_dVec4f( dVec4_t *output, const dMat4x4_t matrix, const dVec4_t vec4 ); //Transform a 4D point into a 4x4 matrix
 

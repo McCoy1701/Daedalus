@@ -473,15 +473,18 @@ void d_create_normal_dVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b, 
 {
   dVec3_t tempA, tempB;
   float temp;
-  tempA.x = a.x - c.x;
-  tempA.y = a.y - c.y;
-  tempA.z = a.z - c.z;
-  tempB.x = b.x - c.x;
-  tempB.y = b.y - c.y;
-  tempB.z = b.z - c.z;
-  output->x = tempA.y * tempB.z + tempA.z * tempB.y;
-  output->y = tempA.z * tempB.x + tempA.x * tempB.z;
-  output->z = tempA.x * tempB.y + tempA.y * tempB.x;
+  tempA.x = b.x - a.x;
+  tempA.y = b.y - a.y;
+  tempA.z = b.z - a.z;
+
+  tempB.x = c.x - a.x;
+  tempB.y = c.y - a.y;
+  tempB.z = c.z - a.z;
+
+  output->x = tempA.y * tempB.z - tempA.z * tempB.y;
+  output->y = tempA.z * tempB.x - tempA.x * tempB.z;
+  output->z = tempA.x * tempB.y - tempA.y * tempB.x;
+  
   temp = d_sqrt( output->x * output->x + output->y * output->y + output->z * output->z );
   output->x /= temp;
   output->y /= temp;
