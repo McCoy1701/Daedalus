@@ -67,10 +67,10 @@ extern float d_cross_product_dVec2f( const dVec2_t a, const dVec2_t b ); //Cross
 extern void  d_add_two_dVec2f( dVec2_t *output, const dVec2_t a, const dVec2_t b ); //Add two vector 2fs
 extern void  d_sub_two_dVec2f( dVec2_t *output, const dVec2_t a, const dVec2_t b ); //Subtract two vector 2fs
 extern void  d_get_dVec2f_from_anglef( dVec2_t *output, float angle );
-extern void  d_scale_multiply_dVec2f( dVec2_t *output, const float value ); //Multiply a vector 2f by a value
-extern void  d_scale_divide_dVec2f( dVec2_t *output, const float value ); //Divide a vector 2f by a value
-extern void  d_limit_dVec2f( dVec2_t *a, const float value ); //Limit a vector 2f within a range
-extern void  d_normalize_dVec2f( dVec2_t *vec ); //Normalize a vector 2f
+extern void  d_scale_multiply_dVec2f( dVec2_t *output, const dVec2_t vec, const float value ); //Multiply a vector 2f by a value
+extern void  d_scale_divide_dVec2f( dVec2_t *output, const dVec2_t vec, const float value ); //Divide a vector 2f by a value
+extern void  d_limit_dVec2f( dVec2_t *output, const dVec2_t a, const float value ); //Limit a vector 2f within a range
+extern void  d_normalize_dVec2f( dVec2_t *output, const dVec2_t vec ); //Normalize a vector 2f
 extern void  d_create_normal_dVec2f( dVec2_t *output, const dVec2_t a, const dVec2_t b ); //Create a normal vector from two vector 2fs
 extern void  d_find_intersection_dVec2f( dVec2_t *output, const dVec2_t lineA0, const dVec2_t lineA1, const dVec2_t lineB0, const dVec2_t lineB1 ); //Find the intersection between two vector 2fs
 
@@ -80,12 +80,12 @@ extern float d_dot_product_dVec3f( const dVec3_t a, const dVec3_t b ); //Dot pro
 extern void  d_cross_product_dVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b ); //Cross product of two vector 3fs
 extern void  d_add_two_dVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b ); //Add two vector 3fs
 extern void  d_sub_two_dVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b ); //Subtract two vector 3fs
-extern void  d_scale_multiply_dVec3f( dVec3_t *output, const float value ); //Multiply a vector 3f by a value
-extern void  d_scale_divide_dVec3f( dVec3_t *output, const float value ); //Divide a vector 3f by a value
-extern void  d_limit_dVec3f( dVec3_t *a, const float value ); //Limit a vector 3f within a range
-extern void  d_normalize_dVec3f( dVec3_t *vec ); //Normalize a vector 3f
+extern void  d_scale_multiply_dVec3f( dVec3_t *output, const dVec3_t vector, const float value ); //Multiply a vector 3f by a value
+extern void  d_scale_divide_dVec3f( dVec3_t *output, const dVec3_t vector, const float value ); //Divide a vector 3f by a value
+extern void  d_limit_dVec3f( dVec3_t *output, const dVec3_t a, const float value ); //Limit a vector 3f within a range
+extern void  d_normalize_dVec3f( dVec3_t *output, const dVec3_t vec ); //Normalize a vector 3f
 extern void  d_create_normal_dVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b, const dVec3_t c ); //Create a normal vector from two vector 3fs
-extern void  d_normalize_dVec4f( dVec4_t *vec );
+extern void  d_normalize_dVec4f( dVec4_t *output, const dVec4_t vec );
 
 /* Matrix Operations */
 extern void d_matrix_clearf( dMat4x4_t *matrix ); //Clear a 4x4 matrix to an identity matrix

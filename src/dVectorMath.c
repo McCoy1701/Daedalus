@@ -162,10 +162,10 @@ void d_get_dVec2f_from_anglef( dVec2_t *output, float angle )
   Returns:
     void
 */
-void d_scale_multiply_dVec2f( dVec2_t *output, const float value )
+void d_scale_multiply_dVec2f( dVec2_t *output, const dVec2_t vec, const float value )
 {
-  output->x *= value;
-  output->y *= value;
+  output->x = vec.x * value;
+  output->y = vec.y * value;
 }
 
 /*
@@ -179,10 +179,10 @@ void d_scale_multiply_dVec2f( dVec2_t *output, const float value )
   Returns:
     void
 */
-void d_scale_divide_dVec2f( dVec2_t *output, const float value )
+void d_scale_divide_dVec2f( dVec2_t *output, const dVec2_t vec, const float value )
 {
-  output->x /= value;
-  output->y /= value;
+  output->x = vec.x / value;
+  output->y = vec.y / value;
 }
 
 /*
@@ -195,17 +195,17 @@ void d_scale_divide_dVec2f( dVec2_t *output, const float value )
   Returns:
     void
 */
-void d_limit_dVec2f( dVec2_t *a, const float value )
+void d_limit_dVec2f( dVec2_t *output, const dVec2_t a, const float value )
 {
-  if ( d_sqrt( ( a->x * a->x ) + ( a->y * a->y ) ) > value )
+  if ( d_sqrt( ( a.x * a.x ) + ( a.y * a.y ) ) > value )
   {
     float temp; //Normalize vector
-    temp = d_sqrt( a->y * a->y + a->y * a->y );
-    a->x /= temp;
-    a->y /= temp;
+    temp = d_sqrt( a.y * a.y + a.y * a.y );
+    output->x = a.x / temp;
+    output->y = a.y / temp;
 
-    a->x *= value; //scale to value
-    a->y *= value;
+    output->x *= value; //scale to value
+    output->y *= value;
   }
 }
 
@@ -218,12 +218,12 @@ void d_limit_dVec2f( dVec2_t *a, const float value )
   Returns:
     void
 */
-void d_normalize_dVec2f( dVec2_t *vec )
+void d_normalize_dVec2f( dVec2_t *output, const dVec2_t vec )
 {
   float temp;
-  temp = d_sqrt( vec->x * vec->x + vec->y * vec->y );
-  vec->x /= temp;
-  vec->y /= temp;
+  temp = d_sqrt( vec.x * vec.x + vec.y * vec.y );
+  output->x = vec.x / temp;
+  output->y = vec.y / temp;
 }
 
 /*
@@ -389,11 +389,11 @@ void d_sub_two_dVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b )
   Returns:
     void
 */
-void d_scale_multiply_dVec3f( dVec3_t *output, const float value )
+void d_scale_multiply_dVec3f( dVec3_t *output, const dVec3_t vec, const float value )
 {
-  output->x *= value;
-  output->y *= value;
-  output->z *= value;
+  output->x = vec.x * value;
+  output->y = vec.y * value;
+  output->z = vec.z * value;
 }
 
 /*
@@ -406,11 +406,11 @@ void d_scale_multiply_dVec3f( dVec3_t *output, const float value )
   Returns:
     void
 */
-void d_scale_divide_dVec3f( dVec3_t *output, const float value )
+void d_scale_divide_dVec3f( dVec3_t *output, const dVec3_t vec, const float value )
 {
-  output->x /= value;
-  output->y /= value;
-  output->z /= value;
+  output->x = vec.x / value;
+  output->y = vec.y / value;
+  output->z = vec.z / value;
 }
 
 /*
@@ -423,19 +423,19 @@ void d_scale_divide_dVec3f( dVec3_t *output, const float value )
   Returns:
     void
 */
-void d_limit_dVec3f( dVec3_t *a, const float value )
+void d_limit_dVec3f( dVec3_t *output, const dVec3_t a, const float value )
 {
-  if ( d_sqrt( ( a->x * a->x ) + ( a->y * a->y ) + ( a->z * a->z ) ) > value )
+  if ( d_sqrt( ( a.x * a.x ) + ( a.y * a.y ) + ( a.z * a.z ) ) > value )
   {
     float temp; //Normalize vector
-    temp = d_sqrt( ( a->x * a->x ) + ( a->y * a->y ) + ( a->z * a->z ) );
-    a->x /= temp;
-    a->y /= temp;
-    a->z /= temp;
+    temp = d_sqrt( ( a.x * a.x ) + ( a.y * a.y ) + ( a.z * a.z ) );
+    output->x = a.x / temp;
+    output->y = a.y / temp;
+    output->z = a.z / temp;
 
-    a->x *= value; //scale to value
-    a->y *= value;
-    a->z *= value;
+    output->x *= value; //scale to value
+    output->y *= value;
+    output->z *= value;
   }
 }
 
@@ -448,13 +448,13 @@ void d_limit_dVec3f( dVec3_t *a, const float value )
   Returns:
     void
 */
-void d_normalize_dVec3f( dVec3_t *vec )
+void d_normalize_dVec3f( dVec3_t *output, const dVec3_t vec )
 {
   float temp;
-  temp = d_sqrt( vec->x * vec->x + vec->y * vec->y + vec->z * vec->z );
-  vec->x /= temp;
-  vec->y /= temp;
-  vec->z /= temp;
+  temp = d_sqrt( vec.x * vec.x + vec.y * vec.y + vec.z * vec.z );
+  output->x /= temp;
+  output->y /= temp;
+  output->z /= temp;
 }
 
 /*
@@ -500,12 +500,12 @@ void d_create_normal_dVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b, 
   Returns:
     void
 */
-void d_normalize_dVec4f( dVec4_t *vec )
+void d_normalize_dVec4f( dVec4_t *output, const dVec4_t vec )
 {
   float temp;
-  temp = d_sqrt( vec->x * vec->x + vec->y * vec->y + vec->z * vec->z + vec->w * vec->w );
-  vec->x /= temp;
-  vec->y /= temp;
-  vec->z /= temp;
-  vec->w /= temp;
+  temp = d_sqrt( vec.x * vec.x + vec.y * vec.y + vec.z * vec.z + vec.w * vec.w );
+  output->x = vec.x / temp;
+  output->y = vec.y / temp;
+  output->z = vec.z / temp;
+  output->w = vec.w / temp;
 }
