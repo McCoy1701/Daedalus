@@ -12,22 +12,32 @@ OBJ_DIR=obj
 all: shared debug
 
 
-shared: $(OBJ_DIR)/dVectorMath.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dLinkedList.o
+shared: $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dVectorMath.o
 	mkdir -p $(BIN_DIR)
-	$(CC) -shared $(OBJ_DIR)/dVectorMath.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dLinkedList.o -o $(BIN_DIR)/libDaedalus.so $(CFLAGS)
+	$(CC) -shared $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dVectorMath.o -o $(BIN_DIR)/libDaedalus.so $(CFLAGS)
 
 
-$(OBJ_DIR)/dVectorMath.o: $(SRC_DIR)/dVectorMath.c
+$(OBJ_DIR)/dKinematicBody2D.o: $(SRC_DIR)/dKinematicBody2D.c
 	mkdir -p $(OBJ_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(OBJ_DIR)/dMatrixMath.o: $(SRC_DIR)/dMatrixMath.c
+$(OBJ_DIR)/dLinkedList.o: $(SRC_DIR)/dLinkedList.c
+	mkdir -p $(OBJ_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
 $(OBJ_DIR)/dMatrixCreation.o: $(SRC_DIR)/dMatrixCreation.c
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(OBJ_DIR)/dLinkedList.o: $(SRC_DIR)/dLinkedList.c
+$(OBJ_DIR)/dMatrixMath.o: $(SRC_DIR)/dMatrixMath.c
+	$(CC) -c $< -o $@ $(CFLAGS)
+
+$(OBJ_DIR)/dQuadTree.o: $(SRC_DIR)/dQuadTree.c
+	$(CC) -c $< -o $@ $(CFLAGS)
+
+$(OBJ_DIR)/dStrings.o: $(SRC_DIR)/dStrings.c
+	$(CC) -c $< -o $@ $(CFLAGS)
+
+$(OBJ_DIR)/dVectorMath.o: $(SRC_DIR)/dVectorMath.c
 	$(CC) -c $< -o $@ $(CFLAGS)
 
 install:

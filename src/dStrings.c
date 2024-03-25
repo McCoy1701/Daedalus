@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void d_create_string_from_file( const char *filename )
+char* d_create_string_from_file( const char *filename )
 {
   long fileSize;
   char *fileString;
