@@ -30,6 +30,14 @@ typedef struct _dMat4x4_t
   float m[4][4];
 } dMat4x4_t;
 
+typedef struct _dKinematicBody2D
+{
+  dVec2_t position;
+  dVec2_t velocity;
+  dVec2_t acceleration;
+  float mass;
+} dKinematicBody2D;
+
 typedef struct _dLinkedList_t
 {
   void *data;
@@ -60,7 +68,7 @@ typedef struct _dQuadTree_t
 /* Vector Math Float */
 extern float d_sqrt( float number ); //Quake fast inverse square root
 
-extern float d_length_of_dVec2f( const dVec2_t vec ); //Lenght of a vector 2f
+extern float d_length_of_dVec2f( const dVec2_t vec ); //Length of a vector 2f
 extern float d_distance_dVec2f( const dVec2_t a, const dVec2_t b ); //Distance between two vector 2fs
 extern float d_dot_product_dVec2f( const dVec2_t a, const dVec2_t b ); //Dot product between two vector 2fs
 extern float d_cross_product_dVec2f( const dVec2_t a, const dVec2_t b ); //Cross product of two vector 2fs
@@ -74,7 +82,7 @@ extern void  d_normalize_dVec2f( dVec2_t *output, const dVec2_t vec ); //Normali
 extern void  d_create_normal_dVec2f( dVec2_t *output, const dVec2_t a, const dVec2_t b ); //Create a normal vector from two vector 2fs
 extern void  d_find_intersection_dVec2f( dVec2_t *output, const dVec2_t lineA0, const dVec2_t lineA1, const dVec2_t lineB0, const dVec2_t lineB1 ); //Find the intersection between two vector 2fs
 
-extern float d_length_of_dVec3f( const dVec3_t vec ); //Lenght of a vector 3f
+extern float d_length_of_dVec3f( const dVec3_t vec ); //Length of a vector 3f
 extern float d_distance_dVec3f( const dVec3_t a, const dVec3_t b ); //Distance between two vector 3fs
 extern float d_dot_product_dVec3f( const dVec3_t a, const dVec3_t b ); //Dot product between two vector 3fs
 extern void  d_cross_product_dVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b ); //Cross product of two vector 3fs
@@ -128,5 +136,14 @@ extern int  d_get_length_of_linked_list( dLinkedList_t *head );
 extern dQuadTree_t *d_create_quadtree( float *rect, int capacity );
 extern void d_insert_object_in_quadtree( dQuadTree_t *tree, void *object );
 extern void d_subdivide_quadtree( dQuadTree_t *tree );
+
+/* Kinematic Body 2D  */
+
+extern void d_create_kinmatic_body_2D( dKinematicBody2D *output, const dVec2_t position, const dVec2_t velocity, const dVec2_t acceleration, const float mass );
+extern void d_apply_force_to_kinmatic_body_2D( dKinematicBody2D *output, const dVec2_t force );
+
+/* Strings */
+
+extern char* d_create_string_from_file(const char *filename);
 
 #endif
