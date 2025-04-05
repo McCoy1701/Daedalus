@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include "Daedalus.h"
-
+#include "test.h"
 
 int test_d_sqrt( void )
 {
@@ -54,120 +54,144 @@ int test_d_lengthOfVec2f( void )
 int test_d_distanceVec2f( void )
 {
 
+  return 0;
 }
 
 int test_d_dotProductVec2f( void )
 {
 
+  return 0;
 }
 
 int test_d_crossProductVec2f( void )
 {
 
+  return 0;
 }
 
 int test_d_addTwoVec2f( void )
 {
 
+  return 0;
 }
 
 int test_d_subTwoVec2f( void )
 {
 
+  return 0;
 }
 
 int test_d_getVec2fFromAnglef( void )
 {
 
+  return 0;
 }
 
 int test_d_scaleMultiplyVec2f( void )
 {
 
+  return 0;
 }
 
 int test_d_scaleDivideVec2f( void )
 {
 
+  return 0;
 }
 
 int test_d_limitVec2f( void )
 {
 
+  return 0;
 }
 
 int test_d_normalizeVec2f( void )
 {
 
+  return 0;
 }
 
 int test_d_createNormalVec2f( void )
 {
 
+  return 0;
 }
 
 int test_d_findIntersectionVec2f( void )
 {
 
+  return 0;
 }
 
 int test_d_lengthOfVec3f( void )
 {
 
+  return 0;
 }
 
 int test_d_distanceVec3f( void )
 {
 
+  return 0;
 }
 
 int test_d_dotProductVec3f( void )
 {
 
+  return 0;
 }
 
 int test_d_crossProductVec3f( void )
 {
 
+  return 0;
 }
 
 int test_d_addTwoVec3f( void )
 {
 
+  return 0;
 }
 
 int test_d_subTwoVec3f( void )
 {
 
+  return 0;
 }
 
 int test_d_scaleMultiplyVec3f( void )
 {
 
+  return 0;
 }
 
 int test_d_scaleDivideVec3f( void )
 {
 
+  return 0;
 }
 
 int test_d_limitVec3f( void )
 {
 
+  return 0;
 }
 
 int test_d_normalizeVec3f( void )
 {
 
+  return 0;
 }
 
 int test_d_createNormalVec3f( void )
 {
 
+  return 0;
 }
 
 int test_d_normalizeVec4f( void )
 {
 
+  return 0;
 }
 

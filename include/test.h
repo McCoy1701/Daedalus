@@ -1,6 +1,14 @@
 #ifndef __TEST_H__
 #define __TEST_H__
 
+extern int test_kinematicBody( void );
+extern int test_linkedList( void );
+extern int test_matrixCreation( void );
+extern int test_matrixMath( void );
+extern int test_quadTree( void );
+extern int test_strings( void );
+extern int test_vectorMath( void );
+
 /* Vector Math Float */
 extern int test_d_sqrt( void );
 
