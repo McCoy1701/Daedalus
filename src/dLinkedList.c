@@ -4,7 +4,7 @@
 
 #include "Daedalus.h"
 
-dLinkedList_t* d_create_linked_list( void *data, char *name, size_t size )
+dLinkedList_t* d_createLinkedList( void *data, char *name, size_t size )
 {
   dLinkedList_t* newList = ( dLinkedList_t* )malloc( sizeof( dLinkedList_t ) );
   
@@ -29,7 +29,7 @@ dLinkedList_t* d_create_linked_list( void *data, char *name, size_t size )
   return newList;
 }
 
-void* d_get_data_in_linked_list_by_index( dLinkedList_t *head, int index )
+void* d_getDataInLinkedListByIndex( dLinkedList_t *head, int index )
 {
   dLinkedList_t *current = head;
 
@@ -41,7 +41,7 @@ void* d_get_data_in_linked_list_by_index( dLinkedList_t *head, int index )
   return current->data;
 }
 
-void* d_get_data_in_linked_list_by_name( dLinkedList_t *head, char *name )
+void* d_getDataInLinkedListByName( dLinkedList_t *head, char *name )
 {
   dLinkedList_t *current;
 
@@ -56,7 +56,7 @@ void* d_get_data_in_linked_list_by_name( dLinkedList_t *head, char *name )
   return NULL;
 }
 
-void d_remove_node_in_linked_list_by_index( dLinkedList_t *head, int index )
+void d_removeNodeInLinkedListByIndex( dLinkedList_t *head, int index )
 {
   dLinkedList_t *current = head;
   dLinkedList_t *temp = NULL;
@@ -76,7 +76,7 @@ void d_remove_node_in_linked_list_by_index( dLinkedList_t *head, int index )
   free( temp );
 }
 
-void d_remove_node_in_linked_list_by_name( dLinkedList_t *head, char *name )
+void d_removeNodeInLinkedListByName( dLinkedList_t *head, char *name )
 {
   dLinkedList_t *current;
   dLinkedList_t *temp = NULL;
@@ -92,7 +92,7 @@ void d_remove_node_in_linked_list_by_name( dLinkedList_t *head, char *name )
   }
 }
 
-void d_clear_linked_list( dLinkedList_t *head )
+void d_clearLinkedList( dLinkedList_t *head )
 {
   dLinkedList_t *current = head;
   dLinkedList_t *next = NULL;
@@ -107,9 +107,9 @@ void d_clear_linked_list( dLinkedList_t *head )
   head = NULL;
 }
 
-void d_push_back( dLinkedList_t *head, void *data, char *name, size_t size )
+void d_pushBack( dLinkedList_t *head, void *data, char *name, size_t size )
 {
-  dLinkedList_t *newList = d_create_linked_list( data, name, size );
+  dLinkedList_t *newList = d_createLinkedList( data, name, size );
   
   if ( head != NULL )
   {
@@ -129,9 +129,9 @@ void d_push_back( dLinkedList_t *head, void *data, char *name, size_t size )
   }
 }
 
-void d_push_front( dLinkedList_t **head, void *data, char *name, size_t size )
+void d_pushFront( dLinkedList_t **head, void *data, char *name, size_t size )
 {
-  dLinkedList_t *temp = d_create_linked_list( data, name, size );
+  dLinkedList_t *temp = d_createLinkedList( data, name, size );
   if ( *head != NULL )
   {
     temp->next = *head;
@@ -144,7 +144,7 @@ void d_push_front( dLinkedList_t **head, void *data, char *name, size_t size )
   }
 }
 
-void* d_pop_back( dLinkedList_t *head )
+void* d_popBack( dLinkedList_t *head )
 {
   dLinkedList_t *current = head;
   void *temp;
@@ -168,7 +168,7 @@ void* d_pop_back( dLinkedList_t *head )
   return temp;
 }
 
-void* d_pop_front( dLinkedList_t **head )
+void* d_popFront( dLinkedList_t **head )
 {
   dLinkedList_t *temp = NULL;
   void *data;
@@ -186,7 +186,7 @@ void* d_pop_front( dLinkedList_t **head )
   return data;
 }
 
-void d_print_linked_list( dLinkedList_t *head )
+void d_printLinkedList( dLinkedList_t *head )
 {
   dLinkedList_t *current = head;
 
@@ -197,7 +197,7 @@ void d_print_linked_list( dLinkedList_t *head )
   }
 }
 
-int d_get_length_of_linked_list( dLinkedList_t *head )
+int  d_getLengthOfLinkedList( dLinkedList_t *head )
 {
   dLinkedList_t *current = head;
   int count = 0;

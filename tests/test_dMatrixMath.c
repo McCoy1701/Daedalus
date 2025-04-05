@@ -1,56 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "daedalus.h"
+#include "Daedalus.h"
 
 /* Matrix Operations */
-int test_dMatrixClearf( void )
-{
+int test_d_matrixClearf( void );
+int test_d_matrixRotateXf( void );
+int test_d_matrixRotateYf( void );
+int test_d_matrixRotateZf( void );
+int test_d_matrixCreateProjectionf( void );
+int test_d_matrixMultiplyf( void );
+int test_d_matrixTranslateVec3f( void );
+int test_d_matrixTranslateVec4f( void );
+int test_d_matrixMultiplyVec3f( void );
+int test_d_matrixInverseTransformVec3f( void );
+int test_d_matrixMultiplyVec4f( void );
 
-}
-
-int test_dMatrixTransform3f( void )
-{
-
-}
-
-int test_dMatrixTransform4f( void )
-{
-
-}
-
-int test_dMatrixMultiplyf( void )
-{
-
-}
-
-int test_dMatrixInversef( void )
-{
-
-}
-
-
-int test_dMatrixCleard( void )
-{
-
-}
-
-int test_dMatrixTransform3d( void )
-{
-
-}
-
-int test_dMatrixTransform4d( void )
-{
-
-}
-
-int test_dMatrixMultiplyd( void )
-{
-
-}
-
-int test_dMatrixInversed( void )
-{
-  
-}

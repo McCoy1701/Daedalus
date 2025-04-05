@@ -1,69 +1,81 @@
 #ifndef __TEST_H__
 #define __TEST_H__
 
-extern int test_dSqrt( void );
+/* Vector Math Float */
+extern int test_d_sqrt( void );
 
-extern int test_dLength2f( void );
-extern int test_dLength3f( void );
-extern int test_dDistance2f( void );
-extern int test_dDistance3f( void );
-extern int test_dDot2f( void );
-extern int test_dDot3f( void );
-extern int test_dCross2f( void );
-extern int test_dCross3f( void );
-extern int test_dNormalize2f( void );
-extern int test_dNormalize3f( void );
-extern int test_dNormalize4f( void );
-extern int test_dNormal2f( void );
-extern int test_dNormal3f( void );
-extern int test_dIntersect2f( void );
+extern int test_d_lengthOfVec2f( void );
+extern int test_d_distanceVec2f( void );
+extern int test_d_dotProductVec2f( void );
+extern int test_d_crossProductVec2f( void );
+extern int test_d_addTwoVec2f( void );
+extern int test_d_subTwoVec2f( void );
+extern int test_d_getVec2fFromAnglef( void );
+extern int test_d_scaleMultiplyVec2f( void );
+extern int test_d_scaleDivideVec2f( void );
+extern int test_d_limitVec2f( void );
+extern int test_d_normalizeVec2f( void );
+extern int test_d_createNormalVec2f( void );
+extern int test_d_findIntersectionVec2f( void );
 
-/* Vector Math Double */
-extern int test_dLength2d( void );
-extern int test_dLength3d( void );
-extern int test_dDistance2d( void );
-extern int test_dDistance3d( void );
-extern int test_dDot2d( void );
-extern int test_dDot3d( void );
-extern int test_dCross2d( void );
-extern int test_dCross3d( void );
-extern int test_dNormalize2d( void );
-extern int test_dNormalize3d( void );
-extern int test_dNormalize4d( void );
-extern int test_dNormal2d( void );
-extern int test_dNormal3d( void );
-extern int test_dIntersect2d( void );
-
-/* Vector Integer Math */
-extern int test_dSqrti( void );
-extern int test_dNormalize2di( void );
-extern int test_dNormalize3di( void );
-extern int test_dIntersect2di( void );
+extern int test_d_lengthOfVec3f( void );
+extern int test_d_distanceVec3f( void );
+extern int test_d_dotProductVec3f( void );
+extern int test_d_crossProductVec3f( void );
+extern int test_d_addTwoVec3f( void );
+extern int test_d_subTwoVec3f( void );
+extern int test_d_scaleMultiplyVec3f( void );
+extern int test_d_scaleDivideVec3f( void );
+extern int test_d_limitVec3f( void );
+extern int test_d_normalizeVec3f( void );
+extern int test_d_createNormalVec3f( void );
+extern int test_d_normalizeVec4f( void );
 
 /* Matrix Operations */
-extern int test_dMatrixClearf( void );
-extern int test_dMatrixCleard( void );
-extern int test_dMatrixTransform3f( void );
-extern int test_dMatrixTransform3d( void );
-extern int test_dMatrixTransform4f( void );
-extern int test_dMatrixTransform4d( void );
-extern int test_dMatrixMultiplyf( void );
-extern int test_dMatrixMultiplyd( void );
-extern int test_dMatrixInversef( void );
-extern int test_dMatrixInversed( void );
+extern int test_d_matrixClearf( void );
+extern int test_d_matrixRotateXf( void );
+extern int test_d_matrixRotateYf( void );
+extern int test_d_matrixRotateZf( void );
+extern int test_d_matrixCreateProjectionf( void );
+extern int test_d_matrixMultiplyf( void );
+extern int test_d_matrixTranslateVec3f( void );
+extern int test_d_matrixTranslateVec4f( void );
+extern int test_d_matrixMultiplyVec3f( void );
+extern int test_d_matrixInverseTransformVec3f( void );
+extern int test_d_matrixMultiplyVec4f( void );
 
 /* Matrix Creation */
-extern int test_dMatrixXYf( void );
-extern int test_dMatrixXZf( void );
-extern int test_dMatrixYXf( void );
-extern int test_dMatrixYZf( void );
-extern int test_dMatrixZXf( void );
-extern int test_dMatrixZYf( void );
-extern int test_dMatrixXYd( void );
-extern int test_dMatrixXZd( void );
-extern int test_dMatrixYXd( void );
-extern int test_dMatrixYZd( void );
-extern int test_dMatrixZXd( void );
-extern int test_dMatrixZYd( void );
+extern int test_d_matrixXYf( void );
+extern int test_d_matrixXZf( void );
+extern int test_d_matrixYXf( void );
+extern int test_d_matrixYZf( void );
+extern int test_d_matrixZXf( void );
+extern int test_d_matrixZYf( void );
+
+/* Linked List */
+extern int test_d_createLinkedList( void );
+extern int test_d_getDataInLinkedListByIndex( void );
+extern int test_d_getDataInLinkedListByName( void );
+extern int test_d_removeNodeInLinkedListByIndex( void );
+extern int test_d_removeNodeInLinkedListByName( void );
+extern int test_d_clearLinkedList( void );
+extern int test_d_pushBack( void );
+extern int test_d_pushFront( void );
+extern int test_d_popBack( void );
+extern int test_d_popFront( void );
+extern int test_d_printLinkedList( void );
+extern int test_d_getLengthOfLinkedList( void );
+
+/* Quad Tree */
+extern int test_d_createQuadtree( void );
+extern int test_d_insertObjectInQuadtree( void );
+extern int test_d_subdivideQuadtree( void );
+
+/* Kinematic Body 2D  */
+extern int test_d_createKinmaticBody( void );
+
+/* Strings */
+extern int test_d_createStringFromFile( void );
 
 #endif
+

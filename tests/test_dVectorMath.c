@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "daedalus.h"
+#include "Daedalus.h"
 
 
-int test_dSqrt( void )
+int test_d_sqrt( void )
 {
   float test0 = dSqrt( 25 );
   float test1 = dSqrt( 144 );
@@ -34,10 +34,10 @@ int test_dSqrt( void )
 
 
 /* Vector Math Float */
-int test_dLength2f( void )
+int test_d_lengthOfVec2f( void )
 {
-  float vec0[2] = { 1.0f, 1.0f };
-  float test0 = dLength2f( vec0 );
+  dVec2_t vec0 = { 1.0f, 1.0f };
+  float test0 = d_lengthOfVec2f( vec0 );
 
   if ( test0 != 1.0f )
   {
@@ -49,159 +49,125 @@ int test_dLength2f( void )
   return 1;
 }
 
-int test_dDistance2f( void )
+/* Vector Math Float */
+
+int test_d_distanceVec2f( void )
 {
 
 }
 
-int test_dDot2f( void )
+int test_d_dotProductVec2f( void )
 {
 
 }
 
-int test_dCross2f( void )
+int test_d_crossProductVec2f( void )
 {
 
 }
 
-int test_dNormalize2f( void )
+int test_d_addTwoVec2f( void )
 {
 
 }
 
-int test_dNormal2f( void )
+int test_d_subTwoVec2f( void )
 {
 
 }
 
-int test_dIntersect2f( void )
+int test_d_getVec2fFromAnglef( void )
 {
 
 }
 
-
-int test_dLength3f( void )
+int test_d_scaleMultiplyVec2f( void )
 {
 
 }
 
-int test_dDistance3f( void )
+int test_d_scaleDivideVec2f( void )
 {
 
 }
 
-int test_dDot3f( void )
+int test_d_limitVec2f( void )
 {
 
 }
 
-int test_dCross3f( void )
+int test_d_normalizeVec2f( void )
 {
 
 }
 
-int test_dNormalize3f( void )
+int test_d_createNormalVec2f( void )
 {
 
 }
 
-int test_dNormal3f( void )
+int test_d_findIntersectionVec2f( void )
 {
 
 }
 
-int test_dNormalize4f( void )
+int test_d_lengthOfVec3f( void )
 {
 
 }
 
-/* Vector Math Double */
-int test_dLength2d( void )
+int test_d_distanceVec3f( void )
 {
 
 }
 
-int test_dDistance2d( void )
+int test_d_dotProductVec3f( void )
 {
 
 }
 
-int test_dDot2d( void )
+int test_d_crossProductVec3f( void )
 {
 
 }
 
-int test_dCross2d( void )
+int test_d_addTwoVec3f( void )
 {
 
 }
 
-int test_dNormalize2d( void )
+int test_d_subTwoVec3f( void )
 {
 
 }
 
-int test_dNormal2d( void )
+int test_d_scaleMultiplyVec3f( void )
 {
 
 }
 
-int test_dIntersect2d( void )
-{
-
-}
-int test_dLength3d( void )
+int test_d_scaleDivideVec3f( void )
 {
 
 }
 
-int test_dDistance3d( void )
+int test_d_limitVec3f( void )
 {
 
 }
 
-int test_dDot3d( void )
+int test_d_normalizeVec3f( void )
 {
 
 }
 
-int test_dCross3d( void )
+int test_d_createNormalVec3f( void )
 {
 
 }
 
-int test_dNormalize3d( void )
+int test_d_normalizeVec4f( void )
 {
 
 }
 
-int test_dNormal3d( void )
-{
-
-}
-
-int test_dNormalize4d( void )
-{
-
-}
-
-/* Vector Integer Math */
-int test_dSqrti( void )
-{
-
-}
-
-int test_dNormalize2di( void )
-{
-
-}
-
-int test_dNormalize3di( void )
-{
-
-}
-
-int test_dIntersect2di( void )
-{
-
-}
