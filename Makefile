@@ -53,7 +53,7 @@ $(OBJ_DIR)/debug_dMatrixCreation.o: $(SRC_DIR)/dMatrixCreation.c
 $(OBJ_DIR)/debug_dLinkedList.o: $(SRC_DIR)/dLinkedList.c
 	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -ggdb
 
-$(BIN_DIR)/debug_bin: $(OBJ_DIR)/debug_dLinkedList.o $(OBJ_DIR)/debug_dMatrixCreation.o $(OBJ_DIR)/debug_dMatrixMath.o $(OBJ_DIR)/debug_dVectorMath.o $(OBJ_DIR)/debug_main.o
+$(BIN_DIR)/debug_bin: $(OBJ_DIR)/debug_dLinkedList.o $(OBJ_DIR)/debug_dMatrixMath.o $(OBJ_DIR)/debug_dVectorMath.o $(OBJ_DIR)/debug_main.o
 	$(CC) $^ $(CINC) $(CFLAGS) -ggdb -o $@
 
 

@@ -184,27 +184,27 @@ void d_matrixCreateProjectionf( dMat4x4_t *matrix, const float aspect_ratio, con
   Returns:
     void
 */
-void d_matrixMultiplyf( dMat4x4_t* output, const dMat4x4_t* a, const dMat4x4_t* b )
+void d_matrixMultiplyf( dMat4x4_t* output, const dMat4x4_t a, const dMat4x4_t b )
 { 
-	output->m[0]  = (b->m[0]  * a->m[0]) + (b->m[1]  * a->m[4]) + (b->m[2]  * a->m[8]) + (b->m[3]  * a->m[12]);
-	output->m[4]  = (b->m[4]  * a->m[0]) + (b->m[5]  * a->m[4]) + (b->m[6]  * a->m[8]) + (b->m[7]  * a->m[12]);
-	output->m[8]  = (b->m[8]  * a->m[0]) + (b->m[9]  * a->m[4]) + (b->m[10] * a->m[8]) + (b->m[11] * a->m[12]);
-	output->m[12] = (b->m[12] * a->m[0]) + (b->m[13] * a->m[4]) + (b->m[14] * a->m[8]) + (b->m[15] * a->m[12]);
+	output->m[0]  = (b.m[0]  * a.m[0]) + (b.m[1]  * a.m[4]) + (b.m[2]  * a.m[8])  + (b.m[3]  * a.m[12]);
+	output->m[4]  = (b.m[4]  * a.m[0]) + (b.m[5]  * a.m[4]) + (b.m[6]  * a.m[8])  + (b.m[7]  * a.m[12]);
+	output->m[8]  = (b.m[8]  * a.m[0]) + (b.m[9]  * a.m[4]) + (b.m[10] * a.m[8])  + (b.m[11] * a.m[12]);
+	output->m[12] = (b.m[12] * a.m[0]) + (b.m[13] * a.m[4]) + (b.m[14] * a.m[8])  + (b.m[15] * a.m[12]);
 
-	output->m[1]  = (b->m[0]  * a->m[1]) + (b->m[1]  * a->m[5]) + (b->m[2]  * a->m[9]) + (b->m[3]  * a->m[13]);
-	output->m[5]  = (b->m[4]  * a->m[1]) + (b->m[5]  * a->m[5]) + (b->m[6]  * a->m[9]) + (b->m[7]  * a->m[13]);
-	output->m[9]  = (b->m[8]  * a->m[1]) + (b->m[9]  * a->m[5]) + (b->m[10] * a->m[9]) + (b->m[11] * a->m[13]);
-	output->m[13] = (b->m[12] * a->m[1]) + (b->m[13] * a->m[5]) + (b->m[14] * a->m[9]) + (b->m[15] * a->m[13]);
+	output->m[1]  = (b.m[0]  * a.m[1]) + (b.m[1]  * a.m[5]) + (b.m[2]  * a.m[9])  + (b.m[3]  * a.m[13]);
+	output->m[5]  = (b.m[4]  * a.m[1]) + (b.m[5]  * a.m[5]) + (b.m[6]  * a.m[9])  + (b.m[7]  * a.m[13]);
+	output->m[9]  = (b.m[8]  * a.m[1]) + (b.m[9]  * a.m[5]) + (b.m[10] * a.m[9])  + (b.m[11] * a.m[13]);
+	output->m[13] = (b.m[12] * a.m[1]) + (b.m[13] * a.m[5]) + (b.m[14] * a.m[9])  + (b.m[15] * a.m[13]);
 
-	output->m[2]  = (b->m[0]  * a->m[2]) + (b->m[1]  * a->m[6]) + (b->m[2]  * a->m[10]) + (b->m[3]  * a->m[14]);
-	output->m[6]  = (b->m[4]  * a->m[2]) + (b->m[5]  * a->m[6]) + (b->m[6]  * a->m[10]) + (b->m[7]  * a->m[14]);
-	output->m[10] = (b->m[8]  * a->m[2]) + (b->m[9]  * a->m[6]) + (b->m[10] * a->m[10]) + (b->m[11] * a->m[14]);
-	output->m[14] = (b->m[12] * a->m[2]) + (b->m[13] * a->m[6]) + (b->m[14] * a->m[10]) + (b->m[15] * a->m[14]);
+	output->m[2]  = (b.m[0]  * a.m[2]) + (b.m[1]  * a.m[6]) + (b.m[2]  * a.m[10]) + (b.m[3]  * a.m[14]);
+	output->m[6]  = (b.m[4]  * a.m[2]) + (b.m[5]  * a.m[6]) + (b.m[6]  * a.m[10]) + (b.m[7]  * a.m[14]);
+	output->m[10] = (b.m[8]  * a.m[2]) + (b.m[9]  * a.m[6]) + (b.m[10] * a.m[10]) + (b.m[11] * a.m[14]);
+	output->m[14] = (b.m[12] * a.m[2]) + (b.m[13] * a.m[6]) + (b.m[14] * a.m[10]) + (b.m[15] * a.m[14]);
 
-	output->m[3]  = (b->m[0]  * a->m[3]) + (b->m[1]  * a->m[7]) + (b->m[2]  * a->m[11]) + (b->m[3]  * a->m[15]);
-	output->m[7]  = (b->m[4]  * a->m[3]) + (b->m[5]  * a->m[7]) + (b->m[6]  * a->m[11]) + (b->m[7]  * a->m[15]);
-	output->m[11] = (b->m[8]  * a->m[3]) + (b->m[9]  * a->m[7]) + (b->m[10] * a->m[11]) + (b->m[11] * a->m[15]);
-	output->m[15] = (b->m[12] * a->m[3]) + (b->m[13] * a->m[7]) + (b->m[14] * a->m[11]) + (b->m[15] * a->m[15]);
+	output->m[3]  = (b.m[0]  * a.m[3]) + (b.m[1]  * a.m[7]) + (b.m[2]  * a.m[11]) + (b.m[3]  * a.m[15]);
+	output->m[7]  = (b.m[4]  * a.m[3]) + (b.m[5]  * a.m[7]) + (b.m[6]  * a.m[11]) + (b.m[7]  * a.m[15]);
+	output->m[11] = (b.m[8]  * a.m[3]) + (b.m[9]  * a.m[7]) + (b.m[10] * a.m[11]) + (b.m[11] * a.m[15]);
+	output->m[15] = (b.m[12] * a.m[3]) + (b.m[13] * a.m[7]) + (b.m[14] * a.m[11]) + (b.m[15] * a.m[15]);
 }
 
 /*

@@ -110,7 +110,7 @@ extern void d_matrixRotateXf( dMat4x4_t *matrix, const float angle_rad ); //Rota
 extern void d_matrixRotateYf( dMat4x4_t *matrix, const float angle_rad ); //Rotate matrix by angle in radians about the y axis
 extern void d_matrixRotateZf( dMat4x4_t *matrix, const float angle_rad ); //Rotate matrix by angle in radians about the z axis
 extern void d_matrixCreateProjectionf( dMat4x4_t *matrix, const float aspect_ratio, const float fov, const float near, const float far ); //Create a projection matrix 
-extern void d_matrixMultiplyf( dMat4x4_t *output, const dMat4x4_t* a, const dMat4x4_t* b ); //Multiply two 4x4 Matrices together
+extern void d_matrixMultiplyf( dMat4x4_t *output, const dMat4x4_t a, const dMat4x4_t b ); //Multiply two 4x4 Matrices together
 extern void d_matrixTranslateVec3f( dMat4x4_t *matrix, const dVec3_t vec ); //Translate a matrix by a 3D point
 extern void d_matrixTranslateVec4f( dMat4x4_t *matrix, const dVec4_t vec ); //Translate a matrix by a 4D point
 extern void d_matrixMultiplyVec3f( dVec3_t *output, dMat4x4_t matrix, const dVec3_t vec ); //Transform a 3D point into a 4x4 matrix 
@@ -151,11 +151,11 @@ extern void d_createKinmaticBody( dKinematicBody_t *output, const dVec2_t positi
 extern char* d_createStringFromFile(const char *filename);
 
 /* Dynamic Arrays */
-extern DynamicArray_t* da_initArray( size_t capacity, size_t element_size );
-extern void da_appendArray( DynamicArray_t* array, void* data );
-extern void* da_getDataFromArrayByIndex( DynamicArray_t* array, size_t count );
-extern void* da_popDataFromArray( DynamicArray_t* array );
-extern int da_resizeArray( DynamicArray_t* array, size_t new_capacity );
-extern void da_destroyArray( DynamicArray_t* array );
+extern DynamicArray_t* d_initArray( size_t capacity, size_t element_size );
+extern void d_appendArray( DynamicArray_t* array, void* data );
+extern void* d_getDataFromArrayByIndex( DynamicArray_t* array, size_t count );
+extern void* d_popDataFromArray( DynamicArray_t* array );
+extern int d_resizeArray( DynamicArray_t* array, size_t new_capacity );
+extern void d_destroyArray( DynamicArray_t* array );
 
 #endif

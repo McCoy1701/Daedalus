@@ -4,7 +4,7 @@
 
 #include "Daedalus.h"
 
-DynamicArray_t* da_initArray( size_t capacity, size_t element_size )
+DynamicArray_t* d_initArray( size_t capacity, size_t element_size )
 {
   DynamicArray_t* new_array = ( DynamicArray_t* )malloc( sizeof( DynamicArray_t ) );
   if ( new_array == NULL )
@@ -22,7 +22,7 @@ DynamicArray_t* da_initArray( size_t capacity, size_t element_size )
   return new_array;
 }
 
-void da_appendArray( DynamicArray_t* array, void* data )
+void d_appendArray( DynamicArray_t* array, void* data )
 {
   if ( array->count < array->capacity )
   {
@@ -37,7 +37,7 @@ void da_appendArray( DynamicArray_t* array, void* data )
   }
 }
 
-void* da_getDataFromArrayByIndex( DynamicArray_t* array, size_t count )
+void* d_getDataFromArrayByIndex( DynamicArray_t* array, size_t count )
 {
   if ( count < array->capacity )
   {
@@ -51,7 +51,7 @@ void* da_getDataFromArrayByIndex( DynamicArray_t* array, size_t count )
   }
 }
 
-void* da_popDataFromArray( DynamicArray_t* array )
+void* d_popDataFromArray( DynamicArray_t* array )
 {
   if ( array->count == 0 )
   {
@@ -67,12 +67,12 @@ void* da_popDataFromArray( DynamicArray_t* array )
   }
 }
 
-int da_growArray( DynamicArray_t* array, size_t new_capacity )
+int d_growArray( DynamicArray_t* array, size_t new_capacity )
 {
   return da_resizeArray( array, array->capacity + new_capacity );
 }
 
-int da_resizeArray( DynamicArray_t* array, size_t new_capacity )
+int d_resizeArray( DynamicArray_t* array, size_t new_capacity )
 {
   void* new_array = realloc( array->data, new_capacity );
   if ( new_array == NULL )
@@ -86,7 +86,7 @@ int da_resizeArray( DynamicArray_t* array, size_t new_capacity )
   return 0;
 }
 
-void da_destroyArray( DynamicArray_t* array )
+void d_destroyArray( DynamicArray_t* array )
 {
   free( array->data );
   free( array );
