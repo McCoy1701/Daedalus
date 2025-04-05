@@ -1,6 +1,7 @@
 #ifndef __TEST_H__
 #define __TEST_H__
 
+extern int test_dynamicArray( void );
 extern int test_kinematicBody( void );
 extern int test_linkedList( void );
 extern int test_matrixCreation( void );
@@ -10,7 +11,7 @@ extern int test_strings( void );
 extern int test_vectorMath( void );
 
 /* Vector Math Float */
-extern int test_d_sqrt( void );
+extern int test_d_sqrtf( void );
 
 extern int test_d_lengthOfVec2f( void );
 extern int test_d_distanceVec2f( void );
@@ -84,6 +85,14 @@ extern int test_d_createKinmaticBody( void );
 
 /* Strings */
 extern int test_d_createStringFromFile( void );
+
+/* Dynamic Arrays */
+extern int test_d_initArray( void );
+extern int test_d_appendArray( void );
+extern int test_d_getDataFromArrayByIndex( void );
+extern int test_d_popDataFromArray( void );
+extern int test_d_resizeArray( void );
+extern int test_d_destroyArray( void );
 
 #endif
 

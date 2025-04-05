@@ -4,11 +4,11 @@
 #include "Daedalus.h"
 #include "test.h"
 
-int test_d_sqrt( void )
+int test_d_sqrtf( void )
 {
-  float test0 = dSqrt( 25 );
-  float test1 = dSqrt( 144 );
-  float test2 = dSqrt( 169 );
+  float test0 = d_sqrtf( 25 );
+  float test1 = d_sqrtf( 144 );
+  float test2 = d_sqrtf( 169 );
 
   if ( test0 != 5 )
   {

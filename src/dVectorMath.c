@@ -13,7 +13,7 @@
   Returns:
     float of square root
 */
-float d_sqrt( float number )
+float d_sqrtf( float number )
 {
   if ( number == 1.0f ) return number;
 

@@ -72,10 +72,8 @@ typedef struct
 
 #define PI 3.14159265
 
-#define d_sqrt sqrtf
-
 /* Vector Math Float */
-extern float d_sqrt( float number ); //Quake fast inverse square root
+extern float d_sqrtf( float number ); //Quake fast inverse square root
 
 extern float d_lengthOfVec2f( const dVec2_t vec ); //Length of a vector 2f
 extern float d_distanceVec2f( const dVec2_t a, const dVec2_t b ); //Distance between two vector 2fs
