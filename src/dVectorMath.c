@@ -13,7 +13,7 @@
   Returns:
     float of square root
 */
-float d_sqrtf( float number )
+float d_Sqrtf( float number )
 {
   if ( number == 1.0f ) return number;
 
@@ -45,9 +45,9 @@ float d_sqrtf( float number )
   Returns:
     Length of vector
 */
-float d_lengthOfVec2f( const dVec2_t vec )
+float d_LengthOfVec2f( const dVec2_t vec )
 {
-  return d_sqrt( vec.x * vec.x + vec.y * vec.y );
+  return d_Sqrt( vec.x * vec.x + vec.y * vec.y );
 }
 
 /*
@@ -60,12 +60,12 @@ float d_lengthOfVec2f( const dVec2_t vec )
   Returns:
     Distance between the two points
 */
-float d_distanceVec2f( const dVec2_t a, const dVec2_t b )
+float d_DistanceVec2f( const dVec2_t a, const dVec2_t b )
 {
   dVec2_t temp = { 0 };
   temp.x = a.x - b.x;
   temp.y = a.y - b.y;
-  return d_sqrt( temp.x * temp.x + temp.y * temp.y );
+  return d_Sqrt( temp.x * temp.x + temp.y * temp.y );
 }
 
 /*
@@ -78,7 +78,7 @@ float d_distanceVec2f( const dVec2_t a, const dVec2_t b )
   Returns:
     Dot product between them
 */
-float d_dotProductVec2f( const dVec2_t a, const dVec2_t b )
+float d_DotProductVec2f( const dVec2_t a, const dVec2_t b )
 {
   return ( a.x * b.x + a.y * b.y );
 }
@@ -94,7 +94,7 @@ float d_dotProductVec2f( const dVec2_t a, const dVec2_t b )
   Returns:
     void
 */
-float d_crossProductVec2f( const dVec2_t a, const dVec2_t b )
+float d_CrossProductVec2f( const dVec2_t a, const dVec2_t b )
 {
   return (a.x * b.y - a.y * b.x);
 }
@@ -110,7 +110,7 @@ float d_crossProductVec2f( const dVec2_t a, const dVec2_t b )
   Returns:
     void
 */
-void d_addTwoVec2f( dVec2_t *output, const dVec2_t a, const dVec2_t b )
+void d_AddTwoVec2f( dVec2_t *output, const dVec2_t a, const dVec2_t b )
 {
   output->x = ( a.x + b.x );
   output->y = ( a.y + b.y );
@@ -127,7 +127,7 @@ void d_addTwoVec2f( dVec2_t *output, const dVec2_t a, const dVec2_t b )
   Returns:
     void
 */
-void d_subTwoVec2f( dVec2_t *output, const dVec2_t a, const dVec2_t b )
+void d_SubTwoVec2f( dVec2_t *output, const dVec2_t a, const dVec2_t b )
 {
   output->x = ( a.x - b.x );
   output->y = ( a.y - b.y );
@@ -146,7 +146,7 @@ void d_subTwoVec2f( dVec2_t *output, const dVec2_t a, const dVec2_t b )
   Returns:
     void
 */
-void d_getVec2fFromAnglef( dVec2_t *output, float angle )
+void d_GetVec2fFromAnglef( dVec2_t *output, float angle )
 {
   output->x = cosf(angle);
   output->y = sinf(angle);
@@ -163,7 +163,7 @@ void d_getVec2fFromAnglef( dVec2_t *output, float angle )
   Returns:
     void
 */
-void d_scaleMultiplyVec2f( dVec2_t *output, const dVec2_t vec, const float value )
+void d_ScaleMultiplyVec2f( dVec2_t *output, const dVec2_t vec, const float value )
 {
   output->x = vec.x * value;
   output->y = vec.y * value;
@@ -180,7 +180,7 @@ void d_scaleMultiplyVec2f( dVec2_t *output, const dVec2_t vec, const float value
   Returns:
     void
 */
-void d_scaleDivideVec2f( dVec2_t *output, const dVec2_t vec, const float value )
+void d_ScaleDivideVec2f( dVec2_t *output, const dVec2_t vec, const float value )
 {
   output->x = vec.x / value;
   output->y = vec.y / value;
@@ -196,12 +196,12 @@ void d_scaleDivideVec2f( dVec2_t *output, const dVec2_t vec, const float value )
   Returns:
     void
 */
-void d_limitVec2f( dVec2_t *output, const dVec2_t a, const float value )
+void d_LimitVec2f( dVec2_t *output, const dVec2_t a, const float value )
 {
-  if ( d_sqrt( ( a.x * a.x ) + ( a.y * a.y ) ) > value )
+  if ( d_Sqrt( ( a.x * a.x ) + ( a.y * a.y ) ) > value )
   {
     float temp; //Normalize vector
-    temp = d_sqrt( a.y * a.y + a.y * a.y );
+    temp = d_Sqrt( a.y * a.y + a.y * a.y );
     output->x = a.x / temp;
     output->y = a.y / temp;
 
@@ -219,10 +219,10 @@ void d_limitVec2f( dVec2_t *output, const dVec2_t a, const float value )
   Returns:
     void
 */
-void d_normalizeVec2f( dVec2_t *output, const dVec2_t vec )
+void d_NormalizeVec2f( dVec2_t *output, const dVec2_t vec )
 {
   float temp;
-  temp = d_sqrt( vec.x * vec.x + vec.y * vec.y );
+  temp = d_Sqrt( vec.x * vec.x + vec.y * vec.y );
   output->x = vec.x / temp;
   output->y = vec.y / temp;
 }
@@ -238,12 +238,12 @@ void d_normalizeVec2f( dVec2_t *output, const dVec2_t vec )
   Returns:
     void
 */
-void d_createNormalVec2f( dVec2_t *output, const dVec2_t a, const dVec2_t b )
+void d_CreateNormalVec2f( dVec2_t *output, const dVec2_t a, const dVec2_t b )
 {
   float temp;
   output->x = a.x - b.x;
   output->y = a.y - b.y;
-  temp = d_sqrt( output->x * output->x + output->y * output->y );
+  temp = d_Sqrt( output->x * output->x + output->y * output->y );
   output->x /= temp;
   output->y /= temp;
 }
@@ -261,7 +261,7 @@ void d_createNormalVec2f( dVec2_t *output, const dVec2_t a, const dVec2_t b )
   Returns:
     void
 */
-void d_findIntersectionVec2f( dVec2_t *output, const dVec2_t lineA0, const dVec2_t lineA1, const dVec2_t lineB0, const dVec2_t lineB1 )
+void d_FindIntersectionVec2f( dVec2_t *output, const dVec2_t lineA0, const dVec2_t lineA1, const dVec2_t lineB0, const dVec2_t lineB1 )
 {
   float temp = ( ( lineA0.x - lineA1.x ) * ( lineB0.y - lineB1.y ) ) - ( ( lineA0.y - lineA1.y ) * ( lineB0.x - lineB1.x ) );
 
@@ -287,9 +287,9 @@ void d_findIntersectionVec2f( dVec2_t *output, const dVec2_t lineA0, const dVec2
   Returns:
     float of length 
 */
-float d_lengthOfVec3f( const dVec3_t vec )
+float d_LengthOfVec3f( const dVec3_t vec )
 {
-  return d_sqrt( vec.x * vec.x + vec.y * vec.y + vec.z * vec.z );
+  return d_Sqrt( vec.x * vec.x + vec.y * vec.y + vec.z * vec.z );
 }
 
 /*
@@ -302,13 +302,13 @@ float d_lengthOfVec3f( const dVec3_t vec )
   Returns:
     float distance between
 */
-float d_distanceVec3f( const dVec3_t a, const dVec3_t b )
+float d_DistanceVec3f( const dVec3_t a, const dVec3_t b )
 {
   dVec3_t output;
   output.x = a.x - b.x;
   output.y = a.y - b.y;
   output.z = a.z - b.z;
-  return d_sqrt( output.x * output.x + output.y * output.y + output.z * output.z );
+  return d_Sqrt( output.x * output.x + output.y * output.y + output.z * output.z );
 }
 
 /*
@@ -321,7 +321,7 @@ float d_distanceVec3f( const dVec3_t a, const dVec3_t b )
   Returns:
     returns dot product
 */
-float d_dotProductVec3f( const dVec3_t a, const dVec3_t b )
+float d_DotProductVec3f( const dVec3_t a, const dVec3_t b )
 {
   return ( a.x * b.x + a.y * b.y + a.z * b.z );
 }
@@ -337,7 +337,7 @@ float d_dotProductVec3f( const dVec3_t a, const dVec3_t b )
   Returns:
     void
 */
-void d_crossProductVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b )
+void d_CrossProductVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b )
 {
   output->x = ( a.y * b.z - a.z * b.y );
   output->y = ( a.z * b.x - a.x * b.z );
@@ -355,7 +355,7 @@ void d_crossProductVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b )
   Returns:
     void
 */
-void d_addTwoVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b )
+void d_AddTwoVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b )
 {
   output->x = ( a.x + b.x );
   output->y = ( a.y + b.y );
@@ -373,7 +373,7 @@ void d_addTwoVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b )
   Returns:
     void
 */
-void d_subTwoVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b )
+void d_SubTwoVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b )
 {
   output->x = ( a.x - b.x );
   output->y = ( a.y - b.y );
@@ -390,7 +390,7 @@ void d_subTwoVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b )
   Returns:
     void
 */
-void d_scaleMultiplyVec3f( dVec3_t *output, const dVec3_t vec, const float value )
+void d_ScaleMultiplyVec3f( dVec3_t *output, const dVec3_t vec, const float value )
 {
   output->x = vec.x * value;
   output->y = vec.y * value;
@@ -407,7 +407,7 @@ void d_scaleMultiplyVec3f( dVec3_t *output, const dVec3_t vec, const float value
   Returns:
     void
 */
-void d_scaleDivideVec3f( dVec3_t *output, const dVec3_t vec, const float value )
+void d_ScaleDivideVec3f( dVec3_t *output, const dVec3_t vec, const float value )
 {
   output->x = vec.x / value;
   output->y = vec.y / value;
@@ -424,12 +424,12 @@ void d_scaleDivideVec3f( dVec3_t *output, const dVec3_t vec, const float value )
   Returns:
     void
 */
-void d_limitVec3f( dVec3_t *output, const dVec3_t a, const float value )
+void d_LimitVec3f( dVec3_t *output, const dVec3_t a, const float value )
 {
-  if ( d_sqrt( ( a.x * a.x ) + ( a.y * a.y ) + ( a.z * a.z ) ) > value )
+  if ( d_Sqrt( ( a.x * a.x ) + ( a.y * a.y ) + ( a.z * a.z ) ) > value )
   {
     float temp; //Normalize vector
-    temp = d_sqrt( ( a.x * a.x ) + ( a.y * a.y ) + ( a.z * a.z ) );
+    temp = d_Sqrt( ( a.x * a.x ) + ( a.y * a.y ) + ( a.z * a.z ) );
     output->x = a.x / temp;
     output->y = a.y / temp;
     output->z = a.z / temp;
@@ -449,10 +449,10 @@ void d_limitVec3f( dVec3_t *output, const dVec3_t a, const float value )
   Returns:
     void
 */
-void d_normalizeVec3f( dVec3_t *output, const dVec3_t vec )
+void d_NormalizeVec3f( dVec3_t *output, const dVec3_t vec )
 {
   float temp;
-  temp = d_sqrt( vec.x * vec.x + vec.y * vec.y + vec.z * vec.z );
+  temp = d_Sqrt( vec.x * vec.x + vec.y * vec.y + vec.z * vec.z );
   output->x /= temp;
   output->y /= temp;
   output->z /= temp;
@@ -470,7 +470,7 @@ void d_normalizeVec3f( dVec3_t *output, const dVec3_t vec )
   Returns:
     void
 */
-void d_createNormalVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b, const dVec3_t c )
+void d_CreateNormalVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b, const dVec3_t c )
 {
   dVec3_t tempA, tempB;
   float temp;
@@ -486,7 +486,7 @@ void d_createNormalVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b, con
   output->y = tempA.z * tempB.x - tempA.x * tempB.z;
   output->z = tempA.x * tempB.y - tempA.y * tempB.x;
   
-  temp = d_sqrt( output->x * output->x + output->y * output->y + output->z * output->z );
+  temp = d_Sqrt( output->x * output->x + output->y * output->y + output->z * output->z );
   output->x /= temp;
   output->y /= temp;
   output->z /= temp;
@@ -501,10 +501,10 @@ void d_createNormalVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b, con
   Returns:
     void
 */
-void d_normalizeVec4f( dVec4_t *output, const dVec4_t vec )
+void d_NormalizeVec4f( dVec4_t *output, const dVec4_t vec )
 {
   float temp;
-  temp = d_sqrt( vec.x * vec.x + vec.y * vec.y + vec.z * vec.z + vec.w * vec.w );
+  temp = d_Sqrt( vec.x * vec.x + vec.y * vec.y + vec.z * vec.z + vec.w * vec.w );
   output->x = vec.x / temp;
   output->y = vec.y / temp;
   output->z = vec.z / temp;

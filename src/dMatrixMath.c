@@ -13,7 +13,7 @@
   Returns:
     void
 */
-void d_matrixClearf( dMat4x4_t* matrix )
+void d_MatrixClearf( dMat4x4_t* matrix )
 {
   matrix->m[0]  = 1.0f;
   matrix->m[1]  = 0.0f;
@@ -46,7 +46,7 @@ void d_matrixClearf( dMat4x4_t* matrix )
   Returns:
     void
 */
-void d_matrixRotateXf( dMat4x4_t *matrix, const float angle_rad )
+void d_MatrixRotateXf( dMat4x4_t *matrix, const float angle_rad )
 {
   matrix->m[0]  =  1.0f;
   matrix->m[1]  =  0.0f;
@@ -79,7 +79,7 @@ void d_matrixRotateXf( dMat4x4_t *matrix, const float angle_rad )
   Returns:
     void
 */
-void d_matrixRotateYf( dMat4x4_t *matrix, const float angle_rad )
+void d_MatrixRotateYf( dMat4x4_t *matrix, const float angle_rad )
 {
   matrix->m[0]  =  cosf( angle_rad );
   matrix->m[1]  =  0.0f;
@@ -112,7 +112,7 @@ void d_matrixRotateYf( dMat4x4_t *matrix, const float angle_rad )
   Returns:
     void
 */
-void d_matrixRotateZf( dMat4x4_t *matrix, const float angle_rad )
+void d_MatrixRotateZf( dMat4x4_t *matrix, const float angle_rad )
 {
   matrix->m[0]  =  cosf( angle_rad );
   matrix->m[1]  =  sinf( angle_rad );
@@ -148,7 +148,7 @@ void d_matrixRotateZf( dMat4x4_t *matrix, const float angle_rad )
   Returns:
     void
 */
-void d_matrixCreateProjectionf( dMat4x4_t *matrix, const float aspect_ratio, const float fov, const float near, const float far )
+void d_MatrixCreateProjectionf( dMat4x4_t *matrix, const float aspect_ratio, const float fov, const float near, const float far )
 {
   float fFovRad = 1.0f / tanf(fov * 0.5f / 180.0f * PI);
   
@@ -184,7 +184,7 @@ void d_matrixCreateProjectionf( dMat4x4_t *matrix, const float aspect_ratio, con
   Returns:
     void
 */
-void d_matrixMultiplyf( dMat4x4_t* output, const dMat4x4_t a, const dMat4x4_t b )
+void d_MatrixMultiplyf( dMat4x4_t* output, const dMat4x4_t a, const dMat4x4_t b )
 { 
 	output->m[0]  = (b.m[0]  * a.m[0]) + (b.m[1]  * a.m[4]) + (b.m[2]  * a.m[8])  + (b.m[3]  * a.m[12]);
 	output->m[4]  = (b.m[4]  * a.m[0]) + (b.m[5]  * a.m[4]) + (b.m[6]  * a.m[8])  + (b.m[7]  * a.m[12]);
@@ -219,7 +219,7 @@ void d_matrixMultiplyf( dMat4x4_t* output, const dMat4x4_t a, const dMat4x4_t b 
   Returns:
     void
 */
-void d_matrixTranslateVec3f( dMat4x4_t *matrix, const dVec3_t vec )
+void d_MatrixTranslateVec3f( dMat4x4_t *matrix, const dVec3_t vec )
 {
   matrix->m[0]  = 1.0f;
   matrix->m[1]  = 0.0f;
@@ -253,7 +253,7 @@ void d_matrixTranslateVec3f( dMat4x4_t *matrix, const dVec3_t vec )
     void
 */
 
-void d_matrixTranslateVec4f( dMat4x4_t *matrix, const dVec4_t vec )
+void d_MatrixTranslateVec4f( dMat4x4_t *matrix, const dVec4_t vec )
 {
   matrix->m[0]  = 1.0f;
   matrix->m[1]  = 0.0f;
@@ -289,7 +289,7 @@ void d_matrixTranslateVec4f( dMat4x4_t *matrix, const dVec4_t vec )
   Returns:
     void
 */
-void d_matrixMultiplyVec3f( dVec3_t *output, dMat4x4_t matrix, const dVec3_t vec )
+void d_MatrixMultiplyVec3f( dVec3_t *output, dMat4x4_t matrix, const dVec3_t vec )
 {
   output->x = vec.x * matrix.m[0] + vec.y * matrix.m[4] + vec.z * matrix.m[8]  + matrix.m[12];
   output->y = vec.x * matrix.m[1] + vec.y * matrix.m[5] + vec.z * matrix.m[9]  + matrix.m[13];
@@ -309,7 +309,7 @@ void d_matrixMultiplyVec3f( dVec3_t *output, dMat4x4_t matrix, const dVec3_t vec
   Returns:
     void
 */
-void d_matrixInverseTransformVec3f( dVec3_t *output, const dMat4x4_t matrix, dVec3_t vec )
+void d_MatrixInverseTransformVec3f( dVec3_t *output, const dMat4x4_t matrix, dVec3_t vec )
 {
   vec.x -= matrix.m[8];
   vec.y -= matrix.m[9];
@@ -334,7 +334,7 @@ void d_matrixInverseTransformVec3f( dVec3_t *output, const dMat4x4_t matrix, dVe
     void
 */
 
-void d_matrixMultiplyVec4f( dVec4_t *output, const dMat4x4_t matrix, const dVec4_t vec4 )
+void d_MatrixMultiplyVec4f( dVec4_t *output, const dMat4x4_t matrix, const dVec4_t vec4 )
 {
   output->x = ( matrix.m[0] * vec4.x ) + ( matrix.m[4] * vec4.y ) + ( matrix.m[8]  * vec4.z ) + ( matrix.m[12] * vec4.w );
   output->y = ( matrix.m[1] * vec4.x ) + ( matrix.m[5] * vec4.y ) + ( matrix.m[9]  * vec4.z ) + ( matrix.m[13] * vec4.w );
