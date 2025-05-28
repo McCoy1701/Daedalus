@@ -47,7 +47,7 @@ float d_Sqrtf( float number )
 */
 float d_LengthOfVec2f( const dVec2_t vec )
 {
-  return d_Sqrt( vec.x * vec.x + vec.y * vec.y );
+  return d_Sqrtf( vec.x * vec.x + vec.y * vec.y );
 }
 
 /*
@@ -65,7 +65,7 @@ float d_DistanceVec2f( const dVec2_t a, const dVec2_t b )
   dVec2_t temp = { 0 };
   temp.x = a.x - b.x;
   temp.y = a.y - b.y;
-  return d_Sqrt( temp.x * temp.x + temp.y * temp.y );
+  return d_Sqrtf( temp.x * temp.x + temp.y * temp.y );
 }
 
 /*
@@ -198,10 +198,10 @@ void d_ScaleDivideVec2f( dVec2_t *output, const dVec2_t vec, const float value )
 */
 void d_LimitVec2f( dVec2_t *output, const dVec2_t a, const float value )
 {
-  if ( d_Sqrt( ( a.x * a.x ) + ( a.y * a.y ) ) > value )
+  if ( d_Sqrtf( ( a.x * a.x ) + ( a.y * a.y ) ) > value )
   {
     float temp; //Normalize vector
-    temp = d_Sqrt( a.y * a.y + a.y * a.y );
+    temp = d_Sqrtf( a.y * a.y + a.y * a.y );
     output->x = a.x / temp;
     output->y = a.y / temp;
 
@@ -222,7 +222,7 @@ void d_LimitVec2f( dVec2_t *output, const dVec2_t a, const float value )
 void d_NormalizeVec2f( dVec2_t *output, const dVec2_t vec )
 {
   float temp;
-  temp = d_Sqrt( vec.x * vec.x + vec.y * vec.y );
+  temp = d_Sqrtf( vec.x * vec.x + vec.y * vec.y );
   output->x = vec.x / temp;
   output->y = vec.y / temp;
 }
@@ -243,7 +243,7 @@ void d_CreateNormalVec2f( dVec2_t *output, const dVec2_t a, const dVec2_t b )
   float temp;
   output->x = a.x - b.x;
   output->y = a.y - b.y;
-  temp = d_Sqrt( output->x * output->x + output->y * output->y );
+  temp = d_Sqrtf( output->x * output->x + output->y * output->y );
   output->x /= temp;
   output->y /= temp;
 }
@@ -289,7 +289,7 @@ void d_FindIntersectionVec2f( dVec2_t *output, const dVec2_t lineA0, const dVec2
 */
 float d_LengthOfVec3f( const dVec3_t vec )
 {
-  return d_Sqrt( vec.x * vec.x + vec.y * vec.y + vec.z * vec.z );
+  return d_Sqrtf( vec.x * vec.x + vec.y * vec.y + vec.z * vec.z );
 }
 
 /*
@@ -308,7 +308,7 @@ float d_DistanceVec3f( const dVec3_t a, const dVec3_t b )
   output.x = a.x - b.x;
   output.y = a.y - b.y;
   output.z = a.z - b.z;
-  return d_Sqrt( output.x * output.x + output.y * output.y + output.z * output.z );
+  return d_Sqrtf( output.x * output.x + output.y * output.y + output.z * output.z );
 }
 
 /*
@@ -426,10 +426,10 @@ void d_ScaleDivideVec3f( dVec3_t *output, const dVec3_t vec, const float value )
 */
 void d_LimitVec3f( dVec3_t *output, const dVec3_t a, const float value )
 {
-  if ( d_Sqrt( ( a.x * a.x ) + ( a.y * a.y ) + ( a.z * a.z ) ) > value )
+  if ( d_Sqrtf( ( a.x * a.x ) + ( a.y * a.y ) + ( a.z * a.z ) ) > value )
   {
     float temp; //Normalize vector
-    temp = d_Sqrt( ( a.x * a.x ) + ( a.y * a.y ) + ( a.z * a.z ) );
+    temp = d_Sqrtf( ( a.x * a.x ) + ( a.y * a.y ) + ( a.z * a.z ) );
     output->x = a.x / temp;
     output->y = a.y / temp;
     output->z = a.z / temp;
@@ -452,7 +452,7 @@ void d_LimitVec3f( dVec3_t *output, const dVec3_t a, const float value )
 void d_NormalizeVec3f( dVec3_t *output, const dVec3_t vec )
 {
   float temp;
-  temp = d_Sqrt( vec.x * vec.x + vec.y * vec.y + vec.z * vec.z );
+  temp = d_Sqrtf( vec.x * vec.x + vec.y * vec.y + vec.z * vec.z );
   output->x /= temp;
   output->y /= temp;
   output->z /= temp;
@@ -486,7 +486,7 @@ void d_CreateNormalVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b, con
   output->y = tempA.z * tempB.x - tempA.x * tempB.z;
   output->z = tempA.x * tempB.y - tempA.y * tempB.x;
   
-  temp = d_Sqrt( output->x * output->x + output->y * output->y + output->z * output->z );
+  temp = d_Sqrtf( output->x * output->x + output->y * output->y + output->z * output->z );
   output->x /= temp;
   output->y /= temp;
   output->z /= temp;
@@ -504,7 +504,7 @@ void d_CreateNormalVec3f( dVec3_t *output, const dVec3_t a, const dVec3_t b, con
 void d_NormalizeVec4f( dVec4_t *output, const dVec4_t vec )
 {
   float temp;
-  temp = d_Sqrt( vec.x * vec.x + vec.y * vec.y + vec.z * vec.z + vec.w * vec.w );
+  temp = d_Sqrtf( vec.x * vec.x + vec.y * vec.y + vec.z * vec.z + vec.w * vec.w );
   output->x = vec.x / temp;
   output->y = vec.y / temp;
   output->z = vec.z / temp;
