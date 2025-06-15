@@ -12,7 +12,7 @@ int tests_passed = 0;
 int tests_failed = 0;
 
 // Helper Functions
-_dString_t* create_test_builder(void)
+dString_t* create_test_builder(void)
 {
     return d_StringCreate();
 }
@@ -20,7 +20,7 @@ _dString_t* create_test_builder(void)
 // Test Functions
 int test_string_builder_create_destroy(void)
 {
-    _dString_t* sb = d_StringCreate();
+    dString_t* sb = d_StringCreate();
 
     TEST_ASSERT(sb != NULL, "Should create string builder successfully");
     TEST_ASSERT(d_StringLen(sb) == 0, "New string builder should have length 0");
@@ -40,7 +40,7 @@ int test_string_builder_create_destroy(void)
 
 int test_string_builder_add_string(void)
 {
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
     const char* test_str = "Hello, World!";
 
     // Test adding string with auto-length
@@ -63,7 +63,7 @@ int test_string_builder_add_string(void)
 
 int test_string_builder_add_char(void)
 {
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
 
     // Test adding single character
     d_StringAddChar(sb, 'A');
@@ -82,7 +82,7 @@ int test_string_builder_add_char(void)
 
 int test_string_builder_add_int(void)
 {
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
 
     // Test adding positive integer
     d_StringAddInt(sb, 123);
@@ -103,7 +103,7 @@ int test_string_builder_add_int(void)
 
 int test_string_builder_clear(void)
 {
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
 
     // Add some content
     d_StringAddStr(sb, "Test content", 0);
@@ -120,7 +120,7 @@ int test_string_builder_clear(void)
 
 int test_string_builder_truncate(void)
 {
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
 
     // Add content
     d_StringAddStr(sb, "Hello, World!", 0);
@@ -145,7 +145,7 @@ int test_string_builder_truncate(void)
 
 int test_string_builder_drop(void)
 {
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
 
     // Add content
     d_StringAddStr(sb, "Hello, World!", 0);
@@ -166,7 +166,7 @@ int test_string_builder_drop(void)
 
 int test_string_builder_dump(void)
 {
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
     const char* test_content = "Test dump content";
 
     // Add content
@@ -197,7 +197,7 @@ int test_string_builder_dump(void)
 
 int test_string_builder_growth(void)
 {
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
 
     // Add content that will definitely exceed initial capacity (32 bytes)
     const char* long_string = "This is a very long string that should exceed the initial capacity of 32 bytes and force the string builder to grow its internal buffer";
@@ -234,7 +234,7 @@ int test_string_builder_null_safety(void)
     TEST_ASSERT(d_StringDump(NULL, NULL) == NULL, "Dump with NULL should return NULL");
 
     // Test adding NULL string
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
     d_StringAddStr(sb, NULL, 0);
     TEST_ASSERT(d_StringLen(sb) == 0, "Adding NULL string should not change length");
 

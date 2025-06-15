@@ -13,12 +13,12 @@ int tests_passed = 0;
 int tests_failed = 0;
 
 // Helper Functions
-_dString_t* create_test_builder(void)
+dString_t* create_test_builder(void)
 {
     return d_StringCreate();
 }
 
-void fill_builder_with_content(_dString_t* sb, size_t target_size)
+void fill_builder_with_content(dString_t* sb, size_t target_size)
 {
     // Fill with repeated pattern to reach target size
     const char* pattern = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -35,7 +35,7 @@ void fill_builder_with_content(_dString_t* sb, size_t target_size)
 
 int test_string_builder_empty_string_operations(void)
 {
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
     printf("Before adding empty string: %s\n", d_StringPeek(sb));
     // Test adding empty string
     d_StringAddStr(sb, "", 0);
@@ -60,7 +60,7 @@ int test_string_builder_empty_string_operations(void)
 
 int test_string_builder_boundary_conditions(void)
 {
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
 
     // Test exactly at initial capacity boundary (32 bytes)
     // Add 31 characters (leaving 1 for null terminator)
@@ -78,7 +78,7 @@ int test_string_builder_boundary_conditions(void)
 
 int test_string_builder_large_content(void)
 {
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
 
     // Test building a large string (more than initial capacity)
     const size_t large_size = 1000;
@@ -99,7 +99,7 @@ int test_string_builder_large_content(void)
 
 int test_string_builder_partial_string_operations(void)
 {
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
 
     // Test adding partial strings with explicit length
     const char* test_str = "Hello, World!";
@@ -125,7 +125,7 @@ int test_string_builder_partial_string_operations(void)
 
 int test_string_builder_special_characters(void)
 {
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
 
     // Test with special characters
     d_StringAddStr(sb, "Tab:\t", 0);
@@ -156,7 +156,7 @@ int test_string_builder_special_characters(void)
 
 int test_string_builder_integer_edge_cases(void)
 {
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
 
     // Test various integer edge cases
     d_StringAddInt(sb, 0);
@@ -183,7 +183,7 @@ int test_string_builder_integer_edge_cases(void)
 
 int test_string_builder_truncate_edge_cases(void)
 {
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
 
     // Add content
     d_StringAddStr(sb, "Hello, World!", 0);
@@ -214,7 +214,7 @@ int test_string_builder_truncate_edge_cases(void)
 
 int test_string_builder_drop_edge_cases(void)
 {
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
 
     // Add content
     d_StringAddStr(sb, "Hello, World!", 0);
@@ -247,7 +247,7 @@ int test_string_builder_drop_edge_cases(void)
 
 int test_string_builder_dump_edge_cases(void)
 {
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
 
     // Test dump of empty string builder
     size_t dump_len;
@@ -283,7 +283,7 @@ int test_string_builder_dump_edge_cases(void)
 
 int test_string_builder_memory_stress(void)
 {
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
 
     // Test repeated growth and shrinkage
     for (int i = 0; i < 10; i++) {
@@ -334,7 +334,7 @@ int test_string_builder_null_safety_comprehensive(void)
     d_StringDrop(NULL, 5);
 
     // Test with valid builder but NULL string
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
     d_StringAddStr(sb, NULL, 0);
     d_StringAddStr(sb, NULL, 10);
     TEST_ASSERT(d_StringLen(sb) == 0, "Adding NULL string should not change length");
@@ -347,7 +347,7 @@ int test_string_builder_null_safety_comprehensive(void)
 
 int test_string_builder_len_zero_behavior(void)
 {
-    _dString_t* sb = create_test_builder();
+    dString_t* sb = create_test_builder();
 
     // Test: When len=0, strlen() should be called
     d_StringAddStr(sb, "test", 0);

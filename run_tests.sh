@@ -44,9 +44,12 @@ run_test() {
 
 # Run all tests
 echo ""
-run_test "Item Creation & Destruction" "run-test-create-string-from-file"
+run_test "Create String From File" "run-test-create-string-from-file"
 run_test "String Builder" "run-test-string-builder"
 run_test "String Builder Edge Cases" "run-test-string-builder-edge"
+run_test "String Advanced Operations" "run-test-string-advanced"
+run_test "String Padding" "run-test-string-padding"
+run_test "String Pythonic" "run-test-string-pythonic"
 
 
 

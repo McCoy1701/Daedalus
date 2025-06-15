@@ -147,26 +147,37 @@ extern void d_CreateKinmaticBody( dKinematicBody_t *output, const dVec2_t positi
 
 /* Strings */
 extern char* d_CreateStringFromFile(const char *filename);
-
-/* String Builder */
-typedef struct { // _dString_t
+typedef struct { // dString_t
     char* str;      // The actual string buffer
     size_t alloced; // Total allocated memory
     size_t len;     // Current string length
-} _dString_t;
-
-_dString_t *d_StringCreate(void);
-void d_StringDestroy(_dString_t* sb);
-void d_StringAddStr(_dString_t* sb, const char* str, size_t len);
-void d_StringAddChar(_dString_t* sb, char c);
-void d_StringAddInt(_dString_t* sb, int val);
-void d_StringClear(_dString_t* sb);
-void d_StringTruncate(_dString_t* sb, size_t len);
-void d_StringDrop(_dString_t* sb, size_t len);
-size_t d_StringLen(const _dString_t* sb);
-const char* d_StringPeek(const _dString_t* sb);
-char *d_StringDump(const _dString_t* sb, size_t* len);
-
+} dString_t;
+extern dString_t *d_StringCreate(void);
+extern void d_StringDestroy(dString_t* sb);
+extern void d_StringAddStr(dString_t* sb, const char* str, size_t len);
+extern void d_StringAddChar(dString_t* sb, char c);
+extern void d_StringAddInt(dString_t* sb, int val);
+extern void d_StringClear(dString_t* sb);
+extern void d_StringTruncate(dString_t* sb, size_t len);
+extern void d_StringDrop(dString_t* sb, size_t len);
+extern size_t d_StringLen(const dString_t* sb);
+extern const char* d_StringPeek(const dString_t* sb);
+extern char *d_StringDump(const dString_t* sb, size_t* len);
+// Additional String Utils
+extern void d_StringFormat(dString_t* sb, const char* format, ...);
+extern void d_StringTemplate(dString_t* sb, const char* tmplt, const char** keys, const char** values, int count);
+extern void d_StringCapitalize(dString_t* sb);
+extern void d_StringTitleCase(dString_t* sb);
+extern void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fill_char, char empty_char);
+extern void d_StringPadCenter(dString_t* sb, const char* text, int width, char pad_char);
+extern void d_StringPadLeft(dString_t* sb, const char* text, int width, char pad_char);
+extern void d_StringPadRight(dString_t* sb, const char* text, int width, char pad_char);
+extern void d_StringRepeat(dString_t* sb, char character, int count);
+// Pythonic String Utils
+void d_StringJoin(dString_t* sb, const char** strings, int count, const char* separator);
+char** d_StringSplit(const char* text, const char* delimiter, int* count);
+void d_StringFreeSplit(char** result, int count); // Helper to free the result
+void d_StringSlice(dString_t* sb, const char* text, int start, int end);
 
 
 /* Dynamic Arrays */
