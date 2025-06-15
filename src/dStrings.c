@@ -9,6 +9,8 @@
 
 static const size_t d_string_builder_min_size = 32;
 
+
+
 char* d_CreateStringFromFile(const char *filename)
 {
   long fileSize;

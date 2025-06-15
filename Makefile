@@ -1,4 +1,6 @@
 CC=gcc
+ECC = emcc
+EMAR = emar rcs
 CINC = -Iinclude/
 CFLAGS = -std=c99 -Wall -Wextra -lm
 
@@ -57,13 +59,44 @@ $(BIN_DIR)/debug_bin: $(OBJ_DIR)/debug_dLinkedList.o $(OBJ_DIR)/debug_dMatrixMat
 	$(CC) $^ $(CINC) $(CFLAGS) -ggdb -o $@
 
 
+.PHONY: EM
+EM: always $(BIN_DIR)/libDaedalus.a
+
+$(OBJ_DIR)/em_main.o: $(SRC_DIR)/main.c
+	$(ECC) -c $< $(CINC) -o $@
+
+$(OBJ_DIR)/em_dVectorMath.o: $(SRC_DIR)/dVectorMath.c
+	$(ECC) -c $< $(CINC) -o $@
+
+$(OBJ_DIR)/em_dMatrixMath.o: $(SRC_DIR)/dMatrixMath.c
+	$(ECC) -c $< $(CINC) -o $@
+
+$(OBJ_DIR)/em_dMatrixCreation.o: $(SRC_DIR)/dMatrixCreation.c
+	$(ECC) -c $< $(CINC) -o $@
+
+$(OBJ_DIR)/em_dLinkedList.o: $(SRC_DIR)/dLinkedList.c
+	$(ECC) -c $< $(CINC) -o $@
+
+$(BIN_DIR)/libDaedalus.a: $(OBJ_DIR)/em_dLinkedList.o $(OBJ_DIR)/em_dMatrixMath.o $(OBJ_DIR)/em_dVectorMath.o
+	$(EMAR) $@ $^
+
 .PHONY: install
 install:
-	sudo cp $(BIN_DIR)/libDaedalus.so /usr/lib/libDaedalus.so
-	sudo cp $(INC_DIR)/Daedalus.h /usr/include/Daedalus.h
+	sudo cp $(BIN_DIR)/libDaedalus.so /usr/lib/
+	sudo cp $(INC_DIR)/Daedalus.h /usr/include/
 
 .PHONY: uninstall
 uninstall:
+	sudo rm /usr/lib/libDaedalus.so
+	sudo rm /usr/include/Daedalus.h
+
+.PHONY: em_install
+em_install:
+	sudo cp $(BIN_DIR)/libDaedalus.a /usr/lib/
+	sudo cp $(INC_DIR)/Daedalus.h /usr/include/
+
+.PHONY: em_uninstall
+em_uninstall:
 	sudo rm /usr/lib/libDaedalus.so
 	sudo rm /usr/include/Daedalus.h
 

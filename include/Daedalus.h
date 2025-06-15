@@ -1,11 +1,22 @@
-#ifndef __DAEDALUS_H__
-#define __DAEDALUS_H__
-
 #include <stdlib.h>
 #include <time.h>
 
+#ifndef __DAEDALUS_H__
+#define __DAEDALUS_H__
+
 #define MAX_LINE_LENGTH     1024
 #define MAX_FILENAME_LENGTH 256
+
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
+#define STRNCPY(dest, src, n) strncpy(dest, src, n); dest[n - 1] = '\0'
+
+#define RANDF(lower, upper) (((float)rand() / (float)(RAND_MAX)) * (upper - lower)) + lower
+
+#define MAP( value, start0, start1, end0, end1 ) ( ( value - start0 ) * ( ( end1 - end0 ) / ( start1 - start0 ) ) + end0 )
+
+#define PI 3.14159265
 
 typedef struct _dVec2_t
 {
@@ -39,6 +50,17 @@ typedef struct _dKinematicBody
   float mass;
 } dKinematicBody_t;
 
+typedef struct
+{
+  dVec3_t points[3];
+} dTriangle_t;
+
+typedef struct
+{
+  dTriangle_t *triangles;
+  int numberOfTriangles;
+} dMesh_t;
+
 typedef struct _dLinkedList_t
 {
   void *data;
@@ -66,17 +88,6 @@ typedef struct {    // dString_t
     size_t alloced; // Total allocated memory
     size_t len;     // Current string length
 } dString_t;
-
-#define MAX(x, y) (((x) > (y)) ? (x) : (y))
-#define MIN(x, y) (((x) < (y)) ? (x) : (y))
-
-#define STRNCPY(dest, src, n) strncpy(dest, src, n); dest[n - 1] = '\0'
-
-#define RANDF(lower, upper) (((float)rand() / (float)(RAND_MAX)) * (upper - lower)) + lower
-
-#define MAP( value, start0, start1, end0, end1 ) ( ( value - start0 ) * ( ( end1 - end0 ) / ( start1 - start0 ) ) + end0 )
-
-#define PI 3.14159265
 
 /* Vector Math Float */
 float d_Sqrtf( float number ); //Quake fast inverse square root
@@ -113,11 +124,13 @@ void d_MatrixClearf( dMat4x4_t *matrix ); //Clear a 4x4 matrix to an identity ma
 void d_MatrixRotateXf( dMat4x4_t *matrix, const float angle_rad ); //Rotate matrix by angle in radians about the x axis
 void d_MatrixRotateYf( dMat4x4_t *matrix, const float angle_rad ); //Rotate matrix by angle in radians about the y axis
 void d_MatrixRotateZf( dMat4x4_t *matrix, const float angle_rad ); //Rotate matrix by angle in radians about the z axis
-void d_MatrixCreateProjectionf( dMat4x4_t *matrix, const float aspect_ratio, const float fov, const float near, const float far ); //Create a projection matrix
+
+void d_MatrixCreateProjectionf( dMat4x4_t *matrix, const float aspect_ratio, const float fov, const float near, const float far ); //Create a projection matrix 
 void d_MatrixMultiplyf( dMat4x4_t *output, const dMat4x4_t a, const dMat4x4_t b ); //Multiply two 4x4 Matrices together
 void d_MatrixTranslateVec3f( dMat4x4_t *matrix, const dVec3_t vec ); //Translate a matrix by a 3D point
 void d_MatrixTranslateVec4f( dMat4x4_t *matrix, const dVec4_t vec ); //Translate a matrix by a 4D point
-void d_MatrixMultiplyVec3f( dVec3_t *output, dMat4x4_t matrix, const dVec3_t vec ); //Transform a 3D point into a 4x4 matrix
+void d_MatrixMultiplyVec3f( dVec3_t *output, dMat4x4_t matrix, const dVec3_t vec ); //Transform a 3D point into a 4x4 matrix 
+
 void d_MatrixInverseTransformVec3f( dVec3_t *output, const dMat4x4_t matrix, dVec3_t vec ); //Inverse transform 3D point into a 4x4 matrix
 void d_MatrixMultiplyVec4f( dVec4_t *output, const dMat4x4_t matrix, const dVec4_t vec4 ); //Transform a 4D point into a 4x4 matrix
 
@@ -153,6 +166,7 @@ void d_CreateKinmaticBody( dKinematicBody_t *output, const dVec2_t position, con
 
 /* Strings */
 char* d_CreateStringFromFile(const char *filename);
+
 dString_t *d_StringCreate(void);
 void d_StringDestroy(dString_t* sb);
 void d_StringAddStr(dString_t* sb, const char* str, size_t len);
