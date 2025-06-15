@@ -1,11 +1,22 @@
-#ifndef __DAEDALUS_H__
-#define __DAEDALUS_H__
-
 #include <stdlib.h>
 #include <time.h>
 
+#ifndef __DAEDALUS_H__
+#define __DAEDALUS_H__
+
 #define MAX_LINE_LENGTH     1024
 #define MAX_FILENAME_LENGTH 256
+
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
+#define STRNCPY(dest, src, n) strncpy(dest, src, n); dest[n - 1] = '\0'
+
+#define RANDF(lower, upper) (((float)rand() / (float)(RAND_MAX)) * (upper - lower)) + lower
+
+#define MAP( value, start0, start1, end0, end1 ) ( ( value - start0 ) * ( ( end1 - end0 ) / ( start1 - start0 ) ) + end0 )
+
+#define PI 3.14159265
 
 typedef struct _dVec2_t
 {
@@ -39,6 +50,17 @@ typedef struct _dKinematicBody
   float mass;
 } dKinematicBody_t;
 
+typedef struct
+{
+  dVec3_t points[3];
+} dTriangle_t;
+
+typedef struct
+{
+  dTriangle_t *triangles;
+  int numberOfTriangles;
+} dMesh_t;
+
 typedef struct _dLinkedList_t
 {
   void *data;
@@ -61,16 +83,12 @@ typedef struct
   void* data;
 } DynamicArray_t;
 
-#define MAX(x, y) (((x) > (y)) ? (x) : (y))
-#define MIN(x, y) (((x) < (y)) ? (x) : (y))
-
-#define STRNCPY(dest, src, n) strncpy(dest, src, n); dest[n - 1] = '\0'
-
-#define RANDF(lower, upper) (((float)rand() / (float)(RAND_MAX)) * (upper - lower)) + lower
-
-#define MAP( value, start0, start1, end0, end1 ) ( ( value - start0 ) * ( ( end1 - end0 ) / ( start1 - start0 ) ) + end0 )
-
-#define PI 3.14159265
+typedef struct
+{
+  char* str;
+  size_t size;
+  size_t len;
+} dSTR_t;
 
 /* Vector Math Float */
 extern float d_Sqrtf( float number ); //Quake fast inverse square root
