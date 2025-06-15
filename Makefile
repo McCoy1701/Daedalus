@@ -124,3 +124,74 @@ always:
 .PHONY: all
 all: always native shared
 
+# =============================================================================
+# TESTING
+# =============================================================================
+TEST_DIR=true_tests
+TEST_CFLAGS = -Wall -Wextra -ggdb $(CINC)
+
+# Individual test targets
+.PHONY: test-create-string-from-file
+test-create-string-from-file: always $(OBJ_DIR)/dStrings.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_create_string_from_file $(TEST_DIR)/strings/test_create_string_from_file.c $(OBJ_DIR)/dStrings.o
+
+.PHONY: run-test-create-string-from-file
+run-test-create-string-from-file: test-create-string-from-file
+	@./$(BIN_DIR)/test_create_string_from_file
+
+.PHONY: test-string-builder
+test-string-builder: always $(OBJ_DIR)/dStrings.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_string_builder $(TEST_DIR)/strings/test_string_builder.c $(OBJ_DIR)/dStrings.o
+
+.PHONY: run-test-string-builder
+run-test-string-builder: test-string-builder
+	@./$(BIN_DIR)/test_string_builder
+
+.PHONY: test-string-builder-edge
+test-string-builder-edge: always $(OBJ_DIR)/dStrings.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_string_builder_edge $(TEST_DIR)/strings/test_string_builder_edge.c $(OBJ_DIR)/dStrings.o
+
+.PHONY: run-test-string-builder-edge
+run-test-string-builder-edge: test-string-builder-edge
+	@./$(BIN_DIR)/test_string_builder_edge
+
+.PHONE: test-string-advanced
+test-string-advanced: always $(OBJ_DIR)/dStrings.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_string_advanced $(TEST_DIR)/strings/test_string_advanced.c $(OBJ_DIR)/dStrings.o
+
+.PHONY: run-test-string-advanced
+run-test-string-advanced: test-string-advanced
+	@./$(BIN_DIR)/test_string_advanced
+
+.PHONY: test-string-padding
+test-string-padding: always $(OBJ_DIR)/dStrings.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_string_padding $(TEST_DIR)/strings/test_string_padding.c $(OBJ_DIR)/dStrings.o
+
+.PHONY: run-test-string-padding
+run-test-string-padding: test-string-padding
+	@./$(BIN_DIR)/test_string_padding
+
+.PHONY: test-string-pythonic
+test-string-pythonic: always $(OBJ_DIR)/dStrings.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_string_pythonic $(TEST_DIR)/strings/test_string_pythonic.c $(OBJ_DIR)/dStrings.o
+
+.PHONY: run-test-string-pythonic
+run-test-string-pythonic: test-string-pythonic
+	@./$(BIN_DIR)/test_string_pythonic
+
+# Test help
+.PHONY: test-help
+test-help:
+	@echo "Available test commands:"
+	@echo "  make test                              - Run all tests with global summary"
+	@echo "  make run-test-create-string-from-file  - Run test for create_string_from_file"
+	@echo "  make run-test-string-builder           - Run test for string builder"
+	@echo "  make run-test-string-builder-edge      - Run test for string builder edge cases"
+	@echo "  make run-test-string-advanced          - Run test for advanced string operations"
+	@echo "  make run-test-string-padding           - Run test for string padding"
+	@echo "  make run-test-string-pythonic          - Run test for string pythonic"
+
+# Global test runner (summary output)
+.PHONY: test
+test:
+	@./run_tests.sh
