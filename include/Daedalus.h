@@ -174,10 +174,10 @@ extern void d_StringPadLeft(dString_t* sb, const char* text, int width, char pad
 extern void d_StringPadRight(dString_t* sb, const char* text, int width, char pad_char);
 extern void d_StringRepeat(dString_t* sb, char character, int count);
 // Pythonic String Utils
-void d_StringJoin(dString_t* sb, const char** strings, int count, const char* separator);
-char** d_StringSplit(const char* text, const char* delimiter, int* count);
-void d_StringFreeSplit(char** result, int count); // Helper to free the result
-void d_StringSlice(dString_t* sb, const char* text, int start, int end);
+extern void d_StringJoin(dString_t* sb, const char** strings, int count, const char* separator);
+extern char** d_StringSplit(const char* text, const char* delimiter, int* count);
+extern void d_StringFreeSplit(char** result, int count); // Helper to free the result
+extern void d_StringSlice(dString_t* sb, const char* text, int start, int end);
 
 
 /* Dynamic Arrays */
