@@ -107,11 +107,11 @@ extern void d_MatrixClearf( dMat4x4_t *matrix ); //Clear a 4x4 matrix to an iden
 extern void d_MatrixRotateXf( dMat4x4_t *matrix, const float angle_rad ); //Rotate matrix by angle in radians about the x axis
 extern void d_MatrixRotateYf( dMat4x4_t *matrix, const float angle_rad ); //Rotate matrix by angle in radians about the y axis
 extern void d_MatrixRotateZf( dMat4x4_t *matrix, const float angle_rad ); //Rotate matrix by angle in radians about the z axis
-extern void d_MatrixCreateProjectionf( dMat4x4_t *matrix, const float aspect_ratio, const float fov, const float near, const float far ); //Create a projection matrix 
+extern void d_MatrixCreateProjectionf( dMat4x4_t *matrix, const float aspect_ratio, const float fov, const float near, const float far ); //Create a projection matrix
 extern void d_MatrixMultiplyf( dMat4x4_t *output, const dMat4x4_t a, const dMat4x4_t b ); //Multiply two 4x4 Matrices together
 extern void d_MatrixTranslateVec3f( dMat4x4_t *matrix, const dVec3_t vec ); //Translate a matrix by a 3D point
 extern void d_MatrixTranslateVec4f( dMat4x4_t *matrix, const dVec4_t vec ); //Translate a matrix by a 4D point
-extern void d_MatrixMultiplyVec3f( dVec3_t *output, dMat4x4_t matrix, const dVec3_t vec ); //Transform a 3D point into a 4x4 matrix 
+extern void d_MatrixMultiplyVec3f( dVec3_t *output, dMat4x4_t matrix, const dVec3_t vec ); //Transform a 3D point into a 4x4 matrix
 extern void d_MatrixInverseTransformVec3f( dVec3_t *output, const dMat4x4_t matrix, dVec3_t vec ); //Inverse transform 3D point into a 4x4 matrix
 extern void d_MatrixMultiplyVec4f( dVec4_t *output, const dMat4x4_t matrix, const dVec4_t vec4 ); //Transform a 4D point into a 4x4 matrix
 
@@ -147,6 +147,38 @@ extern void d_CreateKinmaticBody( dKinematicBody_t *output, const dVec2_t positi
 
 /* Strings */
 extern char* d_CreateStringFromFile(const char *filename);
+typedef struct { // dString_t
+    char* str;      // The actual string buffer
+    size_t alloced; // Total allocated memory
+    size_t len;     // Current string length
+} dString_t;
+extern dString_t *d_StringCreate(void);
+extern void d_StringDestroy(dString_t* sb);
+extern void d_StringAddStr(dString_t* sb, const char* str, size_t len);
+extern void d_StringAddChar(dString_t* sb, char c);
+extern void d_StringAddInt(dString_t* sb, int val);
+extern void d_StringClear(dString_t* sb);
+extern void d_StringTruncate(dString_t* sb, size_t len);
+extern void d_StringDrop(dString_t* sb, size_t len);
+extern size_t d_StringLen(const dString_t* sb);
+extern const char* d_StringPeek(const dString_t* sb);
+extern char *d_StringDump(const dString_t* sb, size_t* len);
+// Additional String Utils
+extern void d_StringFormat(dString_t* sb, const char* format, ...);
+extern void d_StringTemplate(dString_t* sb, const char* tmplt, const char** keys, const char** values, int count);
+extern void d_StringCapitalize(dString_t* sb);
+extern void d_StringTitleCase(dString_t* sb);
+extern void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fill_char, char empty_char);
+extern void d_StringPadCenter(dString_t* sb, const char* text, int width, char pad_char);
+extern void d_StringPadLeft(dString_t* sb, const char* text, int width, char pad_char);
+extern void d_StringPadRight(dString_t* sb, const char* text, int width, char pad_char);
+extern void d_StringRepeat(dString_t* sb, char character, int count);
+// Pythonic String Utils
+extern void d_StringJoin(dString_t* sb, const char** strings, int count, const char* separator);
+extern char** d_StringSplit(const char* text, const char* delimiter, int* count);
+extern void d_StringFreeSplit(char** result, int count); // Helper to free the result
+extern void d_StringSlice(dString_t* sb, const char* text, int start, int end);
+
 
 /* Dynamic Arrays */
 extern DynamicArray_t* d_InitArray( size_t capacity, size_t element_size );
