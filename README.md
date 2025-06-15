@@ -69,3 +69,52 @@ void generate_combat_log(const char* attacker, const char* target,
     d_StringDestroy(log);
 }
 ```
+
+### Dynamic Dialogue System with Templates
+
+```c
+#include <Daedalus.h>
+
+typedef struct {
+    char* speaker_name;
+    int relationship_level;
+    int quest_progress;
+    char* faction;
+} NPCData;
+
+void generate_dynamic_dialogue(NPCData* npc, const char* player_name) {
+    dString_t* dialogue = d_StringCreate();
+
+    // Use template system for dynamic dialogue
+    const char* keys[] = {"speaker", "player", "faction", "relationship", "progress"};
+    const char* values[5];
+    values[0] = npc->speaker_name;
+    values[1] = player_name;
+    values[2] = npc->faction;
+
+    // Dynamic relationship text
+    if (npc->relationship_level > 80) {
+        values[3] = "trusted ally";
+    } else if (npc->relationship_level > 40) {
+        values[3] = "respected friend";
+    } else {
+        values[3] = "unknown stranger";
+    }
+
+    // Quest progress as string
+    dString_t* progress_str = d_StringCreate();
+    d_StringAddInt(progress_str, npc->quest_progress);
+    values[4] = d_StringPeek(progress_str);
+
+    d_StringTemplate(dialogue,
+        "The {faction} {speaker} nods respectfully.\n"
+        "\"Greetings, {player}. As a {relationship}, I must inform you that "
+        "our shared quest is {progress}% complete. Will you continue to aid us?\"",
+        keys, values, 5);
+
+    printf("%s\n", d_StringPeek(dialogue));
+
+    d_StringDestroy(progress_str);
+    d_StringDestroy(dialogue);
+}
+```
