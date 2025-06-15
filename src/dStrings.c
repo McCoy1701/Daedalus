@@ -1,10 +1,13 @@
 // File: src/dStrings.c - String utilities for Daedalus project
 
-#include "../include/Daedalus.h"
+#include "Daedalus.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+
+
+static const size_t d_string_builder_min_size = 32;
 
 char* d_CreateStringFromFile(const char *filename)
 {
@@ -46,11 +49,6 @@ char* d_CreateStringFromFile(const char *filename)
   return fileString;
 }
 
-// =====================
-// dString_t
-// =====================
-
-static const size_t d_string_builder_min_size = 32;
 /*
  * Ensure the string builder has enough space for additional data
  *
@@ -60,7 +58,7 @@ static const size_t d_string_builder_min_size = 32;
  * -- Internal function that grows the buffer using doubling strategy
  * -- Buffer is always kept null-terminated
  */
-static void d_string_builder_ensure_space(dString_t* sb, size_t add_len)
+static void d_StringBuilderEnsureSpace(dString_t* sb, size_t add_len)
 {
     if (sb == NULL || add_len == 0)
         return;
@@ -83,6 +81,7 @@ static void d_string_builder_ensure_space(dString_t* sb, size_t add_len)
     }
     sb->str = realloc(sb->str, sb->alloced);
 }
+
 /*
  * Create a new string builder
  *
@@ -111,6 +110,7 @@ dString_t* d_StringCreate(void)
 
     return sb;
 }
+
 /*
  * Destroy a string builder and free its memory
  *
@@ -126,6 +126,7 @@ void d_StringDestroy(dString_t* sb)
     free(sb->str);
     free(sb);
 }
+
 /*
  * Add a string to the string builder
  *
@@ -145,11 +146,12 @@ void d_StringAddStr(dString_t* sb, const char* str, size_t len)
     if (len == 0)
         len = strlen(str);
 
-    d_string_builder_ensure_space(sb, len);
+    d_StringBuilderEnsureSpace(sb, len);
     memmove(sb->str + sb->len, str, len);
     sb->len += len;
     sb->str[sb->len] = '\0';
 }
+
 /*
  * Add a single character to the string builder
  *
@@ -163,11 +165,12 @@ void d_StringAddChar(dString_t* sb, char c)
 {
     if (sb == NULL)
         return;
-    d_string_builder_ensure_space(sb, 1);
+    d_StringBuilderEnsureSpace(sb, 1);
     sb->str[sb->len] = c;
     sb->len++;
     sb->str[sb->len] = '\0';
 }
+
 /*
  * Add an integer to the string builder as a decimal string
  *
@@ -188,6 +191,7 @@ void d_StringAddInt(dString_t* sb, int val)
     snprintf(str, sizeof(str), "%d", val);
     d_StringAddStr(sb, str, 0);
 }
+
 /*
  * Clear the string builder content
  *
@@ -203,6 +207,7 @@ void d_StringClear(dString_t* sb)
         return;
     d_StringTruncate(sb, 0);
 }
+
 /*
  * Truncate the string builder to a specific length
  *
@@ -221,6 +226,7 @@ void d_StringTruncate(dString_t* sb, size_t len)
     sb->len = len;
     sb->str[sb->len] = '\0';
 }
+
 /*
  * Remove characters from the beginning of the string builder
  *
@@ -245,6 +251,7 @@ void d_StringDrop(dString_t* sb, size_t len)
     /* +1 to move the NULL terminator. */
     memmove(sb->str, sb->str + len, sb->len + 1);
 }
+
 /*
  * Get the current length of the string builder content
  *
@@ -261,6 +268,7 @@ size_t d_StringLen(const dString_t* sb)
         return 0;
     return sb->len;
 }
+
 /*
  * Get a read-only pointer to the string builder's content
  *
@@ -279,6 +287,7 @@ const char* d_StringPeek(const dString_t* sb)
         return NULL;
     return sb->str;
 }
+
 /*
  * Create a copy of the string builder's content
  *
@@ -307,6 +316,7 @@ char* d_StringDump(const dString_t* sb, size_t* len)
     memcpy(out, sb->str, sb->len + 1);
     return out;
 }
+
 /*
  * Add formatted text to the string builder using printf-style formatting
  *
@@ -338,12 +348,13 @@ void d_StringFormat(dString_t* sb, const char* format, ...) {
     }
 
     // Ensure space and format
-    d_string_builder_ensure_space(sb, needed);
+    d_StringBuilderEnsureSpace(sb, needed);
     vsnprintf(sb->str + sb->len, needed + 1, format, args);
     sb->len += needed;
 
     va_end(args);
 }
+
 /*
  * Add repeated characters to the string builder
  *
@@ -358,7 +369,7 @@ void d_StringFormat(dString_t* sb, const char* format, ...) {
 void d_StringRepeat(dString_t* sb, char character, int count) {
     if (sb == NULL || count <= 0) return;
 
-    d_string_builder_ensure_space(sb, count);
+    d_StringBuilderEnsureSpace(sb, count);
     for (int i = 0; i < count; i++) {
         sb->str[sb->len + i] = character;
     }
@@ -393,6 +404,7 @@ void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fi
     d_StringRepeat(sb, empty_char, width - filled);
     d_StringAddChar(sb, ']');
 }
+
 /*
  * Add text with template substitution to the string builder
  *
@@ -410,7 +422,7 @@ void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fi
  * -- Supports nested braces by treating unmatched { as literal characters
  */
  void d_StringTemplate(dString_t* sb, const char* tmplt, const char** keys, const char** values, int count) {
-     if (sb == NULL || tmplt == NULL) return;
+  if (sb == NULL || tmplt == NULL) return;
 
      const char* pos = tmplt;
      while (*pos) {
@@ -456,7 +468,8 @@ void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fi
          }
      }
  }
- /*
+
+/*
   * Add text padded to the left with specified character to reach target width
   *
   * `sb` - Pointer to string builder
@@ -542,7 +555,8 @@ void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fi
      d_StringAddStr(sb, text, 0);
      d_StringRepeat(sb, pad_char, right_pad);
  }
- /*
+ 
+/*
   * Join an array of strings with a separator (like Python's str.join())
   *
   * `sb` - Pointer to string builder
@@ -571,7 +585,8 @@ void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fi
          }
      }
  }
- /*
+
+/*
   * Split a string by delimiter into an array of strings (like Python's str.split())
   *
   * `text` - String to split (must be null-terminated)
@@ -661,7 +676,8 @@ void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fi
      *count = parts;
      return result;
  }
- /*
+
+/*
   * Free memory allocated by d_StringSplit()
   *
   * `result` - Array of strings returned by d_StringSplit()
@@ -679,7 +695,8 @@ void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fi
      }
      free(result);
  }
- /*
+
+/*
   * Extract a substring using Python-style slice notation (like str[start:end])
   *
   * `sb` - Pointer to string builder
@@ -721,8 +738,9 @@ void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fi
 
      // Add the slice to string builder
      int slice_len = end - start;
-     d_string_builder_ensure_space(sb, slice_len);
+     d_StringBuilderEnsureSpace(sb, slice_len);
      strncpy(sb->str + sb->len, text + start, slice_len);
      sb->len += slice_len;
      sb->str[sb->len] = '\0';
  }
+
