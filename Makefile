@@ -91,3 +91,45 @@ always:
 .PHONY: all
 all: always native shared
 
+# =============================================================================
+# TESTING
+# =============================================================================
+TEST_DIR=true_tests
+TEST_CFLAGS = -Wall -Wextra -ggdb $(CINC)
+
+# Individual test targets
+.PHONY: test-create-string-from-file
+test-create-string-from-file: always $(OBJ_DIR)/dStrings.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_create_string_from_file $(TEST_DIR)/strings/test_create_string_from_file.c $(OBJ_DIR)/dStrings.o
+
+.PHONY: run-test-create-string-from-file
+run-test-create-string-from-file: test-create-string-from-file
+	@./$(BIN_DIR)/test_create_string_from_file
+
+.PHONY: test-string-builder
+test-string-builder: always $(OBJ_DIR)/dStrings.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_string_builder $(TEST_DIR)/strings/test_string_builder.c $(OBJ_DIR)/dStrings.o
+
+.PHONY: run-test-string-builder
+run-test-string-builder: test-string-builder
+	@./$(BIN_DIR)/test_string_builder
+
+.PHONY: test-string-builder-edge
+test-string-builder-edge: always $(OBJ_DIR)/dStrings.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_string_builder_edge $(TEST_DIR)/strings/test_string_builder_edge.c $(OBJ_DIR)/dStrings.o
+
+.PHONY: run-test-string-builder-edge
+run-test-string-builder-edge: test-string-builder-edge
+	@./$(BIN_DIR)/test_string_builder_edge
+
+# Test help
+.PHONY: test-help
+test-help:
+	@echo "Available test commands:"
+	@echo "  make test                              - Run all tests with global summary"
+	@echo "  make run-test-create-string-from-file  - Run test for create_string_from_file"
+
+# Global test runner (summary output)
+.PHONY: test
+test:
+	@./run_tests.sh

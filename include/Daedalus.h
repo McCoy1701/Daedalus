@@ -107,11 +107,11 @@ extern void d_MatrixClearf( dMat4x4_t *matrix ); //Clear a 4x4 matrix to an iden
 extern void d_MatrixRotateXf( dMat4x4_t *matrix, const float angle_rad ); //Rotate matrix by angle in radians about the x axis
 extern void d_MatrixRotateYf( dMat4x4_t *matrix, const float angle_rad ); //Rotate matrix by angle in radians about the y axis
 extern void d_MatrixRotateZf( dMat4x4_t *matrix, const float angle_rad ); //Rotate matrix by angle in radians about the z axis
-extern void d_MatrixCreateProjectionf( dMat4x4_t *matrix, const float aspect_ratio, const float fov, const float near, const float far ); //Create a projection matrix 
+extern void d_MatrixCreateProjectionf( dMat4x4_t *matrix, const float aspect_ratio, const float fov, const float near, const float far ); //Create a projection matrix
 extern void d_MatrixMultiplyf( dMat4x4_t *output, const dMat4x4_t a, const dMat4x4_t b ); //Multiply two 4x4 Matrices together
 extern void d_MatrixTranslateVec3f( dMat4x4_t *matrix, const dVec3_t vec ); //Translate a matrix by a 3D point
 extern void d_MatrixTranslateVec4f( dMat4x4_t *matrix, const dVec4_t vec ); //Translate a matrix by a 4D point
-extern void d_MatrixMultiplyVec3f( dVec3_t *output, dMat4x4_t matrix, const dVec3_t vec ); //Transform a 3D point into a 4x4 matrix 
+extern void d_MatrixMultiplyVec3f( dVec3_t *output, dMat4x4_t matrix, const dVec3_t vec ); //Transform a 3D point into a 4x4 matrix
 extern void d_MatrixInverseTransformVec3f( dVec3_t *output, const dMat4x4_t matrix, dVec3_t vec ); //Inverse transform 3D point into a 4x4 matrix
 extern void d_MatrixMultiplyVec4f( dVec4_t *output, const dMat4x4_t matrix, const dVec4_t vec4 ); //Transform a 4D point into a 4x4 matrix
 
@@ -147,6 +147,27 @@ extern void d_CreateKinmaticBody( dKinematicBody_t *output, const dVec2_t positi
 
 /* Strings */
 extern char* d_CreateStringFromFile(const char *filename);
+
+/* String Builder */
+typedef struct { // _dString_t
+    char* str;      // The actual string buffer
+    size_t alloced; // Total allocated memory
+    size_t len;     // Current string length
+} _dString_t;
+
+_dString_t *d_StringCreate(void);
+void d_StringDestroy(_dString_t* sb);
+void d_StringAddStr(_dString_t* sb, const char* str, size_t len);
+void d_StringAddChar(_dString_t* sb, char c);
+void d_StringAddInt(_dString_t* sb, int val);
+void d_StringClear(_dString_t* sb);
+void d_StringTruncate(_dString_t* sb, size_t len);
+void d_StringDrop(_dString_t* sb, size_t len);
+size_t d_StringLen(const _dString_t* sb);
+const char* d_StringPeek(const _dString_t* sb);
+char *d_StringDump(const _dString_t* sb, size_t* len);
+
+
 
 /* Dynamic Arrays */
 extern DynamicArray_t* d_InitArray( size_t capacity, size_t element_size );
