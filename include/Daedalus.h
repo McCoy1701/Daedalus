@@ -4,8 +4,11 @@
 #ifndef __DAEDALUS_H__
 #define __DAEDALUS_H__
 
-#define MAX_LINE_LENGTH     1024
-#define MAX_FILENAME_LENGTH 256
+#define MAX_LINE_LENGTH        1024
+#define MAX_FILENAME_LENGTH    256
+#define MAX_NAME_LENGTH        32
+#define MAX_DESCRIPTION_LENGTH 256
+#define MAX_INPUT_LENGTH       16
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
