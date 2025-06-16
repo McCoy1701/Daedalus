@@ -29,8 +29,13 @@ $(OBJ_DIR)/dQuadTree.o: $(SRC_DIR)/dQuadTree.c
 $(OBJ_DIR)/dStrings.o: $(SRC_DIR)/dStrings.c
 	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
 
+$(OBJ_DIR)/dArrays.o: $(SRC_DIR)/dArrays.c
+	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
+
 $(OBJ_DIR)/dVectorMath.o: $(SRC_DIR)/dVectorMath.c
 	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
+
+
 
 $(BIN_DIR)/libDaedalus: $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dVectorMath.o
 	$(CC) $^ $(CINC) -shared -fPIC -pedantic  $(CFLAGS) -o $@.so
@@ -146,6 +151,54 @@ test-string-pythonic: always $(OBJ_DIR)/dStrings.o
 run-test-string-pythonic: test-string-pythonic
 	@./$(BIN_DIR)/test_string_pythonic
 
+.PHONY: test-dynamic-array-basic
+test-dynamic-array-basic: always $(OBJ_DIR)/dArrays.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_basic $(TEST_DIR)/dynamicarrays/test_dynamic_array_basic.c $(OBJ_DIR)/dArrays.o
+
+.PHONY: run-test-dynamic-array-basic
+run-test-dynamic-array-basic: test-dynamic-array-basic
+	@./$(BIN_DIR)/test_dynamic_array_basic
+
+.PHONY: test-dynamic-array-edge
+test-dynamic-array-edge: always $(OBJ_DIR)/dArrays.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_edge $(TEST_DIR)/dynamicarrays/test_dynamic_array_edge.c $(OBJ_DIR)/dArrays.o
+
+.PHONY: run-test-dynamic-array-edge
+run-test-dynamic-array-edge: test-dynamic-array-edge
+	@./$(BIN_DIR)/test_dynamic_array_edge
+
+.PHONY: test-dynamic-array-resize
+test-dynamic-array-resize: always $(OBJ_DIR)/dArrays.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_resize $(TEST_DIR)/dynamicarrays/test_dynamic_array_resize.c $(OBJ_DIR)/dArrays.o
+
+.PHONY: run-test-dynamic-array-resize
+run-test-dynamic-array-resize: test-dynamic-array-resize
+	@./$(BIN_DIR)/test_dynamic_array_resize
+
+.PHONY: test-dynamic-array-performance
+test-dynamic-array-performance: always $(OBJ_DIR)/dArrays.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_performance $(TEST_DIR)/dynamicarrays/test_dynamic_array_performance.c $(OBJ_DIR)/dArrays.o
+
+.PHONY: run-test-dynamic-array-performance
+run-test-dynamic-array-performance: test-dynamic-array-performance
+	@./$(BIN_DIR)/test_dynamic_array_performance
+
+.PHONY: test-dynamic-array-advanced
+test-dynamic-array-advanced: always $(OBJ_DIR)/dArrays.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_advanced $(TEST_DIR)/dynamicarrays/test_dynamic_array_advanced.c $(OBJ_DIR)/dArrays.o
+
+.PHONY: run-test-dynamic-array-advanced
+run-test-dynamic-array-advanced: test-dynamic-array-advanced
+	@./$(BIN_DIR)/test_dynamic_array_advanced
+
+.PHONY: run-test-dynamic-array-errors
+run-test-dynamic-array-errors: test-dynamic-array-errors
+	@./$(BIN_DIR)/test_dynamic_array_errors
+
+.PHONY: test-dynamic-array-errors
+test-dynamic-array-errors: always $(OBJ_DIR)/dArrays.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_errors $(TEST_DIR)/dynamicarrays/test_dynamic_array_errors.c $(OBJ_DIR)/dArrays.o
+
 # Test help
 .PHONY: test-help
 test-help:
@@ -157,8 +210,34 @@ test-help:
 	@echo "  make run-test-string-advanced          - Run test for advanced string operations"
 	@echo "  make run-test-string-padding           - Run test for string padding"
 	@echo "  make run-test-string-pythonic          - Run test for string pythonic"
+	@echo "  make run-test-dynamic-array-basic      - Run test for basic dynamic array operations"
+	@echo "  make run-test-dynamic-array-edge       - Run test for edge cases in dynamic array operations"
+	@echo "  make run-test-dynamic-array-resize     - Run test for resizing dynamic array operations"
+	@echo "  make run-test-dynamic-array-performance - Run test for performance of dynamic array operations"
+	@echo "  make run-test-dynamic-array-advanced   - Run test for advanced dynamic array operations"
+	@echo "  make run-test-dynamic-array-errors     - Run test for error handling in dynamic array operations"
 
 # Global test runner (summary output)
+# Traditional approach (current - kept for compatibility)
 .PHONY: test
 test:
 	@./run_tests.sh
+
+# Fast unified approach (new)
+.PHONY: test-fast
+test-fast: run-test-unified
+# =============================================================================
+# UNIFIED TEST RUNNER (New Approach)
+# =============================================================================
+
+# Unified test runner that runs all tests in one binary
+.PHONY: test-runner-unified
+test-runner-unified: always $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_runner_unified \
+		$(TEST_DIR)/unified/test_runner.c \
+		$(TEST_DIR)/unified/all_tests.c \
+		$(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o
+
+.PHONY: run-test-unified
+run-test-unified: test-runner-unified
+	@./$(BIN_DIR)/test_runner_unified

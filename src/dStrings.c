@@ -88,10 +88,10 @@ static void d_string_builder_ensure_space(dString_t* sb, size_t add_len)
  *
  * `dString_t*` - Pointer to new string builder, or NULL on allocation failure
  *
- * -- Must be destroyed with d_StringDestroy() to free memory
+ * -- Must be destroyed with d_DestroyString() to free memory
  * -- Initial capacity is 32 bytes but will grow automatically
  */
-dString_t* d_StringCreate(void)
+dString_t* d_InitString(void)
 {
     dString_t* sb;
 
@@ -119,7 +119,7 @@ dString_t* d_StringCreate(void)
  * -- After calling this function, the pointer is invalid and should not be used
  * -- Calling with NULL is safe and does nothing
  */
-void d_StringDestroy(dString_t* sb)
+void d_DestroyString(dString_t* sb)
 {
     if (sb == NULL)
         return;
@@ -137,7 +137,7 @@ void d_StringDestroy(dString_t* sb)
  * -- If len > 0, exactly len characters are copied (partial strings allowed)
  * -- Does nothing if sb or str is NULL, or if str is empty
  */
-void d_StringAddStr(dString_t* sb, const char* str, size_t len)
+void d_AppendString(dString_t* sb, const char* str, size_t len)
 {
     if (sb == NULL || str == NULL || *str == '\0')
         return;
@@ -159,7 +159,7 @@ void d_StringAddStr(dString_t* sb, const char* str, size_t len)
  * -- Does nothing if sb is NULL
  * -- Can append any character including '\0' (though this may confuse string functions)
  */
-void d_StringAddChar(dString_t* sb, char c)
+void d_AppendChar(dString_t* sb, char c)
 {
     if (sb == NULL)
         return;
@@ -178,7 +178,7 @@ void d_StringAddChar(dString_t* sb, char c)
  * -- Uses snprintf internally for safe conversion
  * -- Supports full 32-bit integer range including negative values
  */
-void d_StringAddInt(dString_t* sb, int val)
+void d_AppendInt(dString_t* sb, int val)
 {
     char str[12]; // Enough for 32-bit int plus sign and null terminator
 
@@ -186,7 +186,7 @@ void d_StringAddInt(dString_t* sb, int val)
         return;
 
     snprintf(str, sizeof(str), "%d", val);
-    d_StringAddStr(sb, str, 0);
+    d_AppendString(sb, str, 0);
 }
 /*
  * Clear the string builder content
@@ -197,11 +197,11 @@ void d_StringAddInt(dString_t* sb, int val)
  * -- Memory is not freed, only the length is reset to 0
  * -- Buffer capacity remains unchanged for efficient reuse
  */
-void d_StringClear(dString_t* sb)
+void d_ClearString(dString_t* sb)
 {
     if (sb == NULL)
         return;
-    d_StringTruncate(sb, 0);
+    d_TruncateString(sb, 0);
 }
 /*
  * Truncate the string builder to a specific length
@@ -213,7 +213,7 @@ void d_StringClear(dString_t* sb)
  * -- Memory is not freed, only the length is reduced
  * -- The string remains null-terminated at the new length
  */
-void d_StringTruncate(dString_t* sb, size_t len)
+void d_TruncateString(dString_t* sb, size_t len)
 {
     if (sb == NULL || len >= sb->len)
         return;
@@ -231,13 +231,13 @@ void d_StringTruncate(dString_t* sb, size_t len)
  * -- If len >= current length, the string builder is cleared completely
  * -- Uses memmove for safe overlapping memory operation
  */
-void d_StringDrop(dString_t* sb, size_t len)
+void d_DropString(dString_t* sb, size_t len)
 {
     if (sb == NULL || len == 0)
         return;
 
     if (len >= sb->len) {
-        d_StringClear(sb);
+        d_ClearString(sb);
         return;
     }
 
@@ -255,7 +255,7 @@ void d_StringDrop(dString_t* sb, size_t len)
  * -- Return value does not include the null terminator
  * -- Safe to call with NULL pointer (returns 0)
  */
-size_t d_StringLen(const dString_t* sb)
+size_t d_GetStringLength(const dString_t* sb)
 {
     if (sb == NULL)
         return 0;
@@ -273,7 +273,7 @@ size_t d_StringLen(const dString_t* sb)
  * -- The returned string is always null-terminated
  * -- Safe to call with NULL pointer (returns NULL)
  */
-const char* d_StringPeek(const dString_t* sb)
+const char* d_PeekString(const dString_t* sb)
 {
     if (sb == NULL)
         return NULL;
@@ -292,7 +292,7 @@ const char* d_StringPeek(const dString_t* sb)
  * -- Returns NULL if sb is NULL or memory allocation fails
  * -- The returned string is always null-terminated
  */
-char* d_StringDump(const dString_t* sb, size_t* len)
+char* d_DumpString(const dString_t* sb, size_t* len)
 {
     char* out;
 
@@ -320,7 +320,7 @@ char* d_StringDump(const dString_t* sb, size_t* len)
  * -- Automatically calculates required space and grows buffer as needed
  * -- Appends formatted text to existing content (does not replace)
  */
-void d_StringFormat(dString_t* sb, const char* format, ...) {
+void d_FormatString(dString_t* sb, const char* format, ...) {
     if (sb == NULL || format == NULL) return;
 
     va_list args;
@@ -355,7 +355,7 @@ void d_StringFormat(dString_t* sb, const char* format, ...) {
  * -- Efficiently adds multiple copies of the same character
  * -- Used internally by progress bar and padding functions
  */
-void d_StringRepeat(dString_t* sb, char character, int count) {
+void d_RepeatString(dString_t* sb, char character, int count) {
     if (sb == NULL || count <= 0) return;
 
     d_string_builder_ensure_space(sb, count);
@@ -382,16 +382,16 @@ void d_StringRepeat(dString_t* sb, char character, int count) {
  * -- If current < 0, the bar is empty
  * -- Total visual width is width + 2 (for brackets)
  */
-void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fill_char, char empty_char) {
+void d_AppendProgressBar(dString_t* sb, int current, int max, int width, char fill_char, char empty_char) {
     if (sb == NULL || width <= 0 || max <= 0) return;
 
     int filled = (current * width) / max;
     if (filled > width) filled = width;
 
-    d_StringAddChar(sb, '[');
-    d_StringRepeat(sb, fill_char, filled);
-    d_StringRepeat(sb, empty_char, width - filled);
-    d_StringAddChar(sb, ']');
+    d_AppendChar(sb, '[');
+    d_RepeatString(sb, fill_char, filled);
+    d_RepeatString(sb, empty_char, width - filled);
+    d_AppendChar(sb, ']');
 }
 /*
  * Add text with template substitution to the string builder
@@ -409,7 +409,7 @@ void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fi
  * -- Keys longer than 255 characters are treated as literal text
  * -- Supports nested braces by treating unmatched { as literal characters
  */
- void d_StringTemplate(dString_t* sb, const char* tmplt, const char** keys, const char** values, int count) {
+ void d_TemplateString(dString_t* sb, const char* tmplt, const char** keys, const char** values, int count) {
      if (sb == NULL || tmplt == NULL) return;
 
      const char* pos = tmplt;
@@ -430,7 +430,7 @@ void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fi
                          for (int i = 0; i < count; i++) {
                              if (keys[i] != NULL && strcmp(keys[i], key) == 0) {
                                  if (values[i] != NULL) {
-                                     d_StringAddStr(sb, values[i], 0);
+                                     d_AppendString(sb, values[i], 0);
                                  }
                                  found = 1;
                                  break;
@@ -440,19 +440,19 @@ void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fi
 
                      if (!found) {
                          // Keep original placeholder if no match
-                         d_StringAddStr(sb, pos, end - pos + 1);
+                         d_AppendString(sb, pos, end - pos + 1);
                      }
 
                      pos = end + 1;
                  } else {
-                     d_StringAddChar(sb, *pos++);
+                     d_AppendChar(sb, *pos++);
                      continue;
                  }
              } else {
-                 d_StringAddChar(sb, *pos++);
+                 d_AppendChar(sb, *pos++);
              }
          } else {
-             d_StringAddChar(sb, *pos++);
+             d_AppendChar(sb, *pos++);
          }
      }
  }
@@ -467,19 +467,19 @@ void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fi
   * -- Does nothing if sb or text is NULL
   * -- If text length >= width, adds text without padding
   * -- Padding is added to the left side of the text
-  * -- Example: d_StringPadLeft(sb, "Hi", 5, '.') produces "...Hi"
+  * -- Example: d_PadLeftString(sb, "Hi", 5, '.') produces "...Hi"
   * -- Commonly used for right-aligned text in tables and menus
   */
- void d_StringPadLeft(dString_t* sb, const char* text, int width, char pad_char) {
+ void d_PadLeftString(dString_t* sb, const char* text, int width, char pad_char) {
      if (sb == NULL || text == NULL || width <= 0) return;
 
      int text_len = strlen(text);
      int pad_needed = width - text_len;
 
      if (pad_needed > 0) {
-         d_StringRepeat(sb, pad_char, pad_needed);
+         d_RepeatString(sb, pad_char, pad_needed);
      }
-     d_StringAddStr(sb, text, 0);
+     d_AppendString(sb, text, 0);
  }
 
  /*
@@ -493,18 +493,18 @@ void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fi
   * -- Does nothing if sb or text is NULL
   * -- If text length >= width, adds text without padding
   * -- Padding is added to the right side of the text
-  * -- Example: d_StringPadRight(sb, "Hi", 5, '.') produces "Hi..."
+  * -- Example: d_PadRightString(sb, "Hi", 5, '.') produces "Hi..."
   * -- Commonly used for left-aligned text in tables and menus
   */
- void d_StringPadRight(dString_t* sb, const char* text, int width, char pad_char) {
+ void d_PadRightString(dString_t* sb, const char* text, int width, char pad_char) {
      if (sb == NULL || text == NULL || width <= 0) return;
 
      int text_len = strlen(text);
      int pad_needed = width - text_len;
 
-     d_StringAddStr(sb, text, 0);
+     d_AppendString(sb, text, 0);
      if (pad_needed > 0) {
-         d_StringRepeat(sb, pad_char, pad_needed);
+         d_RepeatString(sb, pad_char, pad_needed);
      }
  }
 
@@ -520,27 +520,27 @@ void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fi
   * -- If text length >= width, adds text without padding
   * -- Text is centered with padding distributed evenly on both sides
   * -- If padding cannot be evenly distributed, left side gets one less character
-  * -- Example: d_StringPadCenter(sb, "Hi", 6, '.') produces "..Hi.."
-  * -- Example: d_StringPadCenter(sb, "Hi", 7, '.') produces "..Hi..."
+  * -- Example: d_PadCenterString(sb, "Hi", 6, '.') produces "..Hi.."
+  * -- Example: d_PadCenterString(sb, "Hi", 7, '.') produces "..Hi..."
   * -- Commonly used for centered headers and titles in ASCII interfaces
   */
- void d_StringPadCenter(dString_t* sb, const char* text, int width, char pad_char) {
+ void d_PadCenterString(dString_t* sb, const char* text, int width, char pad_char) {
      if (sb == NULL || text == NULL || width <= 0) return;
 
      int text_len = strlen(text);
      int pad_needed = width - text_len;
 
      if (pad_needed <= 0) {
-         d_StringAddStr(sb, text, 0);
+         d_AppendString(sb, text, 0);
          return;
      }
 
      int left_pad = pad_needed / 2;
      int right_pad = pad_needed - left_pad;
 
-     d_StringRepeat(sb, pad_char, left_pad);
-     d_StringAddStr(sb, text, 0);
-     d_StringRepeat(sb, pad_char, right_pad);
+     d_RepeatString(sb, pad_char, left_pad);
+     d_AppendString(sb, text, 0);
+     d_RepeatString(sb, pad_char, right_pad);
  }
  /*
   * Join an array of strings with a separator (like Python's str.join())
@@ -554,20 +554,20 @@ void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fi
   * -- If strings array is NULL, does nothing
   * -- NULL strings in the array are treated as empty strings
   * -- If separator is NULL, strings are joined without separation
-  * -- Example: d_StringJoin(sb, {"a", "b", "c"}, 3, ", ") produces "a, b, c"
+  * -- Example: d_JoinStrings(sb, {"a", "b", "c"}, 3, ", ") produces "a, b, c"
   * -- Commonly used for creating comma-separated lists, file paths, etc.
   */
- void d_StringJoin(dString_t* sb, const char** strings, int count, const char* separator) {
+ void d_JoinStrings(dString_t* sb, const char** strings, int count, const char* separator) {
      if (sb == NULL || strings == NULL || count <= 0) return;
 
      for (int i = 0; i < count; i++) {
          if (strings[i] != NULL) {
-             d_StringAddStr(sb, strings[i], 0);
+             d_AppendString(sb, strings[i], 0);
          }
 
          // Add separator between elements (but not after the last one)
          if (i < count - 1 && separator != NULL) {
-             d_StringAddStr(sb, separator, 0);
+             d_AppendString(sb, separator, 0);
          }
      }
  }
@@ -581,13 +581,13 @@ void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fi
   * `char**` - Array of newly allocated strings, or NULL on error
   *
   * -- Returns NULL if text or delimiter is NULL, or if allocation fails
-  * -- Caller must free the result using d_StringFreeSplit()
+  * -- Caller must free the result using d_FreeSplitString()
   * -- Each string in the result array is individually allocated
   * -- Empty strings between delimiters are included in the result
   * -- If delimiter is not found, returns array with single copy of original string
   * -- *count is set to the number of strings in the returned array
   */
- char** d_StringSplit(const char* text, const char* delimiter, int* count) {
+ char** d_SplitString(const char* text, const char* delimiter, int* count) {
      if (text == NULL || delimiter == NULL || count == NULL) {
          if (count) *count = 0;
          return NULL;
@@ -662,16 +662,16 @@ void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fi
      return result;
  }
  /*
-  * Free memory allocated by d_StringSplit()
+  * Free memory allocated by d_SplitString()
   *
-  * `result` - Array of strings returned by d_StringSplit()
+  * `result` - Array of strings returned by d_SplitString()
   * `count` - Number of strings in the array
   *
   * -- Safe to call with NULL result pointer
   * -- Frees each individual string and then the array itself
-  * -- Must be called for every successful d_StringSplit() call to prevent memory leaks
+  * -- Must be called for every successful d_SplitString() call to prevent memory leaks
   */
- void d_StringFreeSplit(char** result, int count) {
+ void d_FreeSplitString(char** result, int count) {
      if (result == NULL) return;
 
      for (int i = 0; i < count; i++) {
@@ -691,11 +691,11 @@ void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fi
   * -- Negative indices count from the end: -1 is last character, -2 is second-to-last, etc.
   * -- If start >= end (after resolving negative indices), no text is added
   * -- Indices are clamped to valid range [0, string_length]
-  * -- Example: d_StringSlice(sb, "Hello", 1, 4) produces "ell"
-  * -- Example: d_StringSlice(sb, "Hello", -3, -1) produces "ll"
-  * -- Example: d_StringSlice(sb, "Hello", 0, -1) produces "Hello"
+  * -- Example: d_SliceString(sb, "Hello", 1, 4) produces "ell"
+  * -- Example: d_SliceString(sb, "Hello", -3, -1) produces "llo"
+  * -- Example: d_SliceString(sb, "Hello", 0, -1) produces "Hello"
   */
-  void d_StringSlice(dString_t* sb, const char* text, int start, int end) {
+  void d_SliceString(dString_t* sb, const char* text, int start, int end) {
       if (sb == NULL || text == NULL) return;
 
       int text_len = strlen(text);
