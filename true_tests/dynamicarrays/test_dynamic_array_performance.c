@@ -1,7 +1,7 @@
 // File: true_tests/dynamicarrays/test_dynamic_array_performance.c - Performance and stress tests
 
-#include "../../include/tests.h"
-#include "../../include/Daedalus.h"
+#include "tests.h"
+#include "Daedalus.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

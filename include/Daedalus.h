@@ -180,6 +180,7 @@ void d_DropString(dString_t* sb, size_t len);
 size_t d_GetStringLength(const dString_t* sb);
 const char* d_PeekString(const dString_t* sb);
 char *d_DumpString(const dString_t* sb, size_t* len);
+
 // Additional String Utils
 void d_FormatString(dString_t* sb, const char* format, ...);
 void d_TemplateString(dString_t* sb, const char* tmplt, const char** keys, const char** values, int count);
@@ -190,6 +191,7 @@ void d_PadCenterString(dString_t* sb, const char* text, int width, char pad_char
 void d_PadLeftString(dString_t* sb, const char* text, int width, char pad_char);
 void d_PadRightString(dString_t* sb, const char* text, int width, char pad_char);
 void d_RepeatString(dString_t* sb, char character, int count);
+
 // Pythonic String Utils
 void d_JoinStrings(dString_t* sb, const char** strings, int count, const char* separator);
 char** d_SplitString(const char* text, const char* delimiter, int* count);
@@ -210,5 +212,5 @@ void* d_PopDataFromArray( dArray_t* array );
 int d_ResizeArray( dArray_t* array, size_t new_capacity );
 void d_DestroyArray( dArray_t* array );
 
-
 #endif
+

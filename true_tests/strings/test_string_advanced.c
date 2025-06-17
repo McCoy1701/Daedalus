@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "../../include/Daedalus.h"
+#include "Daedalus.h"
 
 // Test result counters
 static int tests_run = 0;
