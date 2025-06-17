@@ -9,8 +9,8 @@ int test_d_initArray( void )
 {
   size_t cap = 10;
   size_t int_size = sizeof(int);
-  
-  DynamicArray_t* arr = d_initArray( cap, int_size );
+
+  dArray_t* arr = d_initArray( cap, int_size );
 
   assert( arr != NULL );
   assert( arr->data != NULL );
@@ -24,12 +24,12 @@ int test_d_initArray( void )
   {
     data[i] = i;
   }
-  
+
   for ( size_t i = 0; i < arr->capacity; i++ )
   {
     assert( data[i] = i );
   }
-  
+
   printf( "d_initArray passed\n" );
 
   free( arr->data );
@@ -67,4 +67,3 @@ int test_d_destroyArray( void )
 
   return 0;
 }
-
