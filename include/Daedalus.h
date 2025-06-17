@@ -128,21 +128,12 @@ void d_MatrixClearf( dMat4x4_t *matrix ); //Clear a 4x4 matrix to an identity ma
 void d_MatrixRotateXf( dMat4x4_t *matrix, const float angle_rad ); //Rotate matrix by angle in radians about the x axis
 void d_MatrixRotateYf( dMat4x4_t *matrix, const float angle_rad ); //Rotate matrix by angle in radians about the y axis
 void d_MatrixRotateZf( dMat4x4_t *matrix, const float angle_rad ); //Rotate matrix by angle in radians about the z axis
-<<<<<<< peepee
 void d_MatrixCreateProjectionf( dMat4x4_t *matrix, const float aspect_ratio, const float fov, const float near, const float far ); //Create a projection matrix
 void d_MatrixMultiplyf( dMat4x4_t *output, const dMat4x4_t a, const dMat4x4_t b ); //Multiply two 4x4 Matrices together
 void d_MatrixTranslateVec3f( dMat4x4_t *matrix, const dVec3_t vec ); //Translate a matrix by a 3D point
 void d_MatrixTranslateVec4f( dMat4x4_t *matrix, const dVec4_t vec ); //Translate a matrix by a 4D point
 void d_MatrixMultiplyVec3f( dVec3_t *output, dMat4x4_t matrix, const dVec3_t vec ); //Transform a 3D point into a 4x4 matrix
-=======
 
-void d_MatrixCreateProjectionf( dMat4x4_t *matrix, const float aspect_ratio, const float fov, const float near, const float far ); //Create a projection matrix 
-void d_MatrixMultiplyf( dMat4x4_t *output, const dMat4x4_t a, const dMat4x4_t b ); //Multiply two 4x4 Matrices together
-void d_MatrixTranslateVec3f( dMat4x4_t *matrix, const dVec3_t vec ); //Translate a matrix by a 3D point
-void d_MatrixTranslateVec4f( dMat4x4_t *matrix, const dVec4_t vec ); //Translate a matrix by a 4D point
-void d_MatrixMultiplyVec3f( dVec3_t *output, dMat4x4_t matrix, const dVec3_t vec ); //Transform a 3D point into a 4x4 matrix 
-
->>>>>>> master
 void d_MatrixInverseTransformVec3f( dVec3_t *output, const dMat4x4_t matrix, dVec3_t vec ); //Inverse transform 3D point into a 4x4 matrix
 void d_MatrixMultiplyVec4f( dVec4_t *output, const dMat4x4_t matrix, const dVec4_t vec4 ); //Transform a 4D point into a 4x4 matrix
 
@@ -178,12 +169,6 @@ void d_CreateKinmaticBody( dKinematicBody_t *output, const dVec2_t position, con
 
 /* Strings */
 char* d_CreateStringFromFile(const char *filename);
-<<<<<<< peepee
-typedef struct { // dString_t
-    char* str;      // The actual string buffer
-    size_t alloced; // Total allocated memory
-    size_t len;     // Current string length
-} dString_t;
 dString_t *d_InitString(void);
 void d_DestroyString(dString_t* sb);
 void d_AppendString(dString_t* sb, const char* str, size_t len);
@@ -210,31 +195,6 @@ void d_JoinStrings(dString_t* sb, const char** strings, int count, const char* s
 char** d_SplitString(const char* text, const char* delimiter, int* count);
 void d_FreeSplitString(char** result, int count); // Helper to free the result
 void d_SliceString(dString_t* sb, const char* text, int start, int end);
-=======
-
-dString_t *d_StringCreate(void);
-void d_StringDestroy(dString_t* sb);
-void d_StringAddStr(dString_t* sb, const char* str, size_t len);
-void d_StringAddChar(dString_t* sb, char c);
-void d_StringAddInt(dString_t* sb, int val);
-void d_StringClear(dString_t* sb);
-void d_StringTruncate(dString_t* sb, size_t len);
-void d_StringDrop(dString_t* sb, size_t len);
-size_t d_StringLen(const dString_t* sb);
-const char* d_StringPeek(const dString_t* sb);
-char *d_StringDump(const dString_t* sb, size_t* len);
-
-// Additional String Utils
-void d_StringFormat(dString_t* sb, const char* format, ...);
-void d_StringTemplate(dString_t* sb, const char* tmplt, const char** keys, const char** values, int count);
-void d_StringCapitalize(dString_t* sb);
-void d_StringTitleCase(dString_t* sb);
-void d_StringProgressBar(dString_t* sb, int current, int max, int width, char fill_char, char empty_char);
-void d_StringPadCenter(dString_t* sb, const char* text, int width, char pad_char);
-void d_StringPadLeft(dString_t* sb, const char* text, int width, char pad_char);
-void d_StringPadRight(dString_t* sb, const char* text, int width, char pad_char);
-void d_StringRepeat(dString_t* sb, char character, int count);
->>>>>>> master
 
 // Pythonic String Utils
 void d_StringJoin(dString_t* sb, const char** strings, int count, const char* separator);
@@ -243,20 +203,12 @@ void d_StringFreeSplit(char** result, int count); // Helper to free the result
 void d_StringSlice(dString_t* sb, const char* text, int start, int end);
 
 /* Dynamic Arrays */
-<<<<<<< peepee
 dArray_t* d_InitArray( size_t capacity, size_t element_size );
 void d_AppendArray( dArray_t* array, void* data );
 void* d_GetDataFromArrayByIndex( dArray_t* array, size_t count );
 void* d_PopDataFromArray( dArray_t* array );
 int d_ResizeArray( dArray_t* array, size_t new_capacity );
 void d_DestroyArray( dArray_t* array );
-=======
-DynamicArray_t* d_InitArray( size_t capacity, size_t element_size );
-void d_AppendArray( DynamicArray_t* array, void* data );
-void* d_GetDataFromArrayByIndex( DynamicArray_t* array, size_t count );
-void* d_PopDataFromArray( DynamicArray_t* array );
-int d_ResizeArray( DynamicArray_t* array, size_t new_capacity );
-void d_DestroyArray( DynamicArray_t* array );
->>>>>>> master
+
 
 #endif

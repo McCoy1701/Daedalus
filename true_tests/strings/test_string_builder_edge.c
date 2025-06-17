@@ -289,11 +289,7 @@ int test_string_builder_memory_stress(void)
     for (int i = 0; i < 10; i++) {
         // Grow
         fill_builder_with_content(sb, 100 * (i + 1));
-<<<<<<< peepee
         TEST_ASSERT(d_GetStringLength(sb) == 100 * (i + 1), "Should grow correctly in iteration");
-=======
-        TEST_ASSERT(d_StringLen(sb) == (size_t)100 * (i + 1), "Should grow correctly in iteration");
->>>>>>> master
 
         // Shrink
         d_TruncateString(sb, 50);
