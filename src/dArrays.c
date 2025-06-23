@@ -173,7 +173,7 @@ int d_ResizeArray( dArray_t* array, size_t new_capacity )
   }
 
   array->data = new_data;
-  array->capacity = new_capacity;
+  array->capacity = new_capacity / array->element_size;
   return 0;
 }
 
@@ -198,7 +198,7 @@ int d_GrowArray( dArray_t* array, size_t additional_capacity )
   {
     return 1;
   }
-  return d_ResizeArray( array, array->capacity + additional_capacity );
+  return d_ResizeArray( array, (array->capacity * array->element_size) + additional_capacity );
 }
 
 /*

@@ -41,33 +41,45 @@ format_number_with_commas() {
 map_target_to_file_path() {
     local target="$1"
     case "$target" in
-        "run-test-items-creation-destruction")
-            echo "tests/items/test_items_creation_destruction.c"
+        "run-test-create-string-from-file")
+            echo "true_tests/strings/test_create_string_from_file.c"
             ;;
-        "run-test-items-type-checking")
-            echo "tests/items/test_items_type_checking_and_access.c"
+        "run-test-string-builder")
+            echo "true_tests/strings/test_string_builder.c"
             ;;
-        "run-test-items-material-system")
-            echo "tests/items/test_items_material_system.c"
+        "run-test-string-builder-edge")
+            echo "true_tests/strings/test_string_builder_edge.c"
             ;;
-        "run-test-items-properties")
-            echo "tests/items/test_items_properties.c"
+        "run-test-string-advanced")
+            echo "true_tests/strings/test_string_advanced.c"
             ;;
-        "run-test-items-durability")
-            echo "tests/items/test_items_durability.c"
+        "run-test-string-padding")
+            echo "true_tests/strings/test_string_padding.c"
             ;;
-        "run-test-items-inventory")
-            echo "tests/items/test_items_inventory.c"
+        "run-test-string-pythonic")
+            echo "true_tests/strings/test_string_pythonic.c"
             ;;
-        "run-test-items-usage")
-            echo "tests/items/test_items_usage.c"
+        "run-test-dynamic-array-basic")
+            echo "true_tests/dynamicarrays/test_dynamic_array_basic.c"
             ;;
-        "run-test-items-helper-functions")
-            echo "tests/items/test_items_helper_functions.c"
+        "run-test-dynamic-array-edge")
+            echo "true_tests/dynamicarrays/test_dynamic_array_edge.c"
+            ;;
+        "run-test-dynamic-array-resize")
+            echo "true_tests/dynamicarrays/test_dynamic_array_resize.c"
+            ;;
+        "run-test-dynamic-array-performance")
+            echo "true_tests/dynamicarrays/test_dynamic_array_performance.c"
+            ;;
+        "run-test-dynamic-array-advanced")
+            echo "true_tests/dynamicarrays/test_dynamic_array_advanced.c"
+            ;;
+        "run-test-dynamic-array-errors")
+            echo "true_tests/dynamicarrays/test_dynamic_array_errors.c"
             ;;
         *)
             # Fallback for unknown targets
-            echo "tests/${target#*test-}.c"
+            echo "true_tests/${target#*test-}.c"
             ;;
     esac
 }
@@ -957,9 +969,9 @@ show_progress() {
         echo -e "Compile Errors:      ${YELLOW}$prev_compile_errors${NC} → ${YELLOW}$curr_compile_errors${NC} ($(format_change $compile_change "files"))"
         echo -e "Runtime Errors:      ${YELLOW}$prev_runtime_errors${NC} → ${YELLOW}$curr_runtime_errors${NC} ($(format_change $runtime_change "files"))"
 
-    # Overall progress indicator
-    local total_curr_issues=$((curr_errors + curr_failures + curr_compile_errors + curr_runtime_errors))
-    local total_prev_issues=$((prev_errors + prev_failures + prev_compile_errors + prev_runtime_errors))
+    # Overall progress indicator - use file-level counts only to avoid double-counting
+    local total_curr_issues=$((curr_errors + curr_compile_errors + curr_runtime_errors))
+    local total_prev_issues=$((prev_errors + prev_compile_errors + prev_runtime_errors))
     local total_change=$((total_curr_issues - total_prev_issues))
 
     echo ""
@@ -1370,21 +1382,63 @@ fi
 
 # Set current challenge based on remaining issues (Epic Mythological Themes)
 if [ "$COMPILE_ERRORS" -gt 0 ]; then
-    CURRENT_CHALLENGE="🏗️ Daedalus' Workshop Crisis (${COMPILE_ERRORS} blueprint flaws - undefined symbols, missing headers, linker failures)"
+    # --- Quests for Compilation Errors: The Architect's Problems ---
+    declare -a DAEDALUS_QUESTS=(
+        "🏗️ Daedalus's Workshop Crisis|The blueprints are corrupted! Sisyphus, you must help the master architect fix ${RED}$COMPILE_ERRORS structural flaw(s)${NC} before construction can resume."
+        "📜 Flawed Schematics from Crete|King Minos's scribes made errors. Daedalus cannot build from these plans. Find and correct the ${RED}$COMPILE_ERRORS error(s)${NC} in the sacred scrolls."
+        "🔥 Hephaestus's Judgment|The god of the forge inspects the plans and deems them unworthy. He has pointed out ${RED}$COMPILE_ERRORS critical weakness(es)${NC}. Reforge the code until it is strong."
+    )
+    selected_quest="${DAEDALUS_QUESTS[RANDOM % ${#DAEDALUS_QUESTS[@]}]}"
+    CURRENT_CHALLENGE=$(echo "$selected_quest" | cut -d'|' -f1)
+
 elif [ "$RUNTIME_ERRORS" -gt 0 ]; then
-    CURRENT_CHALLENGE="🐲 Hydra Beasts Rampage (${RUNTIME_ERRORS} runtime errors - segfaults, buffer overflows, null dereferences)"
+    # --- Quests for Runtime Errors: Beasts in the Labyrinth ---
+    declare -a BEAST_HUNT_QUESTS=(
+        "🐲 The Lernaean Hydra Attacks|A beast of chaos appears! It has ${ORANGE}$RUNTIME_ERRORS head(s)${NC} (segfaults/crashes) that must be cauterized with precise debugging."
+        "🦁 The Nemean Lion Roars|A creature of impenetrable hide stalks the Labyrinth, causing ${ORANGE}$RUNTIME_ERRORS system crash(es)${NC}. Its only weakness is a direct, forceful approach with a debugger."
+        "🦅 The Stymphalian Birds Infest|A flock of ${ORANGE}$RUNTIME_ERRORS metallic-feathered bird(s)${NC} (memory errors) are shredding the fabric of the maze. Drive them out before they cause more damage."
+    )
+    selected_quest="${BEAST_HUNT_QUESTS[RANDOM % ${#BEAST_HUNT_QUESTS[@]}]}"
+    CURRENT_CHALLENGE=$(echo "$selected_quest" | cut -d'|' -f1)
+
 elif [ ${#FAILED_FILES[@]} -gt 0 ]; then
-    if [ ${#FAILED_FILES[@]} -eq 12 ]; then
-        CURRENT_CHALLENGE="🌊 Poseidon's Twelve Trials (${#FAILED_FILES[@]} assertion storms - systematic logic validation required)"
-    elif [ ${#FAILED_FILES[@]} -eq 1 ]; then
-        CURRENT_CHALLENGE="👑 Minos' Final Requiem (${#FAILED_FILES[@]} labyrinth exit - one critical test failure blocking ascension)"
+    # --- Quests for Test Failures: Navigating the Maze ---
+    if [ ${#FAILED_FILES[@]} -eq 1 ]; then
+        # --- The Final Trial: One test remains ---
+        declare -a FINAL_TRIAL_QUESTS=(
+            "👑 Minos's Final Requiem|The Labyrinth stands complete, save for one final test of its integrity. King Minos demands you solve this ${YELLOW}last puzzle${NC}."
+            "🐂 The Heart of the Labyrinth|You have reached the Minotaur's chamber. Only the ${YELLOW}final guardian${NC} (a single failed test) stands between you and victory."
+            "🧵 Ariadne's Final Knot|The hero's thread has led you to a single, intricate knot. Unravel this ${YELLOW}last logical tangle${NC} to prove the maze is perfect."
+        )
+        selected_quest="${FINAL_TRIAL_QUESTS[RANDOM % ${#FINAL_TRIAL_QUESTS[@]}]}"
+        CURRENT_CHALLENGE=$(echo "$selected_quest" | cut -d'|' -f1)
     else
-        CURRENT_CHALLENGE="🏛️ Minotaur's Labyrinth (${#FAILED_FILES[@]} twisted corridors - failed assertions, logic errors, boundary conditions)"
+        # --- Exploring the Maze: Multiple tests remain ---
+        declare -a EXPLORE_QUESTS=(
+            "🏛️ The Minotaur's Domain|The beast's roars echo from ${YELLOW}${#FAILED_FILES[@]} different directions${NC}. You must navigate these twisted corridors to pinpoint its location."
+            "🗺️ Charting the Unknown|Daedalus hands you a partial map. There are ${YELLOW}${#FAILED_FILES[@]} unverified sections${NC} that must be explored and secured before the Labyrinth is deemed safe."
+            "🗣️ Echoes of Lost Souls|The maze is haunted by the whispers of ${YELLOW}${#FAILED_FILES[@]} spirits${NC} (failed assertions). Silence them by solving the logical paradoxes that bind them here."
+        )
+        # Special quest for exactly 12 failures
+        if [ ${#FAILED_FILES[@]} -eq 12 ]; then
+            EXPLORE_QUESTS+=("🌊 The Twelve Labors of Poseidon|The Sea God, in a jealous rage at Daedalus's creation, has flooded ${YELLOW}12 critical junctions${NC}. You must clear these assertion storms.")
+        fi
+        selected_quest="${EXPLORE_QUESTS[RANDOM % ${#EXPLORE_QUESTS[@]}]}"
+        CURRENT_CHALLENGE=$(echo "$selected_quest" | cut -d'|' -f1)
     fi
+
 elif [ "$TOTAL_FILE_ERRORS" -gt 0 ]; then
-    CURRENT_CHALLENGE="✨ Zeus's Divine Judgment (${TOTAL_FILE_ERRORS} compilation warnings elevated to olympian standards)"
+    # This case is for when there are only warnings, kept for posterity.
+    CURRENT_CHALLENGE="✨ Zeus's Murmurs|The skies are clear, but a faint whisper from Olympus suggests ${CYAN}$TOTAL_FILE_ERRORS minor imperfection(s)${NC} (warnings) remain."
 else
-    CURRENT_CHALLENGE="🏛️ Mount Olympus Achieved - All tests pass, Daedalus' labyrinth conquered"
+    # --- Perfect Run: The Labyrinth is Complete ---
+    declare -a VICTORY_QUESTS=(
+        "🏛️ The Labyrinth is Silent|The Minotaur sleeps. The hero is lost. King Minos is pleased. Daedalus marvels at your shared creation."
+        "🪨 The Boulder at Rest|At the summit, a moment of true peace. Your eternal task is complete... for now."
+        "👑 A Flawless Marvel|King Minos declares the Labyrinth the Jewel of Crete. Your name, Sisyphus, is whispered with reverence in the court."
+    )
+    selected_quest="${VICTORY_QUESTS[RANDOM % ${#VICTORY_QUESTS[@]}]}"
+    CURRENT_CHALLENGE=$(echo "$selected_quest" | cut -d'|' -f1)
 fi
 
 # Show progress comparison before final summary
@@ -1534,9 +1588,9 @@ show_motivational_message() {
     # Read previous stats
     local stats_line="$(read_previous_stats)"
     IFS='|' read -r prev_errors prev_passes prev_failures prev_compile_errors prev_runtime_errors prev_efficiency_ratio prev_pure_test_time prev_improvement_streak prev_current_challenge prev_timestamp <<< "$stats_line"
-    # Calculate changes with detailed context
-    local total_curr_issues=$((curr_errors + curr_failures + curr_compile_errors + curr_runtime_errors))
-    local total_prev_issues=$((prev_errors + prev_failures + prev_compile_errors + prev_runtime_errors))
+    # Calculate changes with detailed context - use file-level counts only to avoid double-counting
+    local total_curr_issues=$((curr_errors + curr_compile_errors + curr_runtime_errors))
+    local total_prev_issues=$((prev_errors + prev_compile_errors + prev_runtime_errors))
     local total_change=$((total_curr_issues - total_prev_issues))
     local pass_change=$((curr_passes - prev_passes))
     local efficiency_change=$((curr_efficiency_ratio - prev_efficiency_ratio))
@@ -1879,7 +1933,7 @@ show_motivational_message() {
         fi
     else
         # NO CHANGE - Mythological stability analysis with story progression
-        echo -e "${CYAN}🏛️ ETERNAL VIGILANCE: The Oracle's vision remains unchanged${NC}"
+        echo -e "${CYAN}🏛️  ETERNAL VIGILANCE: The Oracle's vision remains unchanged${NC}"
 
         if [ "$total_curr_issues" -eq 0 ]; then
             # Perfect state - random celebration
@@ -1910,8 +1964,8 @@ show_motivational_message() {
             local near_completion_messages=(
                 "${CYAN}🏗️ DAEDALUS INSPECTS! 'Only $total_curr_issues final touches remain on my masterpiece'${NC}|Master architect nods approvingly - the labyrinth nears completion"
                 "${CYAN}🗡️ THESEUS APPROACHES! The hero senses only $total_curr_issues obstacles ahead${NC}|Legendary warrior prepares - victory lies just beyond these final trials"
-                "${CYAN}⚖️ ATHENA'S WISDOM! Only $total_curr_issues minor trials separate you from glory${NC}|Goddess of wisdom whispers - near-divine mastery beckons heroically"
-                "${CYAN}🏛️ TEMPLE GATES OPEN! $total_curr_issues sacred trials guard the inner sanctum${NC}|Divine threshold approaches - the gods prepare your final tests"
+                "${CYAN}👑 A NOD FROM MINOS! The King sees but $total_curr_issues minor details to perfect in his Labyrinth${NC}|The final judgment is near. Achieve perfection to satisfy the decree of Crete."
+                "${CYAN}🪨 THE BURDEN LIGHTENS! Sisyphus, your task feels easier now; only $total_curr_issues steps remain${NC}|The summit is in sight. One final push will grant you a moment's peace."
             )
             local selected_near="${near_completion_messages[RANDOM % ${#near_completion_messages[@]}]}"
             IFS='|' read -r message context <<< "$selected_near"
@@ -1920,10 +1974,10 @@ show_motivational_message() {
         elif [ "$total_curr_issues" -le 6 ]; then
             # Moderate issues - active construction/exploration
             local moderate_messages=(
-                "${PURPLE}🏗️ CONSTRUCTION CONTINUES! Daedalus works tirelessly on $total_curr_issues blueprint sections${NC}|Master architect's plans take shape - systematic building progresses steadily"
-                "${PURPLE}🗡️ BEAST HUNTING PARTY! $total_curr_issues creatures roam the labyrinth depths${NC}|Brave warriors venture forth - each beast slain secures another corridor"
-                "${PURPLE}🧭 CORRIDOR MAPPING! Explorers chart $total_curr_issues unexplored passages${NC}|Methodical exploration continues - each path mapped brings clarity to the maze"
-                "${PURPLE}⚔️ TRIALS OF HEROES! $total_curr_issues challenges test your worthiness${NC}|Epic journey unfolds - heroes face trials that forge legends"
+                "${PURPLE}🏛️ THE LABYRINTH'S CALL! The winding paths present $total_curr_issues fresh puzzles to be solved${NC}|The master craftsman, Daedalus, watches to see how you navigate the complexity."
+                "${PURPLE}👑 A REPORT FOR KING MINOS! His scouts have noted $total_curr_issues unresolved issues within the maze${NC}|The King expects progress. Each fix brings the Labyrinth closer to his standard of perfection."
+                "${PURPLE}🪨 A FAMILIAR WEIGHT... Sisyphus, your boulder feels heavier with $total_curr_issues new imperfections to address${NC}|The struggle is constant, but so is your strength. Push onward; the summit is earned, not given."
+                "${PURPLE}🐂 THE MINOTAUR'S GROWL! The beast senses $total_curr_issues weaknesses in its prison walls${NC}|The Labyrinth must be flawless to contain its prisoner. Reinforce the logic and seal the exits."
             )
             local selected_moderate="${moderate_messages[RANDOM % ${#moderate_messages[@]}]}"
             IFS='|' read -r message context <<< "$selected_moderate"
@@ -1932,11 +1986,11 @@ show_motivational_message() {
         else
             # Many issues - epic quest beginning
             local epic_quest_messages=(
-                "${RED}🏗️ DAEDALUS CALLS! 'The labyrinth blueprints need $total_curr_issues corrections, young architect!'${NC}|Master craftsman seeks your aid - great construction projects demand patience and skill"
-                "${RED}🐲 MYTHICAL BEASTS ROAM! $total_curr_issues creatures have invaded the sacred grounds${NC}|Ancient monsters threaten the realm - heroes rise to face legendary challenges"
-                "${RED}🌊 LABYRINTH DEPTHS! $total_curr_issues twisted passages confound even brave explorers${NC}|Maze complexity challenges all who enter - systematic exploration reveals hidden truths"
-                "${RED}⚡ EPIC JOURNEY BEGINS! $total_curr_issues trials await the worthy challenger${NC}|Legendary journey starts - each obstacle overcome builds heroic strength"
-                "${RED}🏛️ OLYMPIAN CHALLENGE! The gods test mortals with $total_curr_issues divine trials${NC}|Sacred tests measure your resolve - prove yourself worthy of mythological fame"
+                "${RED}👑 A FURIOUS DECREE FROM MINOS! 'This Labyrinth is overrun with $total_curr_issues flaws! Correct them, Sisyphus, or face the full wrath of Crete!'${NC}|The King's patience wears thin. The scale of this task is a trial in itself."
+                "${RED}🏗️ THE ARCHITECT'S DESPAIR! Daedalus cries out, '$total_curr_issues structural failures threaten to collapse my great work!'${NC}|The very foundations of the Labyrinth are compromised. A master builder is needed to prevent total ruin."
+                "${RED}🪨 THE BOULDER'S TRUE WEIGHT! The path to the summit is blocked by $total_curr_issues immense obstacles${NC}|This is your curse and your purpose. Push onward, for the task is eternal and the summit is but a brief respite."
+                "${RED}🧹 THE AUGEAN STABLES! The Labyrinth is flooded with $total_curr_issues sources of filth and chaos${NC}|A task worthy of Heracles himself. It is time for a great cleansing to restore order to the maze."
+                "${RED}🌪️ THE GATES OF TARTARUS ARE BREACHED! $total_curr_issues chaotic spirits have been unleashed within the walls${NC}|A hero's greatest quest is to face the underworld. Bring order to the chaos and prove your mastery."
             )
             local selected_epic="${epic_quest_messages[RANDOM % ${#epic_quest_messages[@]}]}"
             IFS='|' read -r message context <<< "$selected_epic"
@@ -1947,31 +2001,33 @@ show_motivational_message() {
 
 
     local final_messages=(
-        "🏛️ The Fates weave victory into your thread of destiny!"
         "✨ Your code is your Sword, your logic your Shield!"
         "🌟 Each keystroke echoes through the halls of Olympus!"
-        "💎 You forge digital ambrosia, food of the coding gods!"
         "🏆 Heroes are born in moments of impossible triumph!"
-        "🔥 Prometheus gifted fire - you gift elegant solutions!"
-        "🔥 Type with the fury of Zeus, debug with Athena's wisdom!"
         "📜 'Know thyself' - Socrates speaks through your structured code!"
-        "🧘 'You have power over your mind' - Marcus Aurelius guides your focus!"
-        "⚖️ 'The unexamined code is not worth running' - Socratic programming!"
+        "🧘 'You have power over your mind - and your code' - Marcus Aurelius guides your focus!"
+        "📜 'The unexamined code is not worth running' - Socratic programming!"
         "🎯 'Excellence is never an accident' - Aristotle approves your discipline!"
         "📚 'The only true wisdom is knowing you know nothing' - Socratic humility!"
         "🏛️ 'We are what we repeatedly do' - Aristotelian habit formation!"
-        "🌙 'In darkness, the wise owl sees most clearly' - Athena's night vision!"
         "🔥 'From small sparks, great fires kindle' - Heraclitean transformation!"
-        "⚖️ 'Justice is the advantage of the stronger' - but your code protects the weak!"
-        "🌊 'No man ever steps in the same river twice' - Heraclitean flow!"
+        "🌊 'No developer ever runs the same code twice' - Heraclitean flow!"
         "💎 'Virtue is its own reward' - Stoic satisfaction in clean code!"
-        "🎭 'The unexamined life is not worth living' - Socratic self-reflection!"
         "🏺 'The whole is greater than the sum of its parts' - Aristotelian architecture!"
         "✨ 'Think like a mountain' - Marcus Aurelius teaches patient debugging!"
         "🦉 'The fox knows many things, but the hedgehog knows one big thing' - Archilochus!"
         "🛡️ 'Fortune favors the bold' - but preparation favors the coder!"
         "🏛️ 'The measure of a man is what he does with power' - Plato's responsibility!"
         "🌿 'Every oak tree was once an acorn that held its ground' - Patience pays!"
+        "✨ 'First understand the riddle, then craft the solution' - Wisdom of the ancients!"
+        "🧠 'The most elegant temple needs no ornaments' - Athena's minimalist architecture!"
+        "🔧 'Build it to stand, perfect it to last, optimize it to soar' - Hephaestus's forge trinity!"
+        "🎯 'True mastery lies in making the complex appear simple' - Apollo's divine sophistication!"
+        "🏗️ 'Scrolls are read by many, but written by few' - Daedalus's architectural clarity!"
+        "💡 'Strategy wins wars, not the swing of swords' - Athena's tactical insight!"
+        "🌊 'The best prophecy is one that prevents disaster' - Oracle's error wisdom!"
+        "💎 'Rushing to perfection often ruins the foundation' - Aristotle's cautious balance!"
+        "🎨 'Masterpieces reveal the soul of their creator' - Pygmalion's caring craft!"
     )
 
     # Final status assessment with technical recommendations
@@ -1979,9 +2035,9 @@ show_motivational_message() {
         # Perfect state - epic victory declarations with new characters
         local victory_messages=(
             "${GREEN}🎉 MINOTAUR DEFEATED! The labyrinth guardian bows before your flawless code${NC}|All compilation successful, zero runtime crashes, perfect test results|${BOLD_WHITE}🌟 HEROIC LEGEND! Bards will sing of your debugging mastery!${NC}"
-            "${GREEN}🏺 AMPHORA OVERFLOWS! Divine nectar of perfect code fills the sacred vessel${NC}|Immaculate architecture - every function, every pointer, every test pristine|${BOLD_WHITE}💎 CRYSTALLINE CODE! Your logic sparkles like Olympian gemstones!${NC}"
-            "${GREEN}🦅 EAGLE SOARS! Zeus's messenger carries news of your triumph to all realms${NC}|Flawless execution achieved - gods study your techniques in wonder|${BOLD_WHITE}⚡ DIVINE SPARK! You've captured lightning in elegant algorithms!${NC}"
-            "${GREEN}🌊 POSEIDON CALMS! The sea god stills all storms in honor of your mastery${NC}|Perfect stability - no segfaults disturb your computational seas|${BOLD_WHITE}🔱 TRIDENT WIELDER! Command over memory, logic, and compilation!${NC}"
+            "${GREEN}🏛️ DAEDALUS ADMIRES THE PERFECTION! 'The blueprints are flawless. The structure is absolute. I could not have built it better myself.'${NC}|The master craftsman inspects your work and finds no fault. The Labyrinth is a mathematical marvel.|${BOLD_WHITE}✨ ARCHITECT'S BLESSING! Your logic has surpassed the creator's vision!${NC}"
+            "${GREEN}👑 KING MINOS'S ULTIMATE TREASURE! The King declares, 'This Labyrinth is now the most prized possession of Crete! Its flawless design will be legendary.'${NC}|Your work has not only met the royal standard but has become a source of immense pride for the kingdom.|${BOLD_WHITE}💎 THE JEWEL OF CRETE! Your code is now a treasure of mythological proportions!${NC}"
+            "${GREEN}🪨 THE BOULDER RESTS! At the summit, Sisyphus finds a moment of perfect, silent peace${NC}|All labors are complete. The curse is momentarily lifted by the profound stillness of perfection.|${BOLD_WHITE}✨ ETERNAL TASK, PERFECTED! You have achieved the impossible. Rest... until the work begins anew.${NC}"
         )
         local selected_victory="${victory_messages[RANDOM % ${#victory_messages[@]}]}"
         IFS='|' read -r message1 message2 message3 <<< "$selected_victory"
@@ -2063,14 +2119,35 @@ show_motivational_message() {
             # Single issue remaining - final boss variety
             local final_quests=(
                 "${YELLOW}👑 ROYAL SUMMONS: King Minos awaits your final demonstration of mastery${NC}|The throne room doors open only when perfection is achieved"
-                "${YELLOW}🏛️ TEMPLE ASCENSION: Climb the final steps to the sacred coding sanctuary${NC}|Divine wisdom requires one last act of debugging devotion"
-                "${YELLOW}⚡ LIGHTNING TRIAL: Zeus prepares to grant immortal status to worthy coders${NC}|Thunder rolls - prove yourself ready for Olympian programming powers"
-                "${YELLOW}🌟 STELLAR ALIGNMENT: The stars align for your legendary coding achievement${NC}|Cosmic forces await your final keystroke to complete destiny"
+                "${YELLOW}🏛️  LABYRINTH COMPLETION: Daedalus awaits your final architectural touch${NC}|The master craftsman gestures - one last corridor blocks the maze's perfection"
+                "${YELLOW}✨ THESEUS' FINAL STEP: The hero stands before the last chamber's door${NC}|Thread in hand, one final challenge separates you from conquering the labyrinth"
+                "${YELLOW}🌟 MINOTAUR'S LAST ROAR: The beast retreats to its final stronghold${NC}|Echoes fade through empty corridors - one last passage guards the labyrinth's heart"
             )
             local selected_final="${final_quests[RANDOM % ${#final_quests[@]}]}"
             IFS='|' read -r quest_msg quest_context <<< "$selected_final"
             echo -e "    $quest_msg"
             echo -e "    ${FADED}$quest_context${NC}"
+
+            # Randomly suggest a specific file to fix from all failed tests
+            local all_failed_suggestions=()
+            for failed in "${FAILED_FILES[@]}"; do
+                all_failed_suggestions+=("$failed")
+            done
+            for compile_error in "${COMPILE_ERROR_FILES[@]}"; do
+                all_failed_suggestions+=("$compile_error:COMPILE_ERROR")
+            done
+            for runtime_error in "${RUNTIME_ERROR_FILES[@]}"; do
+                all_failed_suggestions+=("$runtime_error:RUNTIME_ERROR")
+            done
+
+            if [ ${#all_failed_suggestions[@]} -gt 0 ]; then
+                local random_failed_suggestion="${all_failed_suggestions[RANDOM % ${#all_failed_suggestions[@]}]}"
+                local suggested_file=$(echo "$random_failed_suggestion" | cut -d':' -f1)
+                local suggested_target=$(echo "$random_failed_suggestion" | cut -d':' -f2)
+                local file_path=$(map_target_to_file_path "$suggested_target")
+                echo -e "    ${CYAN}🎯 Complete the trial: ${BOLD_WHITE}$suggested_file${NC}"
+                echo -e "    Execute: ${YELLOW}make $suggested_target${NC} | ${CYAN}View Test:${NC} \e]8;;file://$(pwd)/$file_path\e\\Click Here\e]8;;\e\\"
+            fi
 
         elif [[ "$curr_challenge" == *"Workshop"* ]] || [[ "$curr_challenge" == *"Daedalus"* ]]; then
             # Compile error quests - blueprint/architecture focus
@@ -2132,7 +2209,7 @@ show_motivational_message() {
                 local suggested_file=$(echo "$random_failed_test" | cut -d':' -f1)
                 local suggested_target=$(echo "$random_failed_test" | cut -d':' -f2)
                 local file_path=$(map_target_to_file_path "$suggested_target")
-                echo -e "    ${CYAN}🗺️ Start exploring: ${BOLD_WHITE}$suggested_file${NC}"
+                echo -e "    ${CYAN}🗺️  Start exploring: ${BOLD_WHITE}$suggested_file${NC}"
                 echo -e "    Explore: ${YELLOW}make $suggested_target${NC} | ${CYAN}View Test:${NC} \e]8;;file://$(pwd)/$file_path\e\\Click Here\e]8;;\e\\"
             fi
 

@@ -34,12 +34,15 @@ $(OBJ_DIR)/dStrings.o: $(SRC_DIR)/dStrings.c
 $(OBJ_DIR)/dArrays.o: $(SRC_DIR)/dArrays.c
 	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
 
+$(OBJ_DIR)/dStrings-dArrays.o: $(SRC_DIR)/dStrings-dArrays.c
+	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
+
 $(OBJ_DIR)/dVectorMath.o: $(SRC_DIR)/dVectorMath.c
 	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
 
 
 
-$(BIN_DIR)/libDaedalus: $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dVectorMath.o
+$(BIN_DIR)/libDaedalus: $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings-dArrays.o $(OBJ_DIR)/dVectorMath.o
 	$(CC) $^ $(CINC) -shared -fPIC -pedantic  $(CFLAGS) -o $@.so
 
 .PHONY: native
@@ -177,8 +180,8 @@ run-test-string-padding: test-string-padding
 	@./$(BIN_DIR)/test_string_padding
 
 .PHONY: test-string-pythonic
-test-string-pythonic: always $(OBJ_DIR)/dStrings.o
-	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_string_pythonic $(TEST_DIR)/strings/test_string_pythonic.c $(OBJ_DIR)/dStrings.o
+test-string-pythonic: always $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings-dArrays.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_string_pythonic $(TEST_DIR)/strings/test_string_pythonic.c $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings-dArrays.o
 
 .PHONY: run-test-string-pythonic
 run-test-string-pythonic: test-string-pythonic
@@ -232,45 +235,8 @@ run-test-dynamic-array-errors: test-dynamic-array-errors
 test-dynamic-array-errors: always $(OBJ_DIR)/dArrays.o
 	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_errors $(TEST_DIR)/dynamicarrays/test_dynamic_array_errors.c $(OBJ_DIR)/dArrays.o
 
-# Test help
-.PHONY: test-help
-test-help:
-	@echo "Available test commands:"
-	@echo "  make test                              - Run all tests with global summary"
-	@echo "  make run-test-create-string-from-file  - Run test for create_string_from_file"
-	@echo "  make run-test-string-builder           - Run test for string builder"
-	@echo "  make run-test-string-builder-edge      - Run test for string builder edge cases"
-	@echo "  make run-test-string-advanced          - Run test for advanced string operations"
-	@echo "  make run-test-string-padding           - Run test for string padding"
-	@echo "  make run-test-string-pythonic          - Run test for string pythonic"
-	@echo "  make run-test-dynamic-array-basic      - Run test for basic dynamic array operations"
-	@echo "  make run-test-dynamic-array-edge       - Run test for edge cases in dynamic array operations"
-	@echo "  make run-test-dynamic-array-resize     - Run test for resizing dynamic array operations"
-	@echo "  make run-test-dynamic-array-performance - Run test for performance of dynamic array operations"
-	@echo "  make run-test-dynamic-array-advanced   - Run test for advanced dynamic array operations"
-	@echo "  make run-test-dynamic-array-errors     - Run test for error handling in dynamic array operations"
-
 # Global test runner (summary output)
 # Traditional approach (current - kept for compatibility)
 .PHONY: test
 test:
 	@./run_tests.sh
-
-# Fast unified approach (new)
-.PHONY: test-fast
-test-fast: run-test-unified
-# =============================================================================
-# UNIFIED TEST RUNNER (New Approach)
-# =============================================================================
-
-# Unified test runner that runs all tests in one binary
-.PHONY: test-runner-unified
-test-runner-unified: always $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o
-	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_runner_unified \
-		$(TEST_DIR)/unified/test_runner.c \
-		$(TEST_DIR)/unified/all_tests.c \
-		$(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o
-
-.PHONY: run-test-unified
-run-test-unified: test-runner-unified
-	@./$(BIN_DIR)/test_runner_unified

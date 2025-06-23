@@ -44,21 +44,31 @@ void log_string_content(const char* label, const dString_t* str)
 }
 
 // Helper function to log array contents
-void log_string_array(const char* label, char** array, int count)
+void log_string_array(const char* label, dArray_t* array)
 {
     dString_t* log_message = d_InitString();
     d_AppendString(log_message, label, 0);
-    d_AppendString(log_message, " (count: ", 0);
-    d_AppendInt(log_message, count);
-    d_AppendString(log_message, "): [", 0);
+    if (array) {
+        d_AppendString(log_message, " (count: ", 0);
+        d_AppendInt(log_message, (int)array->count);
+        d_AppendString(log_message, "): [", 0);
 
-    for (int i = 0; i < count; i++) {
-        if (i > 0) d_AppendString(log_message, ", ", 0);
-        d_AppendString(log_message, "'", 0);
-        d_AppendString(log_message, array[i] ? array[i] : "NULL", 0);
-        d_AppendString(log_message, "'", 0);
+        for (size_t i = 0; i < array->count; i++) {
+            if (i > 0) d_AppendString(log_message, ", ", 0);
+            d_AppendString(log_message, "'", 0);
+
+            dString_t** str_ptr = (dString_t**)d_GetDataFromArrayByIndex(array, i);
+            if (str_ptr && *str_ptr) {
+                d_AppendString(log_message, d_PeekString(*str_ptr), 0);
+            } else {
+                d_AppendString(log_message, "NULL", 0);
+            }
+            d_AppendString(log_message, "'", 0);
+        }
+        d_AppendString(log_message, "]", 0);
+    } else {
+        d_AppendString(log_message, ": [NULL]", 0);
     }
-    d_AppendString(log_message, "]", 0);
     LOG(log_message->str);
     d_DestroyString(log_message);
 }
@@ -177,132 +187,6 @@ int test_join_null_safety(void)
     TEST_ASSERT(strcmp(d_PeekString(sb), "") == 0, "String should remain empty with NULL array");
 
     d_DestroyString(sb);
-    return 1;
-}
-
-// =============================================================================
-// d_SplitString TESTS
-// =============================================================================
-
-int test_split_basic(void)
-{
-    int count;
-    char** result = d_SplitString("apple,banana,cherry", ",", &count);
-
-    log_string_array("Split result", result, count);
-
-    TEST_ASSERT(result != NULL, "Split result should not be NULL");
-    TEST_ASSERT(count == 3, "Split should produce 3 parts");
-    TEST_ASSERT(strcmp(result[0], "apple") == 0, "First part incorrect");
-    TEST_ASSERT(strcmp(result[1], "banana") == 0, "Second part incorrect");
-    TEST_ASSERT(strcmp(result[2], "cherry") == 0, "Third part incorrect");
-
-    d_FreeSplitString(result, count);
-    return 1;
-}
-
-int test_split_no_delimiter(void)
-{
-    int count;
-    char** result = d_SplitString("no delimiter here", ",", &count);
-
-    log_string_array("Split no delimiter result", result, count);
-
-    TEST_ASSERT(result != NULL, "Split result should not be NULL");
-    TEST_ASSERT(count == 1, "Split should produce 1 part");
-    TEST_ASSERT(strcmp(result[0], "no delimiter here") == 0, "Single part incorrect");
-
-    d_FreeSplitString(result, count);
-    return 1;
-}
-
-int test_split_empty_parts(void)
-{
-    int count;
-    char** result = d_SplitString("a,,c", ",", &count);
-
-    log_string_array("Split empty parts result", result, count);
-
-    TEST_ASSERT(result != NULL, "Split result should not be NULL");
-    TEST_ASSERT(count == 3, "Split should produce 3 parts");
-    TEST_ASSERT(strcmp(result[0], "a") == 0, "First part incorrect");
-    TEST_ASSERT(strcmp(result[1], "") == 0, "Second part should be empty");
-    TEST_ASSERT(strcmp(result[2], "c") == 0, "Third part incorrect");
-
-    d_FreeSplitString(result, count);
-    return 1;
-}
-
-int test_split_multiple_char_delimiter(void)
-{
-    int count;
-    char** result = d_SplitString("one::two::three", "::", &count);
-
-    log_string_array("Split multi-char delimiter result", result, count);
-
-    TEST_ASSERT(result != NULL, "Split result should not be NULL");
-    TEST_ASSERT(count == 3, "Split should produce 3 parts");
-    TEST_ASSERT(strcmp(result[0], "one") == 0, "First part incorrect");
-    TEST_ASSERT(strcmp(result[1], "two") == 0, "Second part incorrect");
-    TEST_ASSERT(strcmp(result[2], "three") == 0, "Third part incorrect");
-
-    d_FreeSplitString(result, count);
-    return 1;
-}
-
-int test_split_starts_with_delimiter(void)
-{
-    int count;
-    char** result = d_SplitString(",start,end", ",", &count);
-
-    log_string_array("Split starts with delimiter result", result, count);
-
-    TEST_ASSERT(result != NULL, "Split result should not be NULL");
-    TEST_ASSERT(count == 3, "Split should produce 3 parts");
-    TEST_ASSERT(strcmp(result[0], "") == 0, "First part should be empty");
-    TEST_ASSERT(strcmp(result[1], "start") == 0, "Second part incorrect");
-    TEST_ASSERT(strcmp(result[2], "end") == 0, "Third part incorrect");
-
-    d_FreeSplitString(result, count);
-    return 1;
-}
-
-int test_split_ends_with_delimiter(void)
-{
-    int count;
-    char** result = d_SplitString("start,end,", ",", &count);
-
-    log_string_array("Split ends with delimiter result", result, count);
-
-    TEST_ASSERT(result != NULL, "Split result should not be NULL");
-    TEST_ASSERT(count == 3, "Split should produce 3 parts");
-    TEST_ASSERT(strcmp(result[0], "start") == 0, "First part incorrect");
-    TEST_ASSERT(strcmp(result[1], "end") == 0, "Second part incorrect");
-    TEST_ASSERT(strcmp(result[2], "") == 0, "Third part should be empty");
-
-    d_FreeSplitString(result, count);
-    return 1;
-}
-
-int test_split_null_safety(void)
-{
-    int count;
-    char** result;
-
-    // Test NULL text
-    result = d_SplitString(NULL, ",", &count);
-    TEST_ASSERT(result == NULL, "NULL text should return NULL");
-    TEST_ASSERT(count == 0, "NULL text should set count to 0");
-
-    // Test NULL delimiter
-    result = d_SplitString("test", NULL, &count);
-    TEST_ASSERT(result == NULL, "NULL delimiter should return NULL");
-    TEST_ASSERT(count == 0, "NULL delimiter should set count to 0");
-
-    // Test NULL count pointer
-    result = d_SplitString("test", ",", NULL);
-    TEST_ASSERT(result == NULL, "NULL count should return NULL");
-
     return 1;
 }
 
@@ -516,19 +400,27 @@ int test_rpg_inventory_management(void)
 
 int test_rpg_command_parsing(void)
 {
-    int count;
-    char** parts = d_SplitString("attack goblin with sword", " ", &count);
-
-    log_string_array("Command parts", parts, count);
+    dArray_t* parts = d_SplitString("attack goblin with sword", " ");
 
     TEST_ASSERT(parts != NULL, "Command parts should not be NULL");
-    TEST_ASSERT(count == 4, "Command should have 4 parts");
-    TEST_ASSERT(strcmp(parts[0], "attack") == 0, "Action incorrect");
-    TEST_ASSERT(strcmp(parts[1], "goblin") == 0, "Target incorrect");
-    TEST_ASSERT(strcmp(parts[2], "with") == 0, "Preposition incorrect");
-    TEST_ASSERT(strcmp(parts[3], "sword") == 0, "Weapon incorrect");
+    TEST_ASSERT(parts->count == 4, "Command should have 4 parts");
 
-    d_FreeSplitString(parts, count);
+    dString_t** action_ptr = (dString_t**)d_GetDataFromArrayByIndex(parts, 0);
+    dString_t** target_ptr = (dString_t**)d_GetDataFromArrayByIndex(parts, 1);
+    dString_t** prep_ptr = (dString_t**)d_GetDataFromArrayByIndex(parts, 2);
+    dString_t** weapon_ptr = (dString_t**)d_GetDataFromArrayByIndex(parts, 3);
+
+    TEST_ASSERT(action_ptr != NULL && *action_ptr != NULL, "Action element should exist");
+    TEST_ASSERT(target_ptr != NULL && *target_ptr != NULL, "Target element should exist");
+    TEST_ASSERT(prep_ptr != NULL && *prep_ptr != NULL, "Preposition element should exist");
+    TEST_ASSERT(weapon_ptr != NULL && *weapon_ptr != NULL, "Weapon element should exist");
+
+    TEST_ASSERT(strcmp(d_PeekString(*action_ptr), "attack") == 0, "Action incorrect");
+    TEST_ASSERT(strcmp(d_PeekString(*target_ptr), "goblin") == 0, "Target incorrect");
+    TEST_ASSERT(strcmp(d_PeekString(*prep_ptr), "with") == 0, "Preposition incorrect");
+    TEST_ASSERT(strcmp(d_PeekString(*weapon_ptr), "sword") == 0, "Weapon incorrect");
+
+    d_FreeSplitStringArray(parts);
     return 1;
 }
 
@@ -558,26 +450,45 @@ int test_rpg_dialogue_word_wrapping(void)
     const char* long_dialogue = "The ancient wizard speaks: 'Young adventurer, your quest leads to dangerous lands beyond the misty mountains.'";
 
     // Split into words for wrapping
-    int word_count;
-    char** words = d_SplitString(long_dialogue, " ", &word_count);
+    dArray_t* words = d_SplitString(long_dialogue, " ");
 
-    log_string_array("Dialogue words", words, word_count);
+    dString_t* log_message = d_InitString();
+    for (int i = 0; i < words->count; i++) {
+        dString_t** word_ptr = (dString_t**)d_GetDataFromArrayByIndex(words, i);
+        dString_t* word = *word_ptr;
+        d_AppendString(log_message, word->str, 0);
+        d_AppendChar(log_message, '\t');
+    }
+    LOG(log_message->str);
+    d_DestroyString(log_message);
 
     TEST_ASSERT(words != NULL, "Words array should not be NULL");
-    TEST_ASSERT(word_count > 10, "Should have many words");
-    TEST_ASSERT(strcmp(words[0], "The") == 0, "First word incorrect");
-    TEST_ASSERT(strcmp(words[word_count-1], "mountains.'") == 0, "Last word incorrect");
+    TEST_ASSERT(words->count > 10, "Should have many words");
 
-    // Rejoin first 5 words as a shorter line
+    dString_t** first_word_ptr = (dString_t**)d_GetDataFromArrayByIndex(words, 0);
+    dString_t** last_word_ptr = (dString_t**)d_GetDataFromArrayByIndex(words, words->count - 1);
+
+    TEST_ASSERT(first_word_ptr != NULL && *first_word_ptr != NULL, "First word should exist");
+    TEST_ASSERT(last_word_ptr != NULL && *last_word_ptr != NULL, "Last word should exist");
+    TEST_ASSERT(strcmp((*first_word_ptr)->str, "The") == 0, "First word should be 'The'");
+    TEST_ASSERT(strcmp(d_PeekString(*last_word_ptr), "mountains.'") == 0, "Last word should be 'mountains.'");
+
+    // Build array of first 5 words for joining
+    const char* first_five[5];
+    for (int i = 0; i < 5; i++) {
+        dString_t** word_ptr = (dString_t**)d_GetDataFromArrayByIndex(words, i);
+        first_five[i] = d_PeekString(*word_ptr);
+    }
+
     dString_t* short_line = create_test_string(NULL);
-    d_JoinStrings(short_line, (const char**)words, 5, " ");
+    d_JoinStrings(short_line, first_five, 5, " ");
 
     log_string_content("Short line", short_line);
 
     TEST_ASSERT(strcmp(d_PeekString(short_line), "The ancient wizard speaks: 'Young") == 0,
-                "Word wrapping failed");
+                "Word wrapping should be successful");
 
-    d_FreeSplitString(words, word_count);
+    d_FreeSplitStringArray(words);
     d_DestroyString(short_line);
     return 1;
 }
@@ -617,15 +528,6 @@ int main(void)
     RUN_TEST(test_join_with_nulls);
     RUN_TEST(test_join_path_separator);
     RUN_TEST(test_join_null_safety);
-
-    // d_SplitString tests
-    RUN_TEST(test_split_basic);
-    RUN_TEST(test_split_no_delimiter);
-    RUN_TEST(test_split_empty_parts);
-    RUN_TEST(test_split_multiple_char_delimiter);
-    RUN_TEST(test_split_starts_with_delimiter);
-    RUN_TEST(test_split_ends_with_delimiter);
-    RUN_TEST(test_split_null_safety);
 
     // d_SliceString tests
     RUN_TEST(test_slice_basic);

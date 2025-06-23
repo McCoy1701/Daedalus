@@ -385,7 +385,7 @@ void d_PadCenterString(dString_t* sb, const char* text, int width, char pad_char
 void d_PadLeftString(dString_t* sb, const char* text, int width, char pad_char);
 /*
   * Add text padded to the right with specified character to reach target width
-  *
+
   * `sb` - Pointer to string builder
   * `text` - Text to pad (must be null-terminated)
   * `width` - Target total width including padding
@@ -429,34 +429,6 @@ void d_RepeatString(dString_t* sb, char character, int count);
   */
 void d_JoinStrings(dString_t* sb, const char** strings, int count, const char* separator);
 /*
-  * Split a string by delimiter into an array of strings (like Python's str.split())
-  *
-  * `text` - String to split (must be null-terminated)
-  * `delimiter` - Delimiter string to split by
-  * `count` - Pointer to receive the number of resulting strings
-  *
-  * `char**` - Array of newly allocated strings, or NULL on error
-  *
-  * -- Returns NULL if text or delimiter is NULL, or if allocation fails
-  * -- Caller must free the result using d_FreeSplitString()
-  * -- Each string in the result array is individually allocated
-  * -- Empty strings between delimiters are included in the result
-  * -- If delimiter is not found, returns array with single copy of original string
-  * -- *count is set to the number of strings in the returned array
-  */
-char** d_SplitString(const char* text, const char* delimiter, int* count);
-/*
-  * Free memory allocated by d_SplitString()
-  *
-  * `result` - Array of strings returned by d_SplitString()
-  * `count` - Number of strings in the array
-  *
-  * -- Safe to call with NULL result pointer
-  * -- Frees each individual string and then the array itself
-  * -- Must be called for every successful d_SplitString() call to prevent memory leaks
-  */
-void d_FreeSplitString(char** result, int count);
-/*
   * Extract a substring using Python-style slice notation (like str[start:end])
   *
   * `sb` - Pointer to string builder
@@ -474,11 +446,136 @@ void d_FreeSplitString(char** result, int count);
   */
 void d_SliceString(dString_t* sb, const char* text, int start, int end);
 /* Dynamic Arrays */
+/*
+ * Create a new dynamic array with specified capacity and element size
+ *
+ * `capacity` - Initial number of elements the array can hold
+ * `element_size` - Size in bytes of each element (e.g., sizeof(int))
+ *
+ * `dArray_t*` - Pointer to new dynamic array, or NULL on allocation failure
+ *
+ * -- Must be destroyed with d_DestroyArray() to free memory
+ * -- Initial count is 0 even though capacity may be larger
+ * -- Elements can be any type as long as element_size is correct
+ * -- Capacity of 0 is allowed but array cannot store elements until resized
+ */
 dArray_t* d_InitArray( size_t capacity, size_t element_size );
+/*
+ * Append an element to the end of the dynamic array
+ *
+ * `array` - Pointer to dynamic array
+ * `data` - Pointer to element data to copy into the array
+ *
+ * -- Does nothing if array or data is NULL
+ * -- Copies element_size bytes from data into the array
+ * -- Fails silently if array is at full capacity (count == capacity)
+ * -- Elements are stored contiguously in memory for cache efficiency
+ * -- Use d_ResizeArray() to increase capacity before appending if needed
+ */
 void d_AppendArray( dArray_t* array, void* data );
-void* d_GetDataFromArrayByIndex( dArray_t* array, size_t count );
+
+/*
+ * Get a pointer to an element at the specified index
+ *
+ * `array` - Pointer to dynamic array
+ * `index` - Zero-based index of element to retrieve
+ *
+ * `void*` - Pointer to element data, or NULL if index is out of bounds
+ *
+ * -- Returns NULL if array is NULL or index >= count
+ * -- Returned pointer is valid until the array is modified or destroyed
+ * -- Caller can read/write through the returned pointer safely
+ * -- Use appropriate casting: int* ptr = (int*)d_GetDataFromArrayByIndex(array, 0)
+ * -- Index must be less than count, not capacity (only counts appended elements)
+ */
+void* d_GetDataFromArrayByIndex( dArray_t* array, size_t index );
+/*
+ * Remove and return a pointer to the last element in the array (LIFO - Last In, First Out)
+ *
+ * `array` - Pointer to dynamic array
+ *
+ * `void*` - Pointer to the last element's data, or NULL if array is empty
+ *
+ * -- Returns NULL if array is NULL or empty (count == 0)
+ * -- Decrements count but does not free memory (element data remains in buffer)
+ * -- Returned pointer becomes invalid after next append or array modification
+ * -- Implements stack-like behavior for dynamic arrays
+ * -- Memory is not reallocated, only the count is decremented for efficiency
+ */
 void* d_PopDataFromArray( dArray_t* array );
+/*
+ * Resize the dynamic array's data buffer to accommodate more or fewer elements
+ *
+ * `array` - Pointer to dynamic array
+ * `new_capacity` - New capacity in bytes (not elements)
+ *
+ * `int` - 0 on success, 1 on failure
+ *
+ * -- Returns 1 (error) if array is NULL or memory allocation fails
+ * -- new_capacity is in bytes, not element count
+ * -- To resize to N elements: d_ResizeArray(array, N * array->element_size)
+ * -- Existing data is preserved up to the smaller of old/new sizes
+ * -- Count is not automatically adjusted when shrinking (may exceed new capacity)
+ * -- Use realloc() internally which may move data to new memory location
+ * -- Array capacity is updated to new_capacity on success
+ */
 int d_ResizeArray( dArray_t* array, size_t new_capacity );
+/*
+ * Grow the dynamic array by adding additional capacity to current capacity
+ *
+ * `array` - Pointer to dynamic array
+ * `additional_capacity` - Number of bytes to add to current capacity
+ *
+ * `int` - 0 on success, 1 on failure
+ *
+ * -- Convenience function that calls d_ResizeArray() internally
+ * -- New total capacity = current capacity + additional_capacity
+ * -- additional_capacity is in bytes, not element count
+ * -- To grow by N elements: d_GrowArray(array, N * array->element_size)
+ * -- Useful for incrementally expanding arrays without calculating new total size
+ * -- Returns same error codes as d_ResizeArray()
+ */
+int d_GrowArray( dArray_t* array, size_t additional_capacity );
+/*
+ * Destroy a dynamic array and free all associated memory
+ *
+ * `array` - Pointer to dynamic array to destroy
+ *
+ * -- After calling this function, the pointer is invalid and should not be used
+ * -- Frees both the data buffer and the array structure itself
+ * -- Safe to call with NULL pointer (does nothing)
+ * -- Does not call destructors for complex element types (caller responsibility)
+ * -- For arrays of pointers, caller must free pointed-to objects before destroying array
+ */
 void d_DestroyArray( dArray_t* array );
+
+// Turning Strings Into Dynamic Arrays
+// src/dStrings-dArrays.c
+/*
+ * Split a string by delimiter into a dynamic array of string builders (like Python's str.split())
+ *
+ * `text` - The null-terminated string to be split.
+ * `delimiter` - The null-terminated string to split by.
+ *
+ * `dArray_t*` - A new dynamic array containing dString_t* pointers, or NULL on error.
+ *
+ * -- Returns NULL if text or delimiter is NULL, or if memory allocation fails.
+ * -- The caller must free the result using d_FreeSplitStringArray() to prevent memory leaks.
+ * -- Each element in the array is a `dString_t*` which is also allocated and must be destroyed.
+ * -- Empty strings between delimiters are included in the result as empty dString_t objects.
+ * -- If the delimiter is not found, returns an array with a single element containing a copy of the original string.
+ */
+dArray_t* d_SplitString(const char* text, const char* delimiter);
+
+/*
+ * Free memory allocated by d_SplitString() for the dynamic array of strings.
+ *
+ * `string_array` - The dynamic array of dString_t* pointers returned by d_SplitString().
+ *
+ * -- Safe to call with a NULL pointer.
+ * -- Frees each individual dString_t object, then the array data, and finally the array structure itself.
+ * -- Must be called for every successful d_SplitString() call to prevent memory leaks.
+ */
+void d_FreeSplitStringArray(dArray_t* string_array);
 
 #endif
