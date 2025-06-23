@@ -1,0 +1,11 @@
+name: Daedalus CI
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build and Run All Tests
+        run: make test

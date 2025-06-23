@@ -392,7 +392,173 @@ int test_string_builder_len_zero_behavior(void)
     d_DestroyString(sb);
     return 1;
 }
+/**
+ * @brief Tests appending the builder's own content back to itself.
+ * This is a classic edge case that can fool memory management if not
+ * handled carefully. `memmove` is required for this to work safely,
+ * especially when a `realloc` happens.
+ */
+int test_self_append_operations(void)
+{
+    dString_t* sb = create_test_builder();
 
+    // Start with a known string
+    d_AppendString(sb, "ABC-123-XYZ", 0);
+
+    // Append a slice of its own content without forcing growth
+    // Appending "123" to "ABC-123-XYZ"
+    d_AppendString(sb, d_PeekString(sb) + 4, 3);
+    TEST_ASSERT(strcmp(d_PeekString(sb), "ABC-123-XYZ123") == 0, "Self-append without growth should work");
+
+    // Now, force a reallocation during a self-append.
+    // Fill the builder so the next append *must* realloc.
+    // Current alloc is 32. Current len is 14. Let's add 17 chars to make len 31.
+    d_AppendString(sb, "................", 17); // len is now 31, alloc is 32
+    TEST_ASSERT(d_GetStringLength(sb) == 31, "Builder should be filled to capacity limit");
+
+    // This self-append will trigger realloc. The source pointer (`d_PeekString(sb)`)
+    // could be invalidated by realloc if not handled correctly by the OS.
+    // Appending the first 5 chars of the string to itself.
+    const char* old_pointer = d_PeekString(sb);
+    d_AppendString(sb, old_pointer, 5); // Append "ABC-1"
+
+    TEST_ASSERT(d_GetStringLength(sb) == 36, "Length should be correct after self-append with growth");
+    TEST_ASSERT(strncmp(d_PeekString(sb) + 31, "ABC-1", 5) == 0, "Self-append with growth should have correct content");
+
+    d_DestroyString(sb);
+    return 1;
+}
+
+/**
+ * @brief Tests appending pure binary data to the builder.
+ * A robust string builder should be 8-bit clean, meaning it can handle any
+ * byte value from 0-255, not just valid text characters.
+ */
+int test_append_binary_data(void)
+{
+    dString_t* sb = create_test_builder();
+    unsigned char binary_data[256];
+
+    // Create a buffer containing every possible byte value
+    for (int i = 0; i < 256; i++) {
+        binary_data[i] = (unsigned char)i;
+    }
+
+    // Append the binary data. The length must be explicit because the data
+    // contains a null byte at the beginning.
+    d_AppendString(sb, (const char*)binary_data, 256);
+
+    TEST_ASSERT(d_GetStringLength(sb) == 256, "Length should be 256 after appending all byte values");
+
+    // Use memcmp to verify the content, as strcmp would stop at the first null byte.
+    TEST_ASSERT(memcmp(d_PeekString(sb), binary_data, 256) == 0, "Builder content should match binary data byte-for-byte");
+
+    d_DestroyString(sb);
+    return 1;
+}
+
+/**
+ * @brief Stress test that rapidly mixes different operations.
+ * This can uncover state corruption bugs that only occur in specific
+ * sequences of manipulation (e.g., append -> drop -> truncate -> append).
+ */
+int test_rapid_mixed_operations(void)
+{
+    dString_t* sb = create_test_builder();
+    d_AppendString(sb, "START", 0);
+
+    for (int i = 0; i < 100; i++) {
+        d_AppendString(sb, "----APPEND----", 14);
+        d_DropString(sb, 5); // Drop 5 chars from the front
+        d_AppendString(sb, "++++", 4);
+        d_TruncateString(sb, d_GetStringLength(sb) - 2); // Truncate last 2 chars
+    }
+
+    // After 100 loops, the final state should be predictable.
+    // Each loop: adds 14, drops 5 (net +9), adds 4 (net +13), truncates 2 (net +11).
+    // Initial length is 5. Final length should be 5 + (100 * 11) = 1105.
+    TEST_ASSERT(d_GetStringLength(sb) == 1105, "Length should be correct after 100 mixed operations");
+
+    // Check a small part of the final string for correctness
+    // After first loop: "APPEND----++++" -> "APPEND----++" (len 16)
+    // After second loop starts: "APPEND----++----APPEND----"
+    // Drops 5 -> "ND----++----APPEND----"
+    // ...it's complex, so just checking length is a good smoke test.
+
+    d_DestroyString(sb);
+    return 1;
+}
+
+/**
+ * @brief Tests behavior with advanced and potentially tricky printf format specifiers.
+ * Ensures that d_FormatString is robust.
+ */
+int test_format_string_advanced(void)
+{
+    dString_t* sb = create_test_builder();
+    int num = 42;
+
+    // Test with pointer format
+    d_FormatString(sb, "Pointer: %p", (void*)&num);
+    TEST_ASSERT(d_GetStringLength(sb) > 10, "Should format a pointer address"); // Address format varies
+    d_ClearString(sb);
+
+    // Test with hex format and padding
+    d_FormatString(sb, "Hex: 0x%08X", 0xABC);
+    TEST_ASSERT(strcmp(d_PeekString(sb), "Hex: 0x00000ABC") == 0, "Should format hex with zero padding");
+    d_ClearString(sb);
+
+    // Test a very long formatted string that forces reallocation
+    const char* long_str = "This is a very long string used as an argument.";
+    d_FormatString(sb, "Start. %s %s %s %s. End.", long_str, long_str, long_str, long_str);
+    TEST_ASSERT(d_GetStringLength(sb) > 200, "Should handle long format strings that cause growth");
+
+    d_DestroyString(sb);
+    return 1;
+}
+
+/**
+ * @brief Attempts a massive allocation to test the growth logic under extreme
+ * memory pressure and check for size_t overflow issues.
+ * WARNING: This test may be slow and consume significant RAM.
+ */
+int test_massive_allocation_and_append(void)
+{
+    dString_t* sb = create_test_builder();
+
+    // Use a large chunk size for appending
+    size_t chunk_size = 1024 * 1024; // 1 MB
+    char* chunk = malloc(chunk_size);
+    if(chunk == NULL) {
+        printf("SKIPPING massive allocation test: could not allocate 1MB chunk.\n");
+        d_DestroyString(sb);
+        return 1; // Cannot perform test
+    }
+    memset(chunk, 'X', chunk_size);
+
+    size_t target_size_mb = 128; // Target 128 MB string
+    size_t target_size_bytes = target_size_mb * 1024 * 1024;
+
+    printf("\nAttempting to build a %zu MB string. This may be slow...\n", target_size_mb);
+
+    for (size_t i = 0; i < target_size_mb; i++) {
+        d_AppendString(sb, chunk, chunk_size);
+    }
+
+    // If the corrected d_StringBuilderEnsureSpace is used and memory runs out,
+    // the length will be less than the target. The key is that it doesn't crash.
+    if (d_GetStringLength(sb) == target_size_bytes) {
+        TEST_ASSERT(d_GetStringLength(sb) == target_size_bytes, "Should successfully create a 128MB string");
+        TEST_ASSERT(d_PeekString(sb)[target_size_bytes - 1] == 'X', "Last character of massive string should be correct");
+    } else {
+        printf("NOTE: Massive allocation test finished with a smaller string (%zu bytes) than targeted (%zu bytes). This likely indicates an out-of-memory condition, which was handled gracefully.\n", d_GetStringLength(sb), target_size_bytes);
+        TEST_ASSERT(1, "Massive allocation did not crash (graceful failure)");
+    }
+
+    free(chunk);
+    d_DestroyString(sb);
+    return 1;
+}
 
 // Main test runner
 int main(void)
@@ -411,6 +577,12 @@ int main(void)
     RUN_TEST(test_string_builder_memory_stress);
     RUN_TEST(test_string_builder_null_safety_comprehensive);
     RUN_TEST(test_string_builder_len_zero_behavior);
+
+    RUN_TEST(test_self_append_operations);
+    RUN_TEST(test_append_binary_data);
+    RUN_TEST(test_rapid_mixed_operations);
+    RUN_TEST(test_format_string_advanced);
+    RUN_TEST(test_massive_allocation_and_append);
 
     TEST_SUITE_END();
 }

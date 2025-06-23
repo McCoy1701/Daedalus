@@ -1,15 +1,14 @@
 // File: src/dStrings.c - String utilities for Daedalus project
+#define LOG( msg ) printf( "%s | File: %s, Line: %d\n", msg, __FILE__, __LINE__ )
 
 #include "Daedalus.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-
+#include <stddef.h>
 
 static const size_t d_string_builder_min_size = 32;
-
-
 
 char* d_CreateStringFromFile(const char *filename)
 {
@@ -62,8 +61,10 @@ char* d_CreateStringFromFile(const char *filename)
  */
 static void d_StringBuilderEnsureSpace(dString_t* sb, size_t add_len)
 {
-    if (sb == NULL || add_len == 0)
-        return;
+    if (sb == NULL || add_len == 0) {
+           LOG("d_StringBuilderEnsureSpace: sb is NULL or add_len is 0");
+           return;
+       }
 
     if (sb->alloced >= sb->len + add_len + 1)
         return;
@@ -92,27 +93,29 @@ static void d_StringBuilderEnsureSpace(dString_t* sb, size_t add_len)
  * -- Must be destroyed with d_DestroyString() to free memory
  * -- Initial capacity is 32 bytes but will grow automatically
  */
-dString_t* d_InitString(void)
-{
-    dString_t* sb;
+ dString_t* d_InitString(void)
+ {
+     dString_t* sb;
 
-    sb = calloc(1, sizeof(*sb));
-    if (sb == NULL)
-        return NULL;
+     sb = calloc(1, sizeof(*sb));
+     if (sb == NULL) {
+         LOG("d_InitString: Failed to allocate memory for string builder");
+         return NULL;
+     }
 
-    sb->str = malloc(d_string_builder_min_size);
-    if (sb->str == NULL) {
-        free(sb);
-        return NULL;
-    }
+     sb->str = malloc(d_string_builder_min_size);
+     if (sb->str == NULL) {
+         LOG("d_InitString: Failed to allocate memory for string builder");
+         free(sb);
+         return NULL;
+     }
 
-    *sb->str = '\0';
-    sb->alloced = d_string_builder_min_size;
-    sb->len = 0;
+     *sb->str = '\0';
+     sb->alloced = d_string_builder_min_size;
+     sb->len = 0;
 
-    return sb;
-}
-
+     return sb;
+ }
 /*
  * Destroy a string builder and free its memory
  *
@@ -123,12 +126,13 @@ dString_t* d_InitString(void)
  */
 void d_DestroyString(dString_t* sb)
 {
-    if (sb == NULL)
+    if (sb == NULL) {
+        LOG("d_DestroyString: sb is NULL");
         return;
+    }
     free(sb->str);
     free(sb);
 }
-
 /*
  * Add a string to the string builder
  *
@@ -140,20 +144,47 @@ void d_DestroyString(dString_t* sb)
  * -- If len > 0, exactly len characters are copied (partial strings allowed)
  * -- Does nothing if sb or str is NULL, or if str is empty
  */
-void d_AppendString(dString_t* sb, const char* str, size_t len)
-{
-    if (sb == NULL || str == NULL || *str == '\0')
-        return;
+ void d_AppendString(dString_t* sb, const char* str, size_t len)
+ {
+     // Basic validation: must have a valid string builder and source string.
+     if (sb == NULL || str == NULL) {
+         return;
+     }
 
-    if (len == 0)
-        len = strlen(str);
+     // If len is 0, we treat `str` as a normal C-string.
+     // We can safely check for an empty string and use strlen().
+     if (len == 0) {
+         if (*str == '\0') {
+             return; // Nothing to append.
+         }
+         len = strlen(str);
+     }
+     // If len > 0, we proceed even if the data contains null bytes.
 
-    d_StringBuilderEnsureSpace(sb, len);
-    memmove(sb->str + sb->len, str, len);
-    sb->len += len;
-    sb->str[sb->len] = '\0';
-}
+     // Handle the self-append edge case.
+     ptrdiff_t offset = -1;
+     if (str >= sb->str && str < sb->str + sb->alloced) {
+         // The source `str` is inside our own buffer.
+         // Save the offset, not the pointer, as the pointer may be invalidated by realloc.
+         offset = str - sb->str;
+     }
 
+     // Ensure there is enough space for the new content. This might call realloc.
+     d_StringBuilderEnsureSpace(sb, len);
+
+     const char* source_ptr = str;
+     if (offset != -1) {
+         // If it was a self-append, the buffer might have moved.
+         // Recalculate the source pointer using the (potentially new) buffer start and the saved offset.
+         source_ptr = sb->str + offset;
+     }
+
+     // Use memmove, as it's safe for overlapping memory regions.
+     // This is now safe from dangling pointers because source_ptr is recalculated.
+     memmove(sb->str + sb->len, source_ptr, len);
+     sb->len += len;
+     sb->str[sb->len] = '\0'; // Ensure null-termination.
+ }
 /*
  * Add a single character to the string builder
  *
@@ -166,13 +197,16 @@ void d_AppendString(dString_t* sb, const char* str, size_t len)
 void d_AppendChar(dString_t* sb, char c)
 {
     if (sb == NULL)
+        {
+        LOG("d_AppendChar: sb is NULL");
         return;
+    }
+
     d_StringBuilderEnsureSpace(sb, 1);
     sb->str[sb->len] = c;
     sb->len++;
     sb->str[sb->len] = '\0';
 }
-
 /*
  * Add an integer to the string builder as a decimal string
  *
@@ -188,12 +222,48 @@ void d_AppendInt(dString_t* sb, int val)
     char str[12]; // Enough for 32-bit int plus sign and null terminator
 
     if (sb == NULL)
+        {
+        LOG("d_AppendInt: sb is NULL");
         return;
-
+        }
     snprintf(str, sizeof(str), "%d", val);
     d_AppendString(sb, str, 0);
 }
+/*
+ * Append a floating-point number to the string builder
+ *
+ * `sb` - Pointer to string builder
+ * `val` - Float value to append
+ * `decimals` - Number of decimal places to show (0-10)
+ *
+ * -- Does nothing if sb is NULL
+ * -- If decimals is negative, uses 6 decimal places (default)
+ * -- If decimals > 10, caps at 10 decimal places
+ * -- Uses standard printf formatting for floating-point representation
+ */
+void d_AppendFloat(dString_t* sb, float val, int decimals)
+{
+    char str[32]; // Enough for float with up to 10 decimal places
+    char format[8]; // Format string like "%.2f"
 
+    if (sb == NULL)
+        {
+        LOG("d_AppendFloat: sb is NULL");
+        return;
+        }
+    // Clamp decimals to reasonable range
+    if (decimals < 0)
+        decimals = 6; // Default precision
+    if (decimals > 10)
+        decimals = 10; // Maximum precision
+
+    // Build format string
+    snprintf(format, sizeof(format), "%%.%df", decimals);
+
+    // Format the float
+    snprintf(str, sizeof(str), format, val);
+    d_AppendString(sb, str, 0);
+}
 /*
  * Clear the string builder content
  *
@@ -205,8 +275,10 @@ void d_AppendInt(dString_t* sb, int val)
  */
 void d_ClearString(dString_t* sb)
 {
-    if (sb == NULL)
+    if (sb == NULL) {
+        LOG("d_ClearString: sb is NULL");
         return;
+    }
     d_TruncateString(sb, 0);
 }
 
@@ -222,13 +294,14 @@ void d_ClearString(dString_t* sb)
  */
 void d_TruncateString(dString_t* sb, size_t len)
 {
-    if (sb == NULL || len >= sb->len)
+    if (sb == NULL || len >= sb->len){
+        LOG("d_TruncateString: sb is NULL or len >= current length");
         return;
+    }
 
     sb->len = len;
     sb->str[sb->len] = '\0';
 }
-
 /*
  * Remove characters from the beginning of the string builder
  *
@@ -241,10 +314,12 @@ void d_TruncateString(dString_t* sb, size_t len)
  */
 void d_DropString(dString_t* sb, size_t len)
 {
-    if (sb == NULL || len == 0)
+    if (sb == NULL || len == 0){
+        LOG("d_DropString: sb is NULL or len is 0");
         return;
-
+    }
     if (len >= sb->len) {
+        LOG("d_DropString: len >= current length");
         d_ClearString(sb);
         return;
     }
@@ -253,7 +328,6 @@ void d_DropString(dString_t* sb, size_t len)
     /* +1 to move the NULL terminator. */
     memmove(sb->str, sb->str + len, sb->len + 1);
 }
-
 /*
  * Get the current length of the string builder content
  *
@@ -266,8 +340,10 @@ void d_DropString(dString_t* sb, size_t len)
  */
 size_t d_GetStringLength(const dString_t* sb)
 {
-    if (sb == NULL)
+    if (sb == NULL) {
+        LOG("d_GetStringLength: sb is NULL");
         return 0;
+    }
     return sb->len;
 }
 
@@ -557,7 +633,7 @@ void d_AppendProgressBar(dString_t* sb, int current, int max, int width, char fi
      d_AppendString(sb, text, 0);
      d_RepeatString(sb, pad_char, right_pad);
  }
- 
+
 /*
   * Join an array of strings with a separator (like Python's str.join())
   *
@@ -697,52 +773,56 @@ void d_AppendProgressBar(dString_t* sb, int current, int max, int width, char fi
      }
      free(result);
  }
-
-/*
+ /*
   * Extract a substring using Python-style slice notation (like str[start:end])
   *
   * `sb` - Pointer to string builder
   * `text` - Source string to slice (must be null-terminated)
   * `start` - Starting index (inclusive, negative values count from end)
-  * `end` - Ending index (exclusive, negative values count from end, -1 means end of string)
+  * `end` - Ending index (exclusive, negative values count from end)
   *
   * -- Does nothing if sb or text is NULL
   * -- Negative indices count from the end: -1 is last character, -2 is second-to-last, etc.
+  * -- SPECIAL CASE: An 'end' value of -1 is treated as the end of the string.
   * -- If start >= end (after resolving negative indices), no text is added
   * -- Indices are clamped to valid range [0, string_length]
   * -- Example: d_SliceString(sb, "Hello", 1, 4) produces "ell"
   * -- Example: d_SliceString(sb, "Hello", -3, -1) produces "llo"
-  * -- Example: d_SliceString(sb, "Hello", 0, -1) produces "Hello"
   */
   void d_SliceString(dString_t* sb, const char* text, int start, int end) {
       if (sb == NULL || text == NULL) return;
 
-      int text_len = strlen(text);
+      int text_len = (int)strlen(text);
 
-      // Handle negative indices
+      // Handle negative indices for start
       if (start < 0) {
           start = text_len + start;
       }
+
+      // Handle 'end' index, with a special case for -1 to mean "to the end"
       if (end == -1) {
-          end = text_len;  // Special case: -1 means "to the end"
+         end = text_len;
       } else if (end < 0) {
           end = text_len + end;
       }
 
-     // Clamp indices to valid range
-     if (start < 0) start = 0;
-     if (start > text_len) start = text_len;
-     if (end < 0) end = 0;
-     if (end > text_len) end = text_len;
+      // Clamp indices to a valid range to prevent out-of-bounds access
+      if (start < 0) start = 0;
+      if (start > text_len) start = text_len;
+      if (end < 0) end = 0;
+      if (end > text_len) end = text_len;
 
-     // Check if slice is valid
-     if (start >= end) return;
+      // After clamping, if the slice is invalid or empty, do nothing
+      if (start >= end) {
+          return;
+      }
 
-     // Add the slice to string builder
-     int slice_len = end - start;
-     d_StringBuilderEnsureSpace(sb, slice_len);
-     strncpy(sb->str + sb->len, text + start, slice_len);
-     sb->len += slice_len;
-     sb->str[sb->len] = '\0';
+      // Add the slice to string builder
+      int slice_len = end - start;
+      d_StringBuilderEnsureSpace(sb, slice_len);
+
+      // Use memcpy as we know the exact length; it's safer than strncpy here.
+      memcpy(sb->str + sb->len, text + start, slice_len);
+      sb->len += slice_len;
+      sb->str[sb->len] = '\0'; // Ensure null termination
  }
-

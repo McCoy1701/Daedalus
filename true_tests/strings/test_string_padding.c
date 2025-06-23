@@ -1,295 +1,475 @@
 // File: true_tests/strings/test_string_padding.c - Tests for string padding functions
+#define LOG( msg ) printf( "%s | File: %s, Line: %d\n", msg, __FILE__, __LINE__ )
 
+#include "tests.h"
+#include "Daedalus.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
-#include "Daedalus.h"
+#include <stdbool.h>
 
-// Test result counters
-static int tests_run = 0;
-static int tests_passed = 0;
+// Global test counters
+int total_tests = 0;
+int tests_passed = 0;
+int tests_failed = 0;
 
-// Test helper macros
-#define TEST_START() tests_run++
-#define TEST_PASS() tests_passed++
-#define TEST_ASSERT(condition, message) \
-    do { \
-        if (!(condition)) { \
-            printf("FAIL: %s - %s\n", __func__, message); \
-            return; \
-        } \
-    } while(0)
+// Helper functions for creating detailed log messages with dString_t
+void log_test_start(const char* test_name)
+{
+    dString_t* log_msg = d_InitString();
+    d_FormatString(log_msg, "Starting test: %s", test_name);
+    LOG(d_PeekString(log_msg));
+    d_DestroyString(log_msg);
+}
 
-#define TEST_ASSERT_STR_EQ(actual, expected, message) \
-    do { \
-        if (strcmp(actual, expected) != 0) { \
-            printf("FAIL: %s - %s\n", __func__, message); \
-            printf("  Expected: '%s'\n", expected); \
-            printf("  Actual:   '%s'\n", actual); \
-            return; \
-        } \
-    } while(0)
+void log_test_result(const char* test_name, bool passed, const char* details)
+{
+    dString_t* log_msg = d_InitString();
+    d_FormatString(log_msg, "Test %s: %s", test_name, passed ? "PASSED" : "FAILED");
+    if (details) {
+        d_AppendString(log_msg, " - ", 0);
+        d_AppendString(log_msg, details, 0);
+    }
+    LOG(d_PeekString(log_msg));
+    d_DestroyString(log_msg);
+}
+
+void log_string_comparison(const char* expected, const char* actual)
+{
+    dString_t* log_msg = d_InitString();
+    d_AppendString(log_msg, "String comparison:\n", 0);
+    d_FormatString(log_msg, "  Expected: '%s'\n", expected);
+    d_FormatString(log_msg, "  Actual:   '%s'", actual);
+    printf("%s\n", d_PeekString(log_msg));
+    d_DestroyString(log_msg);
+}
 
 // ============================================================================
 // d_PadLeftString Tests
 // ============================================================================
 
-void test_pad_left_basic() {
-    TEST_START();
+int test_pad_left_basic(void)
+{
+    log_test_start("pad_left_basic");
 
     dString_t* sb = d_InitString();
-    d_PadLeftString(sb, "Hi", 5, '.');
-    TEST_ASSERT_STR_EQ(d_PeekString(sb), "...Hi", "Basic left padding failed");
+    TEST_ASSERT(sb != NULL, "Failed to create string builder");
 
+    d_PadLeftString(sb, "Hi", 5, '.');
+    const char* expected = "...Hi";
+    const char* actual = d_PeekString(sb);
+
+    if (strcmp(actual, expected) != 0) {
+        log_string_comparison(expected, actual);
+        d_DestroyString(sb);
+        return 0;
+    }
+
+    log_test_result("pad_left_basic", true, "Basic left padding works correctly");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
-void test_pad_left_no_padding_needed() {
-    TEST_START();
+int test_pad_left_no_padding_needed(void)
+{
+    log_test_start("pad_left_no_padding_needed");
 
     dString_t* sb = d_InitString();
     d_PadLeftString(sb, "Hello", 5, '.');
-    TEST_ASSERT_STR_EQ(d_PeekString(sb), "Hello", "No padding needed case failed");
+    const char* expected = "Hello";
+    const char* actual = d_PeekString(sb);
 
+    if (strcmp(actual, expected) != 0) {
+        log_string_comparison(expected, actual);
+        d_DestroyString(sb);
+        return 0;
+    }
+
+    log_test_result("pad_left_no_padding_needed", true, "No padding needed case handled correctly");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
-void test_pad_left_text_longer_than_width() {
-    TEST_START();
+int test_pad_left_text_longer_than_width(void)
+{
+    log_test_start("pad_left_text_longer_than_width");
 
     dString_t* sb = d_InitString();
     d_PadLeftString(sb, "VeryLongText", 5, '.');
-    TEST_ASSERT_STR_EQ(d_PeekString(sb), "VeryLongText", "Text longer than width failed");
+    const char* expected = "VeryLongText";
+    const char* actual = d_PeekString(sb);
 
+    if (strcmp(actual, expected) != 0) {
+        log_string_comparison(expected, actual);
+        d_DestroyString(sb);
+        return 0;
+    }
+
+    log_test_result("pad_left_text_longer_than_width", true, "Text longer than width handled correctly");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
-void test_pad_left_zero_width() {
-    TEST_START();
+int test_pad_left_zero_width(void)
+{
+    log_test_start("pad_left_zero_width");
 
     dString_t* sb = d_InitString();
     d_PadLeftString(sb, "Test", 0, '.');
     TEST_ASSERT(d_GetStringLength(sb) == 0, "Zero width should not add anything");
 
+    log_test_result("pad_left_zero_width", true, "Zero width handled correctly");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
-void test_pad_left_different_characters() {
-    TEST_START();
+int test_pad_left_different_characters(void)
+{
+    log_test_start("pad_left_different_characters");
 
     dString_t* sb = d_InitString();
     d_PadLeftString(sb, "XP", 6, '*');
-    TEST_ASSERT_STR_EQ(d_PeekString(sb), "****XP", "Different pad character failed");
+    const char* expected = "****XP";
+    const char* actual = d_PeekString(sb);
 
+    if (strcmp(actual, expected) != 0) {
+        log_string_comparison(expected, actual);
+        d_DestroyString(sb);
+        return 0;
+    }
+
+    log_test_result("pad_left_different_characters", true, "Different pad characters work correctly");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
-void test_pad_left_single_character() {
-    TEST_START();
+int test_pad_left_single_character(void)
+{
+    log_test_start("pad_left_single_character");
 
     dString_t* sb = d_InitString();
     d_PadLeftString(sb, "A", 10, '-');
-    TEST_ASSERT_STR_EQ(d_PeekString(sb), "---------A", "Single character padding failed");
+    const char* expected = "---------A";
+    const char* actual = d_PeekString(sb);
 
+    if (strcmp(actual, expected) != 0) {
+        log_string_comparison(expected, actual);
+        d_DestroyString(sb);
+        return 0;
+    }
+
+    log_test_result("pad_left_single_character", true, "Single character padding works correctly");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
-void test_pad_left_null_safety() {
-    TEST_START();
+int test_pad_left_null_safety(void)
+{
+    log_test_start("pad_left_null_safety");
 
     // Should not crash with NULL parameters
     d_PadLeftString(NULL, "test", 5, '.');
+    LOG("NULL string builder handled safely");
 
     dString_t* sb = d_InitString();
     d_PadLeftString(sb, NULL, 5, '.');
     TEST_ASSERT(d_GetStringLength(sb) == 0, "NULL text should not modify string");
 
+    log_test_result("pad_left_null_safety", true, "NULL parameters handled safely");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
 // ============================================================================
 // d_PadRightString Tests
 // ============================================================================
 
-void test_pad_right_basic() {
-    TEST_START();
+int test_pad_right_basic(void)
+{
+    log_test_start("pad_right_basic");
 
     dString_t* sb = d_InitString();
     d_PadRightString(sb, "Hi", 5, '.');
-    TEST_ASSERT_STR_EQ(d_PeekString(sb), "Hi...", "Basic right padding failed");
+    const char* expected = "Hi...";
+    const char* actual = d_PeekString(sb);
 
+    if (strcmp(actual, expected) != 0) {
+        log_string_comparison(expected, actual);
+        d_DestroyString(sb);
+        return 0;
+    }
+
+    log_test_result("pad_right_basic", true, "Basic right padding works correctly");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
-void test_pad_right_no_padding_needed() {
-    TEST_START();
+int test_pad_right_no_padding_needed(void)
+{
+    log_test_start("pad_right_no_padding_needed");
 
     dString_t* sb = d_InitString();
     d_PadRightString(sb, "Hello", 5, '.');
-    TEST_ASSERT_STR_EQ(d_PeekString(sb), "Hello", "No padding needed case failed");
+    const char* expected = "Hello";
+    const char* actual = d_PeekString(sb);
 
+    if (strcmp(actual, expected) != 0) {
+        log_string_comparison(expected, actual);
+        d_DestroyString(sb);
+        return 0;
+    }
+
+    log_test_result("pad_right_no_padding_needed", true, "No padding needed case handled correctly");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
-void test_pad_right_text_longer_than_width() {
-    TEST_START();
+int test_pad_right_text_longer_than_width(void)
+{
+    log_test_start("pad_right_text_longer_than_width");
 
     dString_t* sb = d_InitString();
     d_PadRightString(sb, "VeryLongText", 5, '.');
-    TEST_ASSERT_STR_EQ(d_PeekString(sb), "VeryLongText", "Text longer than width failed");
+    const char* expected = "VeryLongText";
+    const char* actual = d_PeekString(sb);
 
+    if (strcmp(actual, expected) != 0) {
+        log_string_comparison(expected, actual);
+        d_DestroyString(sb);
+        return 0;
+    }
+
+    log_test_result("pad_right_text_longer_than_width", true, "Text longer than width handled correctly");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
-void test_pad_right_spaces() {
-    TEST_START();
+int test_pad_right_spaces(void)
+{
+    log_test_start("pad_right_spaces");
 
     dString_t* sb = d_InitString();
     d_PadRightString(sb, "Name", 12, ' ');
-    TEST_ASSERT_STR_EQ(d_PeekString(sb), "Name        ", "Space padding failed");
+    const char* expected = "Name        ";
+    const char* actual = d_PeekString(sb);
 
+    if (strcmp(actual, expected) != 0) {
+        log_string_comparison(expected, actual);
+        d_DestroyString(sb);
+        return 0;
+    }
+
+    log_test_result("pad_right_spaces", true, "Space padding works correctly");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
-void test_pad_right_append_to_existing() {
-    TEST_START();
+int test_pad_right_append_to_existing(void)
+{
+    log_test_start("pad_right_append_to_existing");
 
     dString_t* sb = d_InitString();
     d_AppendString(sb, "Start: ", 0);
     d_PadRightString(sb, "Item", 8, '.');
-    TEST_ASSERT_STR_EQ(d_PeekString(sb), "Start: Item....", "Append to existing failed");
+    const char* expected = "Start: Item....";
+    const char* actual = d_PeekString(sb);
 
+    if (strcmp(actual, expected) != 0) {
+        log_string_comparison(expected, actual);
+        d_DestroyString(sb);
+        return 0;
+    }
+
+    log_test_result("pad_right_append_to_existing", true, "Append to existing string works correctly");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
-void test_pad_right_null_safety() {
-    TEST_START();
+int test_pad_right_null_safety(void)
+{
+    log_test_start("pad_right_null_safety");
 
     // Should not crash with NULL parameters
     d_PadRightString(NULL, "test", 5, '.');
+    LOG("NULL string builder handled safely");
 
     dString_t* sb = d_InitString();
     d_PadRightString(sb, NULL, 5, '.');
     TEST_ASSERT(d_GetStringLength(sb) == 0, "NULL text should not modify string");
 
+    log_test_result("pad_right_null_safety", true, "NULL parameters handled safely");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
 // ============================================================================
 // d_PadCenterString Tests
 // ============================================================================
 
-void test_pad_center_even_padding() {
-    TEST_START();
+int test_pad_center_even_padding(void)
+{
+    log_test_start("pad_center_even_padding");
 
     dString_t* sb = d_InitString();
     d_PadCenterString(sb, "Hi", 6, '.');
-    TEST_ASSERT_STR_EQ(d_PeekString(sb), "..Hi..", "Even center padding failed");
+    const char* expected = "..Hi..";
+    const char* actual = d_PeekString(sb);
 
+    if (strcmp(actual, expected) != 0) {
+        log_string_comparison(expected, actual);
+        d_DestroyString(sb);
+        return 0;
+    }
+
+    log_test_result("pad_center_even_padding", true, "Even center padding works correctly");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
-void test_pad_center_odd_padding() {
-    TEST_START();
+int test_pad_center_odd_padding(void)
+{
+    log_test_start("pad_center_odd_padding");
 
     dString_t* sb = d_InitString();
     d_PadCenterString(sb, "Hi", 7, '.');
-    TEST_ASSERT_STR_EQ(d_PeekString(sb), "..Hi...", "Odd center padding failed");
+    const char* expected = "..Hi...";
+    const char* actual = d_PeekString(sb);
 
+    if (strcmp(actual, expected) != 0) {
+        log_string_comparison(expected, actual);
+        d_DestroyString(sb);
+        return 0;
+    }
+
+    log_test_result("pad_center_odd_padding", true, "Odd center padding works correctly");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
-void test_pad_center_no_padding_needed() {
-    TEST_START();
+int test_pad_center_no_padding_needed(void)
+{
+    log_test_start("pad_center_no_padding_needed");
 
     dString_t* sb = d_InitString();
     d_PadCenterString(sb, "Hello", 5, '.');
-    TEST_ASSERT_STR_EQ(d_PeekString(sb), "Hello", "No padding needed case failed");
+    const char* expected = "Hello";
+    const char* actual = d_PeekString(sb);
 
+    if (strcmp(actual, expected) != 0) {
+        log_string_comparison(expected, actual);
+        d_DestroyString(sb);
+        return 0;
+    }
+
+    log_test_result("pad_center_no_padding_needed", true, "No padding needed case handled correctly");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
-void test_pad_center_text_longer_than_width() {
-    TEST_START();
+int test_pad_center_text_longer_than_width(void)
+{
+    log_test_start("pad_center_text_longer_than_width");
 
     dString_t* sb = d_InitString();
     d_PadCenterString(sb, "VeryLongText", 5, '.');
-    TEST_ASSERT_STR_EQ(d_PeekString(sb), "VeryLongText", "Text longer than width failed");
+    const char* expected = "VeryLongText";
+    const char* actual = d_PeekString(sb);
 
+    if (strcmp(actual, expected) != 0) {
+        log_string_comparison(expected, actual);
+        d_DestroyString(sb);
+        return 0;
+    }
+
+    log_test_result("pad_center_text_longer_than_width", true, "Text longer than width handled correctly");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
-void test_pad_center_single_character_text() {
-    TEST_START();
+int test_pad_center_single_character_text(void)
+{
+    log_test_start("pad_center_single_character_text");
 
     dString_t* sb = d_InitString();
     d_PadCenterString(sb, "X", 9, '-');
-    TEST_ASSERT_STR_EQ(d_PeekString(sb), "----X----", "Single character centering failed");
+    const char* expected = "----X----";
+    const char* actual = d_PeekString(sb);
 
+    if (strcmp(actual, expected) != 0) {
+        log_string_comparison(expected, actual);
+        d_DestroyString(sb);
+        return 0;
+    }
+
+    log_test_result("pad_center_single_character_text", true, "Single character centering works correctly");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
-void test_pad_center_single_character_text_odd() {
-    TEST_START();
+int test_pad_center_single_character_text_odd(void)
+{
+    log_test_start("pad_center_single_character_text_odd");
 
     dString_t* sb = d_InitString();
     d_PadCenterString(sb, "X", 8, '-');
-    TEST_ASSERT_STR_EQ(d_PeekString(sb), "---X----", "Single character odd centering failed");
+    const char* expected = "---X----";
+    const char* actual = d_PeekString(sb);
 
+    if (strcmp(actual, expected) != 0) {
+        log_string_comparison(expected, actual);
+        d_DestroyString(sb);
+        return 0;
+    }
+
+    log_test_result("pad_center_single_character_text_odd", true, "Single character odd centering works correctly");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
-void test_pad_center_empty_string() {
-    TEST_START();
+int test_pad_center_empty_string(void)
+{
+    log_test_start("pad_center_empty_string");
 
     dString_t* sb = d_InitString();
     d_PadCenterString(sb, "", 5, '*');
-    TEST_ASSERT_STR_EQ(d_PeekString(sb), "*****", "Empty string centering failed");
+    const char* expected = "*****";
+    const char* actual = d_PeekString(sb);
 
+    if (strcmp(actual, expected) != 0) {
+        log_string_comparison(expected, actual);
+        d_DestroyString(sb);
+        return 0;
+    }
+
+    log_test_result("pad_center_empty_string", true, "Empty string centering works correctly");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
-void test_pad_center_null_safety() {
-    TEST_START();
+int test_pad_center_null_safety(void)
+{
+    log_test_start("pad_center_null_safety");
 
     // Should not crash with NULL parameters
     d_PadCenterString(NULL, "test", 5, '.');
+    LOG("NULL string builder handled safely");
 
     dString_t* sb = d_InitString();
     d_PadCenterString(sb, NULL, 5, '.');
     TEST_ASSERT(d_GetStringLength(sb) == 0, "NULL text should not modify string");
 
+    log_test_result("pad_center_null_safety", true, "NULL parameters handled safely");
     d_DestroyString(sb);
-    TEST_PASS();
+    return 1;
 }
 
 // ============================================================================
 // RPG-Specific Integration Tests
 // ============================================================================
 
-void test_rpg_table_formatting() {
-    TEST_START();
+int test_rpg_table_formatting(void)
+{
+    log_test_start("rpg_table_formatting");
 
     dString_t* table = d_InitString();
 
@@ -325,20 +505,27 @@ void test_rpg_table_formatting() {
     d_AppendString(table, "\n", 0);
 
     const char* result = d_PeekString(table);
-    printf("Table After Padding:\n%s\n", result);
+
+    dString_t* log_msg = d_InitString();
+    d_AppendString(log_msg, "Table After Padding:\n", 0);
+    d_AppendString(log_msg, result, 0);
+    printf("%s\n", d_PeekString(log_msg));
+    d_DestroyString(log_msg);
 
     // Verify the table structure
-    TEST_ASSERT(strstr(result, "=======CHARACTER STATS========") != NULL, "Header centering failed");
-    TEST_ASSERT(strstr(result, "     Strength |") != NULL, "Left padding failed");
-    TEST_ASSERT(strstr(result, "18         |") != NULL, "Right padding failed");
-    TEST_ASSERT(strstr(result, "  Strong  ") != NULL, "Center padding failed");
+    TEST_ASSERT(strstr(result, "=======CHARACTER STATS========") != NULL, "Header centering works correctly");
+    TEST_ASSERT(strstr(result, "     Strength |") != NULL, "Left padding works correctly");
+    TEST_ASSERT(strstr(result, "18         |") != NULL, "Right padding works correctly");
+    TEST_ASSERT(strstr(result, "  Strong  ") != NULL, "Center padding works correctly");
 
+    log_test_result("rpg_table_formatting", true, "RPG table formatting works correctly");
     d_DestroyString(table);
-    TEST_PASS();
+    return 1;
 }
 
-void test_rpg_menu_system() {
-    TEST_START();
+int test_rpg_menu_system(void)
+{
+    log_test_start("rpg_menu_system");
 
     dString_t* menu = d_InitString();
 
@@ -357,19 +544,26 @@ void test_rpg_menu_system() {
     }
 
     const char* result = d_PeekString(menu);
-    printf("Menu After Padding:\n%s\n", result);
+
+    dString_t* log_msg = d_InitString();
+    d_AppendString(log_msg, "Menu After Padding:\n", 0);
+    d_AppendString(log_msg, result, 0);
+    printf("%s\n", d_PeekString(log_msg));
+    d_DestroyString(log_msg);
 
     // Verify menu formatting
-    TEST_ASSERT(strstr(result, "**********MAIN MENU***********") != NULL, "Menu title failed");
-    TEST_ASSERT(strstr(result, "[1] New Game............") != NULL, "Menu option 1 failed");
-    TEST_ASSERT(strstr(result, "[4] Quit................") != NULL, "Menu option 4 failed");
+    TEST_ASSERT(strstr(result, "**********MAIN MENU***********") != NULL, "Menu title should be centered");
+    TEST_ASSERT(strstr(result, "[1] New Game............") != NULL, "Menu option 1 should be [1] New Game............");
+    TEST_ASSERT(strstr(result, "[4] Quit................") != NULL, "Menu option 4 should be [4] Quit................");
 
+    log_test_result("rpg_menu_system", true, "RPG menu system works correctly");
     d_DestroyString(menu);
-    TEST_PASS();
+    return 1;
 }
 
-void test_rpg_dialogue_box() {
-    TEST_START();
+int test_rpg_dialogue_box(void)
+{
+    log_test_start("rpg_dialogue_box");
 
     dString_t* dialogue = d_InitString();
 
@@ -401,70 +595,113 @@ void test_rpg_dialogue_box() {
     // Bottom border
     d_RepeatString(dialogue, '+', 50);
     d_AppendChar(dialogue, '\n');
-    printf("Dialogue After Padding:\n%s\n", d_PeekString(dialogue));
 
     const char* result = d_PeekString(dialogue);
 
-    // Verify dialogue box structure
-    TEST_ASSERT(strstr(result, "|              Royal Guard Captain               |") != NULL, "Speaker name centering failed");
-    TEST_ASSERT(strstr(result, "| \"Halt! None shall pass without                 |") != NULL, "Dialogue text alignment failed");
+    dString_t* log_msg = d_InitString();
+    d_AppendString(log_msg, "Dialogue After Padding:\n", 0);
+    d_AppendString(log_msg, result, 0);
+    printf("%s\n", d_PeekString(log_msg));
+    d_DestroyString(log_msg);
 
+    // Verify dialogue box structure
+    TEST_ASSERT(strstr(result, "|              Royal Guard Captain               |") != NULL, "Speaker name centering ");
+    TEST_ASSERT(strstr(result, "| \"Halt! None shall pass without                 |") != NULL, "Dialogue text alignment ");
+
+    log_test_result("rpg_dialogue_box", true, "RPG dialogue box works correctly");
     d_DestroyString(dialogue);
-    TEST_PASS();
+    return 1;
+}
+
+// ============================================================================
+// Float Padding Integration Tests
+// ============================================================================
+
+int test_float_padding_integration(void)
+{
+    log_test_start("float_padding_integration");
+
+    dString_t* stats = d_InitString();
+
+    // Create a stats display with float values and padding
+    d_PadCenterString(stats, "PLAYER STATISTICS", 30, '=');
+    d_AppendString(stats, "\n\n", 0);
+
+    // Health percentage with padding
+    d_PadLeftString(stats, "Health", 12, ' ');
+    d_AppendString(stats, ": ", 0);
+    d_AppendFloat(stats, 85.75f, 1);
+    d_AppendString(stats, "%\n", 0);
+
+    // Damage with padding
+    d_PadLeftString(stats, "Damage", 12, ' ');
+    d_AppendString(stats, ": ", 0);
+    d_AppendFloat(stats, 47.333f, 2);
+    d_AppendString(stats, "\n", 0);
+
+    // Experience with no decimals
+    d_PadLeftString(stats, "Experience", 12, ' ');
+    d_AppendString(stats, ": ", 0);
+    d_AppendFloat(stats, 1024.89f, 0);
+    d_AppendString(stats, " XP\n", 0);
+
+    const char* result = d_PeekString(stats);
+
+    dString_t* log_msg = d_InitString();
+    d_AppendString(log_msg, "Float Padding Stats:\n", 0);
+    d_AppendString(log_msg, result, 0);
+    printf("%s\n", d_PeekString(log_msg));
+    d_DestroyString(log_msg);
+
+    // Verify float formatting with padding
+    TEST_ASSERT(strstr(result, "      Health: 85.8%") != NULL, "Float health Should be 85.8%");
+    TEST_ASSERT(strstr(result, "      Damage: 47.33") != NULL, "Float damage Should be 47.33");
+    TEST_ASSERT(strstr(result, "  Experience: 1025 XP") != NULL, "Float experience Should be 1025 XP");
+
+    log_test_result("float_padding_integration", true, "Float padding integration works correctly");
+    d_DestroyString(stats);
+    return 1;
 }
 
 // ============================================================================
 // Main Test Runner
 // ============================================================================
 
-int main() {
-    printf("Running String Padding Function Tests...\n");
-    printf("========================================\n");
+int main(void)
+{
+    TEST_SUITE_START("String Padding Function Tests");
 
-    // Pad Left tests
-    printf("\n--- d_PadLeftString Tests ---\n");
-    test_pad_left_basic();
-    test_pad_left_no_padding_needed();
-    test_pad_left_text_longer_than_width();
-    test_pad_left_zero_width();
-    test_pad_left_different_characters();
-    test_pad_left_single_character();
-    test_pad_left_null_safety();
+    LOG("Starting comprehensive string padding function tests");
 
-    // Pad Right tests
-    printf("\n--- d_PadRightString Tests ---\n");
-    test_pad_right_basic();
-    test_pad_right_no_padding_needed();
-    test_pad_right_text_longer_than_width();
-    test_pad_right_spaces();
-    test_pad_right_append_to_existing();
-    test_pad_right_null_safety();
+    RUN_TEST(test_pad_left_basic);
+    RUN_TEST(test_pad_left_no_padding_needed);
+    RUN_TEST(test_pad_left_text_longer_than_width);
+    RUN_TEST(test_pad_left_zero_width);
+    RUN_TEST(test_pad_left_different_characters);
+    RUN_TEST(test_pad_left_single_character);
+    RUN_TEST(test_pad_left_null_safety);
 
-    // Pad Center tests
-    printf("\n--- d_PadCenterString Tests ---\n");
-    test_pad_center_even_padding();
-    test_pad_center_odd_padding();
-    test_pad_center_no_padding_needed();
-    test_pad_center_text_longer_than_width();
-    test_pad_center_single_character_text();
-    test_pad_center_single_character_text_odd();
-    test_pad_center_empty_string();
-    test_pad_center_null_safety();
+    RUN_TEST(test_pad_right_basic);
+    RUN_TEST(test_pad_right_no_padding_needed);
+    RUN_TEST(test_pad_right_text_longer_than_width);
+    RUN_TEST(test_pad_right_spaces);
+    RUN_TEST(test_pad_right_append_to_existing);
+    RUN_TEST(test_pad_right_null_safety);
 
-    // RPG Integration tests
-    printf("\n--- RPG Integration Tests ---\n");
-    test_rpg_table_formatting();
-    test_rpg_menu_system();
-    test_rpg_dialogue_box();
+    RUN_TEST(test_pad_center_even_padding);
+    RUN_TEST(test_pad_center_odd_padding);
+    RUN_TEST(test_pad_center_no_padding_needed);
+    RUN_TEST(test_pad_center_text_longer_than_width);
+    RUN_TEST(test_pad_center_single_character_text);
+    RUN_TEST(test_pad_center_single_character_text_odd);
+    RUN_TEST(test_pad_center_empty_string);
+    RUN_TEST(test_pad_center_null_safety);
 
-    printf("\n========================================\n");
-    printf("Tests completed: %d/%d passed\n", tests_passed, tests_run);
+    RUN_TEST(test_rpg_table_formatting);
+    RUN_TEST(test_rpg_menu_system);
+    RUN_TEST(test_rpg_dialogue_box);
 
-    if (tests_passed == tests_run) {
-        printf("All tests PASSED! ✓\n");
-        return 0;
-    } else {
-        printf("Some tests FAILED! ✗\n");
-        return 1;
-    }
+    RUN_TEST(test_float_padding_integration);
+
+    TEST_SUITE_END();
 }

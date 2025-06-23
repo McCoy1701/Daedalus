@@ -241,7 +241,130 @@ int test_string_builder_null_safety(void)
     d_DestroyString(sb);
     return 1;
 }
+/**
+ * @brief Test for the user-reported bug where appending a peeked NULL causes a crash.
+ * This test specifically tries to append the result of d_PeekString(NULL),
+ * which should be handled gracefully without crashing.
+ */
+int test_append_peek_null(void)
+{
+    dString_t* sb = create_test_builder();
+    dString_t* sb_null = NULL;
 
+    // This simulates the user's bug: d_AppendString(..., d_PeekString(NULL), 0)
+    // A robust implementation should not crash here.
+    d_AppendString(sb, "Prefix: ", 0);
+    d_AppendString(sb, d_PeekString(sb_null), 0);
+
+    // If the code didn't crash, check that the string is unaltered.
+    TEST_ASSERT(strcmp(d_PeekString(sb), "Prefix: ") == 0, "Appending peeked NULL should not alter existing string");
+
+    d_DestroyString(sb);
+    return 1;
+}
+
+/**
+ * @brief Tests the d_AppendFloat function for correctness.
+ * It checks default precision, specified precision, rounding, and negative numbers.
+ */
+int test_string_builder_add_float(void)
+{
+    dString_t* sb = create_test_builder();
+
+    // Test with default precision
+    d_AppendFloat(sb, 3.14159, -1);
+    TEST_ASSERT(strcmp(d_PeekString(sb), "3.141590") == 0, "Should add float with default precision");
+    d_ClearString(sb);
+
+    // Test with specified precision and rounding
+    d_AppendFloat(sb, 123.4567, 2);
+    TEST_ASSERT(strcmp(d_PeekString(sb), "123.46") == 0, "Should add float with 2 decimal places (and round)");
+    d_ClearString(sb);
+
+    // Test with zero precision and rounding
+    d_AppendFloat(sb, 99.9, 0);
+    TEST_ASSERT(strcmp(d_PeekString(sb), "100") == 0, "Should add float with 0 decimal places (and round)");
+    d_ClearString(sb);
+
+    d_DestroyString(sb);
+    return 1;
+}
+
+/**
+ * @brief Tests the d_FormatString function (printf-style formatting).
+ */
+int test_string_builder_format(void)
+{
+    dString_t* sb = create_test_builder();
+
+    // Test basic formatting
+    d_FormatString(sb, "Number: %d, String: %s", 42, "test");
+    TEST_ASSERT(strcmp(d_PeekString(sb), "Number: 42, String: test") == 0, "Should format string correctly");
+
+    // Test appending to existing content
+    d_FormatString(sb, ", Float: %.2f", 3.14);
+    TEST_ASSERT(strcmp(d_PeekString(sb), "Number: 42, String: test, Float: 3.14") == 0, "Should append formatted string");
+
+    // Test with escaped percent sign
+    d_ClearString(sb);
+    d_FormatString(sb, "100%% complete");
+    TEST_ASSERT(strcmp(d_PeekString(sb), "100% complete") == 0, "Should handle escaped percent sign");
+
+    d_DestroyString(sb);
+    return 1;
+}
+
+/**
+ * @brief Tests the d_TemplateString function for key-value replacement.
+ */
+int test_string_builder_template(void)
+{
+    dString_t* sb = create_test_builder();
+    const char* keys[] = {"name", "status"};
+    const char* values[] = {"Daedalus", "Online"};
+
+    d_TemplateString(sb, "System: {name}, Status: {status}, Version: {version}", keys, values, 2);
+    TEST_ASSERT(strcmp(d_PeekString(sb), "System: Daedalus, Status: Online, Version: {version}") == 0, "Should substitute template variables and ignore missing ones");
+
+    d_DestroyString(sb);
+    return 1;
+}
+
+/**
+ * @brief Tests the "Pythonic" string utilities: Join, Split, and Slice.
+ */
+int test_string_builder_pythonic_utils(void)
+{
+    dString_t* sb = create_test_builder();
+
+    // Test Join
+    const char* items[] = {"apple", "banana", "cherry"};
+    d_JoinStrings(sb, items, 3, ", ");
+    TEST_ASSERT(strcmp(d_PeekString(sb), "apple, banana, cherry") == 0, "d_JoinStrings should join with separator");
+    d_ClearString(sb);
+
+    // Test Split
+    int count = 0;
+    char** parts = d_SplitString("one;two;three", ";", &count);
+    TEST_ASSERT(count == 3, "d_SplitString should find 3 parts");
+    if(count == 3) {
+        TEST_ASSERT(strcmp(parts[0], "one") == 0, "d_SplitString part 1 should be correct");
+        TEST_ASSERT(strcmp(parts[1], "two") == 0, "d_SplitString part 2 should be correct");
+        TEST_ASSERT(strcmp(parts[2], "three") == 0, "d_SplitString part 3 should be correct");
+    }
+    d_FreeSplitString(parts, count);
+
+    // Test Slice
+    d_SliceString(sb, "Hello, World!", 7, 12); // "World"
+    TEST_ASSERT(strcmp(d_PeekString(sb), "World") == 0, "d_SliceString with positive indices should work");
+    d_ClearString(sb);
+
+    d_SliceString(sb, "Hello, World!", -6, -1); // "World"
+    TEST_ASSERT(strcmp(d_PeekString(sb), "World!") == 0, "d_SliceString with negative indices should work");
+
+    d_DestroyString(sb);
+    return 1;
+}
 // Main test runner
 int main(void)
 {
@@ -257,6 +380,12 @@ int main(void)
     RUN_TEST(test_string_builder_dump);
     RUN_TEST(test_string_builder_growth);
     RUN_TEST(test_string_builder_null_safety);
+
+    RUN_TEST(test_append_peek_null);
+    RUN_TEST(test_string_builder_add_float);
+    RUN_TEST(test_string_builder_format);
+    RUN_TEST(test_string_builder_template);
+    RUN_TEST(test_string_builder_pythonic_utils);
 
     TEST_SUITE_END();
 }

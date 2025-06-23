@@ -1,3 +1,6 @@
 .vscode/
 .cache/
 compile_commands.json
+
+.sisyphus/
+sisyphus.legend

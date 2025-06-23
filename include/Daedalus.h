@@ -169,41 +169,310 @@ void d_CreateKinmaticBody( dKinematicBody_t *output, const dVec2_t position, con
 
 /* Strings */
 char* d_CreateStringFromFile(const char *filename);
+/*
+ * Create a new string builder
+ *
+ * `dString_t*` - Pointer to new string builder, or NULL on allocation failure
+ *
+ * -- Must be destroyed with d_DestroyString() to free memory
+ * -- Initial capacity is 32 bytes but will grow automatically
+ */
 dString_t *d_InitString(void);
+/*
+ * Destroy a string builder and free its memory
+ *
+ * `sb` - Pointer to string builder to destroy
+ *
+ * -- After calling this function, the pointer is invalid and should not be used
+ * -- Calling with NULL is safe and does nothing
+ */
 void d_DestroyString(dString_t* sb);
+/*
+ * Add a string to the string builder
+ *
+ * `sb` - Pointer to string builder
+ * `str` - String to append (must be null-terminated if len is 0)
+ * `len` - Length of string to append, or 0 to use strlen()
+ *
+ * -- If len is 0, strlen() is called to determine the length
+ * -- If len > 0, exactly len characters are copied (partial strings allowed)
+ * -- Does nothing if sb or str is NULL, or if str is empty
+ */
 void d_AppendString(dString_t* sb, const char* str, size_t len);
+/*
+ * Add a single character to the string builder
+ *
+ * `sb` - Pointer to string builder
+ * `c` - Character to append
+ *
+ * -- Does nothing if sb is NULL
+ * -- Can append any character including '\0' (though this may confuse string functions)
+ */
 void d_AppendChar(dString_t* sb, char c);
+/*
+ * Add an integer to the string builder as a decimal string
+ *
+ * `sb` - Pointer to string builder
+ * `val` - Integer value to append
+ *
+ * -- Does nothing if sb is NULL
+ * -- Uses snprintf internally for safe conversion
+ * -- Supports full 32-bit integer range including negative values
+ */
 void d_AppendInt(dString_t* sb, int val);
+/*
+ * Append a floating-point number to the string builder
+ *
+ * `sb` - Pointer to string builder
+ * `val` - Float value to append
+ * `decimals` - Number of decimal places to show (0-10)
+ *
+ * -- Does nothing if sb is NULL
+ * -- If decimals is negative, uses 6 decimal places (default)
+ * -- If decimals > 10, caps at 10 decimal places
+ * -- Uses standard printf formatting for floating-point representation
+ */
+void d_AppendFloat(dString_t* sb, float val, int decimals);
+/*
+ * Clear the string builder content
+ *
+ * `sb` - Pointer to string builder
+ *
+ * -- Does nothing if sb is NULL
+ * -- Memory is not freed, only the length is reset to 0
+ * -- Buffer capacity remains unchanged for efficient reuse
+ */
 void d_ClearString(dString_t* sb);
+/*
+ * Truncate the string builder to a specific length
+ *
+ * `sb` - Pointer to string builder
+ * `len` - New length (must be <= current length)
+ *
+ * -- Does nothing if sb is NULL or len >= current length
+ * -- Memory is not freed, only the length is reduced
+ * -- The string remains null-terminated at the new length
+ */
 void d_TruncateString(dString_t* sb, size_t len);
+/*
+ * Remove characters from the beginning of the string builder
+ *
+ * `sb` - Pointer to string builder
+ * `len` - Number of characters to remove from the beginning
+ *
+ * -- Does nothing if sb is NULL or len is 0
+ * -- If len >= current length, the string builder is cleared completely
+ * -- Uses memmove for safe overlapping memory operation
+ */
 void d_DropString(dString_t* sb, size_t len);
+/*
+ * Get the current length of the string builder content
+ *
+ * `sb` - Pointer to string builder
+ *
+ * `size_t` - Current length in characters, or 0 if sb is NULL
+ *
+ * -- Return value does not include the null terminator
+ * -- Safe to call with NULL pointer (returns 0)
+ */
 size_t d_GetStringLength(const dString_t* sb);
+/*
+ * Get a read-only pointer to the string builder's content
+ *
+ * `sb` - Pointer to string builder
+ *
+ * `const char*` - Pointer to internal string, or NULL if sb is NULL
+ *
+ * -- Do not modify the returned string or free the pointer
+ * -- The pointer becomes invalid after any modification to the string builder
+ * -- The returned string is always null-terminated
+ * -- Safe to call with NULL pointer (returns NULL)
+ */
 const char* d_PeekString(const dString_t* sb);
+/*
+ * Create a copy of the string builder's content
+ *
+ * `sb` - Pointer to string builder
+ * `len` - Optional pointer to receive the length of the returned string
+ *
+ * `char*` - Newly allocated copy of the string, or NULL on error
+ *
+ * -- The caller is responsible for freeing the returned pointer
+ * -- If len is not NULL, it receives the length of the string (excluding null terminator)
+ * -- Returns NULL if sb is NULL or memory allocation fails
+ * -- The returned string is always null-terminated
+ */
 char *d_DumpString(const dString_t* sb, size_t* len);
-
-// Additional String Utils
+/*
+ * Add formatted text to the string builder using printf-style formatting
+ *
+ * `sb` - Pointer to string builder
+ * `format` - Printf-style format string
+ * `...` - Variable arguments corresponding to format specifiers
+ *
+ * -- Does nothing if sb or format is NULL
+ * -- Uses vsnprintf internally for safe formatting
+ * -- Supports all standard printf format specifiers (%d, %s, %f, etc.)
+ * -- Automatically calculates required space and grows buffer as needed
+ * -- Appends formatted text to existing content (does not replace)
+ */
 void d_FormatString(dString_t* sb, const char* format, ...);
+/*
+ * Add text with template substitution to the string builder
+ *
+ * `sb` - Pointer to string builder
+ * `tmplt` - Template string with placeholders in {key} format
+ * `keys` - Array of key strings to match against placeholders
+ * `values` - Array of replacement values corresponding to keys
+ * `count` - Number of key-value pairs
+ *
+ * -- Does nothing if sb or tmplt is NULL
+ * -- Placeholders must be in format {keyname} with no spaces
+ * -- Keys are matched exactly (case-sensitive)
+ * -- If a placeholder has no matching key, it is left unchanged
+ * -- Keys longer than 255 characters are treated as literal text
+ * -- Supports nested braces by treating unmatched { as literal characters
+ */
 void d_TemplateString(dString_t* sb, const char* tmplt, const char** keys, const char** values, int count);
-void d_CapitalizeString(dString_t* sb);
-void d_TitleCaseString(dString_t* sb);
+/*
+ * Add an ASCII progress bar to the string builder
+ *
+ * `sb` - Pointer to string builder
+ * `current` - Current progress value
+ * `max` - Maximum progress value
+ * `width` - Width of the progress bar (excluding brackets)
+ * `fill_char` - Character to use for filled portions
+ * `empty_char` - Character to use for empty portions
+ *
+ * -- Does nothing if sb is NULL, width <= 0, or max <= 0
+ * -- Progress bar format: [████████----] where █ is fill_char and - is empty_char
+ * -- If current > max, the bar is filled completely
+ * -- If current < 0, the bar is empty
+ * -- Total visual width is width + 2 (for brackets)
+ */
 void d_AppendProgressBar(dString_t* sb, int current, int max, int width, char fill_char, char empty_char);
+/*
+  * Add text padded to the center with specified character to reach target width
+  *
+  * `sb` - Pointer to string builder
+  * `text` - Text to center (must be null-terminated)
+  * `width` - Target total width including padding
+  * `pad_char` - Character to use for padding
+  *
+  * -- Does nothing if sb or text is NULL
+  * -- If text length >= width, adds text without padding
+  * -- Text is centered with padding distributed evenly on both sides
+  * -- If padding cannot be evenly distributed, left side gets one less character
+  * -- Example: d_PadCenterString(sb, "Hi", 6, '.') produces "..Hi.."
+  * -- Example: d_PadCenterString(sb, "Hi", 7, '.') produces "..Hi..."
+  * -- Commonly used for centered headers and titles in ASCII interfaces
+  */
 void d_PadCenterString(dString_t* sb, const char* text, int width, char pad_char);
+/*
+  * Add text padded to the left with specified character to reach target width
+  *
+  * `sb` - Pointer to string builder
+  * `text` - Text to pad (must be null-terminated)
+  * `width` - Target total width including padding
+  * `pad_char` - Character to use for padding
+  *
+  * -- Does nothing if sb or text is NULL
+  * -- If text length >= width, adds text without padding
+  * -- Padding is added to the left side of the text
+  * -- Example: d_PadLeftString(sb, "Hi", 5, '.') produces "...Hi"
+  * -- Commonly used for right-aligned text in tables and menus
+  */
 void d_PadLeftString(dString_t* sb, const char* text, int width, char pad_char);
+/*
+  * Add text padded to the right with specified character to reach target width
+  *
+  * `sb` - Pointer to string builder
+  * `text` - Text to pad (must be null-terminated)
+  * `width` - Target total width including padding
+  * `pad_char` - Character to use for padding
+  *
+  * -- Does nothing if sb or text is NULL
+  * -- If text length >= width, adds text without padding
+  * -- Padding is added to the right side of the text
+  * -- Example: d_PadRightString(sb, "Hi", 5, '.') produces "Hi..."
+  * -- Commonly used for left-aligned text in tables and menus
+  */
 void d_PadRightString(dString_t* sb, const char* text, int width, char pad_char);
+/*
+ * Add repeated characters to the string builder
+ *
+ * `sb` - Pointer to string builder
+ * `character` - Character to repeat
+ * `count` - Number of times to repeat the character
+ *
+ * -- Does nothing if sb is NULL or count <= 0
+ * -- Efficiently adds multiple copies of the same character
+ * -- Used internally by progress bar and padding functions
+ */
 void d_RepeatString(dString_t* sb, char character, int count);
 
 // Pythonic String Utils
+/*
+  * Join an array of strings with a separator (like Python's str.join())
+  *
+  * `sb` - Pointer to string builder
+  * `strings` - Array of string pointers to join
+  * `count` - Number of strings in the array
+  * `separator` - String to insert between each element
+  *
+  * -- Does nothing if sb is NULL or count <= 0
+  * -- If strings array is NULL, does nothing
+  * -- NULL strings in the array are treated as empty strings
+  * -- If separator is NULL, strings are joined without separation
+  * -- Example: d_JoinStrings(sb, {"a", "b", "c"}, 3, ", ") produces "a, b, c"
+  * -- Commonly used for creating comma-separated lists, file paths, etc.
+  */
 void d_JoinStrings(dString_t* sb, const char** strings, int count, const char* separator);
+/*
+  * Split a string by delimiter into an array of strings (like Python's str.split())
+  *
+  * `text` - String to split (must be null-terminated)
+  * `delimiter` - Delimiter string to split by
+  * `count` - Pointer to receive the number of resulting strings
+  *
+  * `char**` - Array of newly allocated strings, or NULL on error
+  *
+  * -- Returns NULL if text or delimiter is NULL, or if allocation fails
+  * -- Caller must free the result using d_FreeSplitString()
+  * -- Each string in the result array is individually allocated
+  * -- Empty strings between delimiters are included in the result
+  * -- If delimiter is not found, returns array with single copy of original string
+  * -- *count is set to the number of strings in the returned array
+  */
 char** d_SplitString(const char* text, const char* delimiter, int* count);
-void d_FreeSplitString(char** result, int count); // Helper to free the result
+/*
+  * Free memory allocated by d_SplitString()
+  *
+  * `result` - Array of strings returned by d_SplitString()
+  * `count` - Number of strings in the array
+  *
+  * -- Safe to call with NULL result pointer
+  * -- Frees each individual string and then the array itself
+  * -- Must be called for every successful d_SplitString() call to prevent memory leaks
+  */
+void d_FreeSplitString(char** result, int count);
+/*
+  * Extract a substring using Python-style slice notation (like str[start:end])
+  *
+  * `sb` - Pointer to string builder
+  * `text` - Source string to slice (must be null-terminated)
+  * `start` - Starting index (inclusive, negative values count from end)
+  * `end` - Ending index (exclusive, negative values count from end, -1 means end of string)
+  *
+  * -- Does nothing if sb or text is NULL
+  * -- Negative indices count from the end: -1 is last character, -2 is second-to-last, etc.
+  * -- If start >= end (after resolving negative indices), no text is added
+  * -- Indices are clamped to valid range [0, string_length]
+  * -- Example: d_SliceString(sb, "Hello", 1, 4) produces "ell"
+  * -- Example: d_SliceString(sb, "Hello", -3, -1) produces "llo"
+  * -- Example: d_SliceString(sb, "Hello", 0, -1) produces "Hello"
+  */
 void d_SliceString(dString_t* sb, const char* text, int start, int end);
-
-// Pythonic String Utils
-void d_StringJoin(dString_t* sb, const char** strings, int count, const char* separator);
-char** d_StringSplit(const char* text, const char* delimiter, int* count);
-void d_StringFreeSplit(char** result, int count); // Helper to free the result
-void d_StringSlice(dString_t* sb, const char* text, int start, int end);
-
 /* Dynamic Arrays */
 dArray_t* d_InitArray( size_t capacity, size_t element_size );
 void d_AppendArray( dArray_t* array, void* data );
@@ -213,4 +482,3 @@ int d_ResizeArray( dArray_t* array, size_t new_capacity );
 void d_DestroyArray( dArray_t* array );
 
 #endif
-
