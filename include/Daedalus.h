@@ -210,6 +210,15 @@ typedef struct {
     uint64_t total_logs_suppressed;
 } dLogGlobalConfig_t;
 
+// Log statistics for monitoring
+typedef struct {
+    uint64_t logs_by_level[D_LOG_LEVEL_OFF];   // Count per level
+    uint64_t logs_suppressed;                    // Total suppressed
+    uint64_t logs_rate_limited;                  // Rate limited count
+    double total_log_time;                       // Time spent logging
+    uint32_t handler_errors;                     // Handler failures
+} dLogStats_t;
+
 // Main logger structure
 typedef struct {
     dLogConfig_t config;            // Logger configuration
@@ -218,6 +227,7 @@ typedef struct {
     dString_t* format_buffer;       // Thread-local format buffer
     dLogFilterEngine_t* filters;    // Filter rules engine
     void* mutex;                    // Optional mutex for thread safety
+    dLogStats_t* stats;             // Per-logger statistics
     bool is_global;                 // Is this the global logger
 } dLogger_t;
 
@@ -240,10 +250,11 @@ typedef struct {
 } dLogStructured_t;
 
 // Log context for hierarchical logging
-typedef struct {
+typedef struct dLogContext_t {
     const char* name;               // Context name
     dLogger_t* logger;              // Associated logger
     uint64_t start_time;            // For timing contexts
+    struct dLogContext_t* parent;   // Parent context for nesting
 } dLogContext_t;
 
 // Rate limiter for preventing log spam
@@ -262,14 +273,7 @@ typedef struct {
     uint32_t next_priority;         // Auto-incrementing priority
 } dLogFilterBuilder_t;
 
-// Log statistics for monitoring
-typedef struct {
-    uint64_t logs_by_level[D_LOG_LEVEL_OFF];   // Count per level
-    uint64_t logs_suppressed;                    // Total suppressed
-    uint64_t logs_rate_limited;                  // Rate limited count
-    double total_log_time;                       // Time spent logging
-    uint32_t handler_errors;                     // Handler failures
-} dLogStats_t;
+
 
 /* Vector Math Float */
 float d_Sqrtf( float number ); //Quake fast inverse square root
@@ -881,7 +885,7 @@ void d_SliceString(dString_t* sb, const char* text, int start, int end);
   * `int` - 0 on success, non-zero on parse error
   *
   * -- Format: "path/pattern: LEVEL" separated by semicolons or newlines
-  * -- Example: "src/**: INFO; test_*: OFF; *Math.c: WARNING"
+  * -- Example: "src/all: INFO; test_*: OFF; *Math.c: WARNING"
   * -- Comments start with # and continue to end of line
   */
  int d_FilterBuilder_FromString(dLogger_t* logger, const char* config_str);
@@ -908,6 +912,18 @@ void d_SliceString(dString_t* sb, const char* text, int start, int end);
  void d_SetLogLevel(dLogger_t* logger, dLogLevel_t level);
 
  /*
+  * Get the current log level for a logger
+  *
+  * `logger` - Logger to get level from (NULL for global logger)
+  *
+  * Returns: Current minimum log level for the logger
+  *
+  * -- Returns the effective log level that determines message filtering
+  * -- File-specific filters may override this for specific sources
+  */
+ dLogLevel_t d_GetLogLevel(dLogger_t* logger);
+
+ /*
   * Enable or disable logging globally
   *
   * `enabled` - true to enable, false to disable
@@ -917,6 +933,16 @@ void d_SliceString(dString_t* sb, const char* text, int start, int end);
   * -- Useful for performance-critical sections
   */
  void d_SetLoggingEnabled(bool enabled);
+
+ /*
+  * Check if logging is globally enabled
+  *
+  * Returns: true if logging is enabled, false if disabled
+  *
+  * -- Returns the current global logging state
+  * -- When false, all logging operations are no-ops
+  */
+ bool d_IsLoggingEnabled(void);
 
  // =============================================================================
  // LOG HANDLERS
@@ -1130,6 +1156,43 @@ void d_SliceString(dString_t* sb, const char* text, int start, int end);
   * -- Builder is cleaned up after this call
   */
  void d_LogStructured_Commit(dLogStructured_t* builder);
+
+ /*
+  * Add a boolean field to structured log
+  *
+  * `builder` - Structured log builder
+  * `key` - Field name
+  * `value` - Boolean value
+  *
+  * `dLogStructured_t*` - Same builder for chaining
+  */
+ dLogStructured_t* d_LogStructured_FieldBool(dLogStructured_t* builder, const char* key, bool value);
+
+ /*
+  * Add a timestamp field to structured log
+  *
+  * `builder` - Structured log builder
+  * `key` - Field name
+  *
+  * `dLogStructured_t*` - Same builder for chaining
+  *
+  * -- Adds current timestamp in ISO 8601 format
+  * -- Timestamp is captured when this function is called
+  */
+ dLogStructured_t* d_LogStructured_FieldTimestamp(dLogStructured_t* builder, const char* key);
+
+ /*
+  * Clone an existing structured log for reuse
+  *
+  * `source` - Source structured log to clone
+  *
+  * `dLogStructured_t*` - New structured log with copied fields, or NULL on error
+  *
+  * -- Creates a new structured log with all fields from source
+  * -- Useful for creating logs with shared context
+  * -- Source log remains unchanged and usable
+  */
+ dLogStructured_t* d_LogStructured_Clone(dLogStructured_t* source);
 
  // =============================================================================
  // LOG CONTEXTS

@@ -62,9 +62,9 @@ dArray_t* d_InitArray( size_t capacity, size_t element_size )
  *
  * -- Does nothing if array or data is NULL
  * -- Copies element_size bytes from data into the array
- * -- Fails silently if array is at full capacity (count == capacity)
+ * -- Automatically grows array capacity when full (doubles capacity)
  * -- Elements are stored contiguously in memory for cache efficiency
- * -- Use d_ResizeArray() to increase capacity before appending if needed
+ * -- Growth strategy: start with capacity 1 if 0, otherwise double capacity
  */
 void d_AppendArray( dArray_t* array, void* data )
 {
@@ -73,16 +73,29 @@ void d_AppendArray( dArray_t* array, void* data )
     return;
   }
 
-  if ( array->count < array->capacity )
+  // Auto-grow array if at capacity
+  if ( array->count >= array->capacity )
   {
-    void* dest = ( char* )array->data + ( array->count * array->element_size );
-    memcpy( dest, data, array->element_size );
-    array->count++;
+    size_t new_capacity = array->capacity == 0 ? 1 : array->capacity * 2;
+    size_t new_size = new_capacity * array->element_size;
+
+    // Check for overflow
+    if (array->element_size > 0 && new_capacity > SIZE_MAX / array->element_size) {
+      printf("Array growth would overflow\n");
+      return;
+    }
+
+    if ( d_ResizeArray( array, new_size ) != 0 )
+    {
+      printf( "Failed to grow array from capacity %zd to %zd\n", array->capacity, new_capacity );
+      return;
+    }
   }
-  else
-  {
-    printf( "Failed to add data to array too many items! count: %zd, capacity %zd\n", array->count, array->capacity );
-  }
+
+  // Append the element
+  void* dest = ( char* )array->data + ( array->count * array->element_size );
+  memcpy( dest, data, array->element_size );
+  array->count++;
 }
 
 /*
@@ -106,7 +119,7 @@ void* d_GetDataFromArrayByIndex( dArray_t* array, size_t index )
     return NULL;
   }
 
-  if ( index < array->count )
+  if ( index < array->count && index < array->capacity )
   {
     return ( char* )array->data + ( index * array->element_size );
   }

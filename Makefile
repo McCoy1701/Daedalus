@@ -28,6 +28,9 @@ $(OBJ_DIR)/dMatrixMath.o: $(SRC_DIR)/dMatrixMath.c
 $(OBJ_DIR)/dQuadTree.o: $(SRC_DIR)/dQuadTree.c
 	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
 
+$(OBJ_DIR)/dLogs.o: $(SRC_DIR)/dLogs.c
+	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
+
 $(OBJ_DIR)/dStrings.o: $(SRC_DIR)/dStrings.c
 	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
 
@@ -171,6 +174,50 @@ test-string-advanced: always $(OBJ_DIR)/dStrings.o
 run-test-string-advanced: test-string-advanced
 	@./$(BIN_DIR)/test_string_advanced
 
+.PHONY: test-logging-basic
+test-logging-basic: always $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_logging_basic $(TEST_DIR)/logging/test_logging_basic.c $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o
+
+.PHONY: run-test-logging-basic
+run-test-logging-basic: test-logging-basic
+	@./$(BIN_DIR)/test_logging_basic
+
+.PHONY: test-logging-advanced
+test-logging-advanced: always $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_logging_advanced $(TEST_DIR)/logging/test_logging_advanced.c $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o
+
+.PHONY: run-test-logging-advanced
+run-test-logging-advanced: test-logging-advanced
+	@./$(BIN_DIR)/test_logging_advanced
+
+.PHONY: test-logging-extreme
+test-logging-extreme: always $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_logging_extreme $(TEST_DIR)/logging/test_logging_extreme.c $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o
+
+.PHONY: test-logging-showcase
+test-logging-showcase: always $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_logging_showcase $(TEST_DIR)/logging/test_logging_showcase.c $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o
+
+.PHONY: run-test-logging-showcase
+run-test-logging-showcase: test-logging-showcase
+	@./$(BIN_DIR)/test_logging_showcase
+
+.PHONY: test-logging-structured
+test-logging-structured: always $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_logging_structured $(TEST_DIR)/logging/test_logging_structured.c $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o
+
+.PHONY: run-test-logging-structured
+run-test-logging-structured: test-logging-structured
+	@./$(BIN_DIR)/test_logging_structured
+
+.PHONY: run-test-logging-advanced
+run-test-logging-advanced: test-logging-advanced
+	@./$(BIN_DIR)/test_logging_advanced
+
+.PHONY: run-test-logging-extreme
+run-test-logging-extreme: test-logging-extreme
+	@./$(BIN_DIR)/test_logging_extreme
+
 .PHONY: test-string-padding
 test-string-padding: always $(OBJ_DIR)/dStrings.o
 	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_string_padding $(TEST_DIR)/strings/test_string_padding.c $(OBJ_DIR)/dStrings.o
@@ -196,16 +243,16 @@ run-test-dynamic-array-basic: test-dynamic-array-basic
 	@./$(BIN_DIR)/test_dynamic_array_basic
 
 .PHONY: test-dynamic-array-edge
-test-dynamic-array-edge: always $(OBJ_DIR)/dArrays.o
-	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_edge $(TEST_DIR)/dynamicarrays/test_dynamic_array_edge.c $(OBJ_DIR)/dArrays.o
+test-dynamic-array-edge: always $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_edge $(TEST_DIR)/dynamicarrays/test_dynamic_array_edge.c $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o
 
 .PHONY: run-test-dynamic-array-edge
 run-test-dynamic-array-edge: test-dynamic-array-edge
 	@./$(BIN_DIR)/test_dynamic_array_edge
 
 .PHONY: test-dynamic-array-resize
-test-dynamic-array-resize: always $(OBJ_DIR)/dArrays.o
-	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_resize $(TEST_DIR)/dynamicarrays/test_dynamic_array_resize.c $(OBJ_DIR)/dArrays.o
+test-dynamic-array-resize: always $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_resize $(TEST_DIR)/dynamicarrays/test_dynamic_array_resize.c $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o
 
 .PHONY: run-test-dynamic-array-resize
 run-test-dynamic-array-resize: test-dynamic-array-resize
@@ -231,6 +278,15 @@ run-test-dynamic-array-advanced: test-dynamic-array-advanced
 run-test-dynamic-array-errors: test-dynamic-array-errors
 	@./$(BIN_DIR)/test_dynamic_array_errors
 
+.PHONY: test-dynamic-array-debug-hunting
+test-dynamic-array-debug-hunting: always $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_debug_hunting $(TEST_DIR)/dynamicarrays/test_dynamic_array_debug_hunting.c $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o
+
+.PHONY: run-test-dynamic-array-debug-hunting
+run-test-dynamic-array-debug-hunting: test-dynamic-array-debug-hunting
+	@./$(BIN_DIR)/test_dynamic_array_debug_hunting
+
+# Global test runner (summary output)
 .PHONY: test-dynamic-array-errors
 test-dynamic-array-errors: always $(OBJ_DIR)/dArrays.o
 	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_errors $(TEST_DIR)/dynamicarrays/test_dynamic_array_errors.c $(OBJ_DIR)/dArrays.o

@@ -294,8 +294,8 @@ void d_ClearString(dString_t* sb)
  */
 void d_TruncateString(dString_t* sb, size_t len)
 {
-    if (sb == NULL || len >= sb->len){
-        LOG("d_TruncateString: sb is NULL or len >= current length");
+    if (sb == NULL || len > sb->len){
+        LOG("d_TruncateString: sb is NULL or len > current length");
         return;
     }
 

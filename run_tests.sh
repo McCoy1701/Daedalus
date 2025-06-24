@@ -1088,10 +1088,11 @@ echo -e "${GRAY}[DEBUG] XP tracking initialized. Bulk mode: Dynamic (1/N where N
 extract_test_counts() {
     local output="$1"
 
-    # Look for the Sisyphus test summary line: "🧪 Test Functions Executed: 6 | 🏆 Won: 4 | 💀 Lost: 2"
-    local total=$(echo "$output" | grep -o "Test Functions Executed: [0-9]*" | grep -o "[0-9]*" || echo "0")
-    local passed=$(echo "$output" | grep -o "🏆 Won: [0-9]*" | grep -o "[0-9]*" || echo "0")
-    local failed=$(echo "$output" | grep -o "💀 Lost: [0-9]*" | grep -o "[0-9]*" || echo "0")
+    # Look for the FINAL Sisyphus test summary line: "🧪 Test Functions Executed: 6 | 🏆 Won: 4 | 💀 Lost: 2"
+    # Use tail to get the last occurrence in case there are multiple summary lines
+    local total=$(echo "$output" | grep -o "Test Functions Executed: [0-9]*" | tail -1 | grep -o "[0-9]*" || echo "0")
+    local passed=$(echo "$output" | grep -o "🏆 Won: [0-9]*" | tail -1 | grep -o "[0-9]*" || echo "0")
+    local failed=$(echo "$output" | grep -o "💀 Lost: [0-9]*" | tail -1 | grep -o "[0-9]*" || echo "0")
 
     # Return as space-separated values
     echo "$total $passed $failed"
@@ -1103,21 +1104,46 @@ detect_error_type() {
     local output="$1"
     local exit_code="$2"
 
-    # Check for compilation errors
-    if echo "$output" | grep -q -E "(error:|fatal error:|undefined reference|ld:|collect2:)"; then
+    # Check for compilation errors - but exclude log output patterns
+    # Compilation errors typically have format: "file.c:line:col: error: message"
+    # Log output has format: "[ERROR]" or "❌ This is an ERROR message"
+    if echo "$output" | grep -q -E "(^[^:]*:[0-9]+:[0-9]*: error:|fatal error:|undefined reference|ld:.*error|collect2:)" && \
+       ! echo "$output" | grep -q -E "(\[ERROR\]|\[FATAL\]|❌|💀|🚨)" && \
+       ! echo "$output" | grep -q "logging" && \
+       ! echo "$output" | grep -q "COLOSSEUM"; then
         echo "COMPILE_ERROR"
         return
     fi
 
     # Check for test failures BEFORE checking for runtime errors
-    # Look for the Sisyphus test output patterns
+    # Look for the Sisyphus test output patterns with more robust detection
     if echo "$output" | grep -q "FINAL COLOSSEUM STATS"; then
-        # It's a test run that completed - check if tests failed
-        if echo "$output" | grep -q "💀 Lost: [1-9]"; then
+        # It's a test run that completed - check the final summary line more carefully
+        # Look for the last occurrence of the test summary to handle verbose output
+        local final_failed=$(echo "$output" | grep "💀 Lost:" | tail -1 | grep -o "💀 Lost: [0-9]*" | grep -o "[0-9]*" || echo "0")
+        local final_passed=$(echo "$output" | grep "🏆 Won:" | tail -1 | grep -o "🏆 Won: [0-9]*" | grep -o "[0-9]*" || echo "0")
+
+        # If we found valid counts, use them
+        if [ -n "$final_failed" ] && [ -n "$final_passed" ] && [ "$final_failed" != "0" ]; then
             echo "TEST_FAILURE"
             return
-        elif echo "$output" | grep -q "🏆 Won:"; then
+        elif [ -n "$final_passed" ] && [ "$final_passed" != "0" ]; then
+            # Also check for explicit success indicators in the final output
+            if echo "$output" | tail -20 | grep -q -E "(return 0|SUCCESS|All.*passed)"; then
+                echo "SUCCESS"
+                return
+            elif [ "$exit_code" -eq 0 ]; then
+                echo "SUCCESS"
+                return
+            fi
+        fi
+
+        # Fallback: if we have a complete test run but unclear results, check exit code
+        if [ "$exit_code" -eq 0 ]; then
             echo "SUCCESS"
+            return
+        else
+            echo "TEST_FAILURE"
             return
         fi
     fi
@@ -1136,6 +1162,7 @@ detect_error_type() {
 
     echo "SUCCESS"
 }
+
 
 
 # Function to run a test
@@ -1159,6 +1186,13 @@ run_test() {
 
     # Detect error type
     error_type=$(detect_error_type "$test_output" "$exit_code")
+
+    # Debug output for troubleshooting
+    if [ "$test_name" = "Logging Basic Operations" ]; then
+        echo -e "${GRAY}[DEBUG] Test: $test_name | Exit Code: $exit_code | Detected Type: $error_type${NC}" >&2
+        echo -e "${GRAY}[DEBUG] Final summary line: $(echo "$test_output" | grep "💀 Lost:" | tail -1)${NC}" >&2
+        echo -e "${GRAY}[DEBUG] Has COLOSSEUM: $(echo "$test_output" | grep -q "FINAL COLOSSEUM STATS" && echo "YES" || echo "NO")${NC}" >&2
+    fi
 
     case "$error_type" in
         "SUCCESS")
@@ -1276,6 +1310,11 @@ run_test "Dynamic Array Resize Operations" "run-test-dynamic-array-resize"
 run_test "Dynamic Array Performance" "run-test-dynamic-array-performance"
 run_test "Dynamic Array Advanced Operations" "run-test-dynamic-array-advanced"
 run_test "Dynamic Array Error Handling" "run-test-dynamic-array-errors"
+run_test "Logging Basic Operations" "run-test-logging-basic"
+run_test "Logging Advanced Operations" "run-test-logging-advanced"
+run_test "Logging Extreme Operations" "run-test-logging-extreme"
+run_test "Logging Showcases" "run-test-logging-showcase"
+run_test "Logging Structured" "run-test-logging-structured"
 
 # Calculate overall execution time
 overall_end=$(date +%s.%N)
@@ -1622,7 +1661,7 @@ show_motivational_message() {
         # --- Dialogue: Tense Morning Exchanges ---
         "🗣️  DAEDALUS'S PERFECTIONISM|'The bronze content in these hinges is insufficient,' Daedalus barks, throwing a component across the workshop. 'Tell the forge to triple the mix. The King's beast will not be contained by shoddy work.'"
         "🗣️  THE SILENT WATCHERS|The morning shift of guards is new. They do not speak. They only stand at the corners of the workshop, their eyes fixed on your hands as you code."
-        "🗣️ A BIZARRE MODIFICATION|A new decree from Minos arrives. 'No right angles in the western wing,' Daedalus reads from a wax tablet, bewildered. 'The King says corners give false hope. He wants only curves.'"
+        "🗣️  A BIZARRE MODIFICATION|A new decree from Minos arrives. 'No right angles in the western wing,' Daedalus reads from a wax tablet, bewildered. 'The King says corners give false hope. He wants only curves.'"
 
         # --- Storytelling: The Labyrinth in the Full Light of Day ---
         "☀️ THE SUN'S HARSH GLARE|With the sun high in the sky, you and Daedalus can no longer hide your work. The sounds of your tools echo, and you feel the gaze of curious eyes from the palace walls."
@@ -1640,8 +1679,8 @@ show_motivational_message() {
         "🗣️  DAEDALUS'S GRIM REQUEST|The architect looks over his plans. 'We need more lead for the inner chamber doors, Sisyphus. Not for strength... to muffle the sounds. For the Queen's sake.'"
 
         # --- The King's Scrutiny ---
-        "🗺️ THE KING'S MEASURE|A royal surveyor arrives with a perfectly balanced scale. 'King Minos demands we weigh every stone,' he says. 'He believes a single ounce of imperfection will compromise the entire structure.'"
-        "🎨 THE QUEEN'S PORTRAIT|Painters arrive to create a fresco on an outer wall. Daedalus realizes it's a ruse; they are spies sent by Minos to ensure the labyrinth's layout remains secret."
+        "🗺️  THE KING'S MEASURE|A royal surveyor arrives with a perfectly balanced scale. 'King Minos demands we weigh every stone,' he says. 'He believes a single ounce of imperfection will compromise the entire structure.'"
+        "🐦  THE SILENT BIRDS|Every morning, crows gather on the workshop roof. Today, they're completely silent, all facing the same direction - toward a tower that wasn't there yesterday. Daedalus pretends not to notice, but his hands shake as he draws."
         "🤫 A VOW OF SILENCE|A new royal decree is posted. The punishment for speaking of the 'architect's work' outside the palace walls is now death. The King is burying his secret in silence and terror."
 
         # --- The Labyrinth's Nature ---
@@ -1791,6 +1830,8 @@ show_motivational_message() {
         "🌱 THE FIRST TRIBUTE|Spring brings the first black-sailed ships from Athens. The tributes, meant to test the maze, arrive with the season of sacrifice. Daedalus bars the workshop door."
         "🦋 A FLUTTER OF FALSE HOPE|A butterfly lands on the windowsill. Daedalus watches it, his face a mask of envy, before turning back to the blueprints. 'There is no escape for us,' he mutters."
         "💧 DEMETER'S BARGAIN|The earth is reborn, but Queen Pasiphaë's sorrow does not lift. She made a bargain for her monstrous son's life, and the price is this perfect, inescapable prison you build."
+        "🤔 A FOOL'S HOPE|You watch the new growth outside and a foolish thought enters your mind: 'Perhaps this time will be different. Perhaps this time, the code will hold.' You know it is a lie, but you believe it for a moment."
+        "🗣️ DAEDALUS'S DECREE|'The spring rains have weakened the foundation,' Daedalus declares, pointing to a fresh crack. 'Everything we built last season is now suspect. We must verify it all again, from the beginning.'"
     )
 
     declare -a summer_greetings=(
@@ -1799,6 +1840,8 @@ show_motivational_message() {
         "🔥 MINOS'S BURNING GAZE|The King spends the long, hot days watching your progress from his shaded balcony. His impatience grows with the heat, his demands becoming more erratic and impossible."
         "🐍 A PLAGUE OF ERRORS|The oppressive heat seems to spawn bugs like insects in a swamp. Every line of code you fix, two more seem to appear in its place, as if the Labyrinth itself is feverish."
         "🌊 THE SALT-STAINED BLUEPRINTS|The sea air is thick and heavy. The papyrus scrolls curl with dampness, blurring the lines of the master plan. Daedalus accuses the sea god himself of trying to sabotage his work."
+        "🤔 A FAMILIAR BURN|The heat of the forge where the Labyrinth's iron is shaped feels familiar. You recall the flames of the underworld and wonder which punishment is worse: a simple, honest fire, or this sun-baked intellectual torment."
+        "🗣️ A GUARD'S CYNICISM|A guard, bringing you water, mutters, 'The King hides from the sun while we toil in it. He fears the light will reveal the true monster is not the one in the maze.'"
     )
 
     declare -a autumn_greetings=(
@@ -1807,6 +1850,8 @@ show_motivational_message() {
         "🌬️ A CHILLING WIND|The first autumn wind howls through the tower, scattering scrolls. For a moment, it sounds like a scream from the maze below. Daedalus doesn't even flinch anymore."
         "🥀 THE QUEEN'S GARDEN WILTS|Queen Pasiphaë no longer walks the gardens. The flowers have died, and she remains in her chambers. Her sorrow has consumed the season, a blight upon the land."
         "🦉 THE OWL'S JUDGMENT|An owl, Athena's sacred bird, lands on the windowsill each evening. Daedalus, once her favored craftsman, refuses to look at it, as if terrified of the wisdom—or condemnation—it might offer."
+        "🤔 A HARVEST OF NOTHING|You watch the farmers bringing in their bounty. You have labored just as they have, yet your only harvest is a more perfect prison, a more complete damnation. There is no crop to gather from your work."
+        "🗣️ THE HERO'S ARRIVAL|'A ship from Athens,' the guard captain reports to Daedalus. 'It carries a volunteer. A prince named Theseus. He says he has come to slay the beast.' Daedalus only smiles, a thin, cruel line on his lips."
     )
 
     declare -a winter_greetings=(
@@ -1815,6 +1860,8 @@ show_motivational_message() {
         "🥶 THE POINT OF NO RETURN|Trapped by winter storms, Daedalus stares at the master blueprint for days without speaking. At last, he whispers, 'Sisyphus... I have designed it so perfectly that I no longer know the way out myself.'"
         "🕯️ THE ETERNAL NIGHT|The nights are longest now. You have more hours in the dark with the code than in the light. You feel more at home in the logical maze of the blueprints than in the waking world."
         "🧊 A FROZEN HEART|King Minos's demands cease. He no longer watches from his balcony. In the cold of winter, even his rage seems to have frozen, replaced by a cold, calculating acceptance of the monster he keeps."
+        "🤔 A COLD COMFORT|The biting winter wind feels like a relief. It is a clean, honest pain, unlike the twisted, complex agony of a recursive function with no exit condition."
+        "🗣️ DAEDALUS'S CHILLING PROPHECY|'The Labyrinth will be finished when the winter ends, Sisyphus,' Daedalus says, his breath misting in the cold air. 'And when it is... the King has no more use for its architect. Or his assistant.'"
     )
 
     # Select greeting based on time and season
@@ -2047,7 +2094,7 @@ show_motivational_message() {
             "🏛️  The walls have not shifted. The corridors have not changed their shape."
             "🪨 The weight of the task neither lessens nor grows."
             "👑 From his balcony, King Minos observes no change."
-            "🧠  Daedalus stares at the blueprints, a day's work resulting in no new progress."
+            "🧠 Daedalus stares at the blueprints, a day's work resulting in no new progress."
             "🏛️  The scales of fate have neither tipped towards triumph nor disaster."
         )
         # Select and display a random stability message
@@ -2107,10 +2154,10 @@ show_motivational_message() {
             # Many issues - epic quest beginning
             local epic_quest_messages=(
                 "${RED}👑 A FURIOUS DECREE FROM MINOS! 'This Labyrinth is overrun with $total_curr_issues flaws! Correct them, Sisyphus, or face the full wrath of Crete!'${NC}|The King's patience wears thin. The scale of this task is a trial in itself."
-                "${RED}🏗️ THE ARCHITECT'S DESPAIR! Daedalus cries out, '$total_curr_issues structural failures threaten to collapse my great work!'${NC}|The very foundations of the Labyrinth are compromised. A master builder is needed to prevent total ruin."
+                "${RED}🏗️  THE ARCHITECT'S DESPAIR! Daedalus cries out, '$total_curr_issues structural failures threaten to collapse my great work!'${NC}|The very foundations of the Labyrinth are compromised. A master builder is needed to prevent total ruin."
                 "${RED}🪨 THE BOULDER'S TRUE WEIGHT! The path to the summit is blocked by $total_curr_issues immense obstacles${NC}|This is your curse and your purpose. Push onward, for the task is eternal and the summit is but a brief respite."
                 "${RED}🧹 THE AUGEAN STABLES! The Labyrinth is flooded with $total_curr_issues sources of filth and chaos${NC}|A task worthy of Heracles himself. It is time for a great cleansing to restore order to the maze."
-                "${RED}🌪️ THE GATES OF TARTARUS ARE BREACHED! $total_curr_issues chaotic spirits have been unleashed within the walls${NC}|A hero's greatest quest is to face the underworld. Bring order to the chaos and prove your mastery."
+                "${RED}🌪️  THE GATES OF TARTARUS ARE BREACHED! $total_curr_issues chaotic spirits have been unleashed within the walls${NC}|A hero's greatest quest is to face the underworld. Bring order to the chaos and prove your mastery."
             )
             local selected_epic="${epic_quest_messages[RANDOM % ${#epic_quest_messages[@]}]}"
             IFS='|' read -r message context <<< "$selected_epic"
@@ -2296,7 +2343,7 @@ show_motivational_message() {
 
         elif [[ "$curr_challenge" == *"Hydra"* ]] || [[ "$curr_challenge" == *"Beasts"* ]] || [[ "$curr_challenge" == *"runtime"* ]]; then
             # Runtime error quests - monster hunting
-            echo -e "    ${YELLOW}🗡️ SLAY MYTHICAL BEASTS: Clear ${ORANGE}${#RUNTIME_ERROR_FILES[@]} dangerous runtime error files${YELLOW} from the labyrinth depths${NC}"
+            echo -e "    ${YELLOW}🗡️  SLAY MYTHICAL BEASTS: Clear ${ORANGE}${#RUNTIME_ERROR_FILES[@]} dangerous runtime error files${YELLOW} from the labyrinth depths${NC}"
 
             # Randomly suggest a specific file to fix
             if [ ${#RUNTIME_ERROR_FILES[@]} -gt 0 ]; then
@@ -2496,3 +2543,87 @@ if [ "$COMPILE_ERRORS" -eq 0 ] && [ "$RUNTIME_ERRORS" -eq 0 ] && [ ${#FAILED_FIL
 else
     exit 1
 fi
+# --- The Sisyphus Cycle: A Five-Act Narrative ---
+    # The player, as Sisyphus, will be shown one random line from the current act's array
+    # each time they run the test suite, slowly revealing the story.
+
+    # --- ACT I: THE NEW CURSE (LEVELS 1-10) ---
+    # Theme: The setup. Introducing the characters, the oppressive setting,
+    # and the soul-crushing reality of this new, intellectual punishment.
+    declare -a act_one_greetings=(
+        "🏛️ THE ARRIVAL|You are brought to a high tower in the palace of Knossos. A man with haunted eyes introduces himself as Daedalus. 'King Minos has a task for us,' he says. 'A glorious, eternal task.'"
+        "🪨 THE FIRST COMMIT|Daedalus unrolls a vast, impossibly complex blueprint. 'Your curse has been... updated, Sisyphus. The gods grew bored of the boulder. Minos, however, has a use for your persistence.'"
+        "👑 THE KING'S DECREE|King Minos addresses you from his throne, not looking at you. 'You will help my architect build a prison of logic and stone. It will be perfect. It will be endless. You will not fail.'"
+        "⛓️ THE WEIGHT OF CODE|Your first bug. A simple off-by-one error. As you fix it, you feel a familiar weight settle on your shoulders. It is not stone, but the infinite mass of possibility."
+        "🐂 A DISTANT ROAR|From somewhere deep below the foundations, a sound echoes—a roar of immense pain and rage. Daedalus flinches. 'Pay it no mind,' he says quickly. 'It is merely the... client.'"
+        "🌅 THE FIRST SUNRISE|The Cretan sun reveals the dust motes dancing in the air. You did not sleep. You realize with a cold dread that in this new hell, fatigue is a luxury you are no longer afforded."
+        "☕️ DAEDALUS'S WHISPER|The architect leans in, his breath smelling of stale wine. 'The King believes he is our master. He is wrong. We are slaves to this... this *idea*. The Labyrinth. It commands us now.'"
+        "📜 THE UNREADABLE CONTRACT|A scroll is delivered, outlining your duties. The text shifts and writhes as you try to read it. The only clear clause is the last: 'The work will be complete when it is perfect. The work will never be complete.'"
+        "🕊️ THE GHOST OF ATHENS|Daedalus stares east towards his homeland. 'They exiled me for one death,' he mutters. 'Here, they celebrate me for building a tomb that will consume thousands.'"
+        "🤔 A FAMILIAR FEELING|You complete a complex function, and for a fleeting moment, you feel a sense of accomplishment. Then, the bug report arrives. The boulder has just rolled back to the bottom of the hill."
+    )
+
+    # --- ACT II: THE LABYRINTH'S NATURE (LEVELS 11-20) ---
+    # Theme: Rising action. The mystery deepens. The Labyrinth is more than a building,
+    # and the characters' true natures begin to surface.
+    declare -a act_two_greetings=(
+        "🌀 A SHIFTING BLUEPRINT|You glance at the master plan and swear a corridor you just memorized has changed its path. Daedalus dismisses it as a trick of the light, but you see him secretly make a new notation."
+        "💧 THE WALLS WEEP|A strange, damp residue slicks the stones in a newly finished section. It smells of salt and sorrow. 'The stone of Crete is porous,' Daedalus explains, but he won't touch the walls."
+        "🤫 THE SECRET LANGUAGE|Daedalus begins using a complex series of symbols only he understands. He calls it 'commenting his work.' You realize it is a second, hidden language embedded within the first."
+        "👑 THE QUEEN'S VIGIL|You learn that Queen Pasiphaë provides the beast's food herself, leaving it at the Labyrinth's entrance each day. She has never seen the creature since its birth."
+        "🐂 THE BEAST'S INTELLIGENCE|A section of wall is found battered from the inside, but not randomly. The impacts are focused on a single, load-bearing keystone. 'It's learning,' Daedalus whispers in horror."
+        "🗣️ MINOS'S PARANOIA|'The tribute from Athens... it is a lie,' Minos rants during an inspection. 'They send not victims, but saboteurs! Their hero, Theseus, will try to steal my creation! Make it deadlier!'"
+        "🧠 THE LOGIC'S ECHO|When you fix a particularly nasty bug, you can almost feel a ripple of... disappointment... emanate from the structure itself. The Labyrinth did not want that flaw removed."
+        "🐦 A FEATHER ON THE FLOOR|You find a single, large feather near the forge—not from any bird you recognize. Daedalus snatches it and throws it into the flames, his face pale with a fear you do not yet understand."
+        "🤝 THE SISYPHEAN COMPACT|'You are cursed to push, I am cursed to build,' Daedalus says, sharing his wine with you. 'Our fates are now intertwined. We will either perfect this place together or go mad in the attempt.'"
+        "❓ A QUESTION OF PURPOSE|You ask Daedalus what happens when the Labyrinth is finished. He laughs, a dry, cracking sound. 'Finished? My boy, you still think this is about *building* something.'"
+    )
+
+    # --- ACT III: THE CRACKS APPEAR (LEVELS 21-30) ---
+    # Theme: The midpoint. The characters begin to break under the strain.
+    # The true, monstrous scale of the project becomes clear.
+    declare -a act_three_greetings=(
+        # The Revelation Begins
+        "🎭 THE FIRST CRACK IN THE MASK|You catch Daedalus smiling - genuinely smiling - at a particularly elegant solution you've written. 'You know,' he says, 'Perdix would have liked that approach.' His face immediately darkens, but the moment of humanity lingers."
+        "✨ SISYPHUS'S FIRST CHOICE|You discover a critical flaw that would let someone escape. Your hand hovers over the keyboard. For the first time in eternity, you have a choice. You document it in a comment: '// TODO: Never fix this.'"
+        "🕊️ THE FEATHER'S SECRET|You find another feather, but this time you hide it before Daedalus sees. That night, you study it by candlelight. It's perfectly engineered - each barb calculated for maximum lift. Someone is planning to fly."
+        "💝 AN UNEXPECTED ALLY|A young servant girl leaves bread and wine at your workstation. 'My sister was in last year's tribute,' she whispers. 'Whatever kindness you can build into those walls...' She doesn't finish. She doesn't need to."
+        "🗝️ THE HIDDEN PATTERN|You realize Daedalus has been embedding a pattern in his 'errors' - they're not mistakes, they're messages. When decoded, they spell out: 'THE MONSTER IS NOT THE ONLY PRISONER HERE.'"
+        "🌟 SISYPHUS THE TEACHER|A young apprentice is assigned to help you. You find yourself explaining not just the code, but the beauty in the logic. For a moment, you remember: you were once more than just a curse. You were a king who loved to build."
+        "🎪 THE GAME WITHIN THE GAME|You start leaving your own messages in the code. Small jokes. Elegant solutions that serve no purpose but beauty. If you must push this boulder, you'll choose HOW you push it."
+        "🔮 THE ORACLE'S VISIT|A priestess arrives, claiming to need to bless the structure. She looks directly at you: 'The gods are watching, Sisyphus. But perhaps... they're not the only ones who can change the rules of the game.'"
+        "🦅 DAEDALUS'S CONFESSION|After too much wine, Daedalus admits: 'I've built two labyrinths, Sisyphus. One of stone that holds the beast. One of guilt that holds me. But you... you're building a third one. What does yours contain?'"
+        "💪 THE BOULDER BECOMES LIGHTER|Something strange happens. As you fix a particularly complex bug, you feel... joy? The boulder is still there, but for the first time, you're not just pushing it. You're sculpting it."
+    )
+
+    # --- ACT IV: INESCAPABLE TRUTHS (LEVELS 31-40) ---
+    # Theme: The climax. The major secrets are revealed, confronting the characters with the full horror of their situation.
+    declare -a act_four_greetings=(
+        # The Alliance Forms
+        "🤝 THE ARCHITECT'S PROPOSITION|Daedalus pulls you aside, his eyes clear for the first time in months. 'I know what you've been doing with the code. The hidden paths. Help me save my son, and I'll help you save your soul.'"
+        "🗺️ THE TRUE LABYRINTH|'The Labyrinth isn't the building,' Daedalus reveals, showing you the REAL blueprint. 'It's the entire palace. The entire kingdom. Every person trapped in their role. But we're going to build an exit - for everyone.'"
+        "✍️ CODE NAMES|You and Daedalus develop a secret language within the code. Variables named after hope. Functions that sound like prayers. Every bug fix now carries a hidden purpose: creating a backdoor to freedom."
+        "🎭 THE PERFORMANCE|You play your roles perfectly by day - the cursed king and the mad architect. But by night, you're revolutionaries, encoding escape routes in error messages, hiding wings in exception handlers."
+        "👑 MINOS'S BLINDNESS|The King inspects your work, praising its perfection. He cannot see that every 'perfect' function contains a flaw that only you and Daedalus know. Pride has made him blind. You exchange the briefest glance with Daedalus - a smile."
+        "🌅 THE COUNTDOWN BEGINS|'Three more moons,' Daedalus whispers. 'When the spring tribute arrives, we fly. But first, we must ensure the Labyrinth can be solved. No more children will die in our creation.'"
+        "💡 SISYPHUS'S INNOVATION|You realize something Daedalus hasn't: the curse can be turned into a gift. Your eternal persistence means you can test every possible path. You begin mapping EVERY route through the maze, creating the ultimate walkthrough."
+        "🎪 THE SECRET THREAD|You embed a algorithm in the Labyrinth's core: anyone who enters with love in their heart will find the walls themselves guiding them to safety. Ariadne's thread will work because you're making sure it will."
+        "🔥 THE FORGING OF HOPE|Together, you and Daedalus work on the wings. But these aren't just wings of wax and feathers. They're wings of code, of logic, of perfectly calculated rebellion. Each feather is a function. Each function is a prayer."
+        "⚡ THE MOMENT OF TRUTH|'Tomorrow, we test them,' Daedalus says, holding up the wings. 'If they fail, we remain prisoners. If they succeed...' He looks at you. 'Friend, if they succeed, even the gods will learn that mortals can rewrite their fates.'"
+    )
+
+    # --- ACT V: THE ETERNAL CYCLE (LEVELS 41-50) ---
+    # Theme: The resolution. The acceptance of the absurd. The Labyrinth is "done," but the work never ends.
+    declare -a act_five_greetings=(
+        # The Philosophical Climax
+        "🌅 THE MORNING OF ESCAPE|Dawn breaks. The wings are ready. Daedalus straps them on his son. But as you prepare your own set, you realize something: you're not sure you want to leave. This curse, this code, it's become... yours."
+        "🕊️ ICARUS SOARS|You watch the boy fly, laughing with pure joy. For a moment, all the pain, all the labor, all the endless debugging - it was worth it to see this one soul truly free. Then the sun grows hot..."
+        "💔 THE FALL AND THE CHOICE|Icarus falls. Daedalus screams. But you... you're already at the terminal, coding. If you can't save the boy, you can save the next one. And the next. And the next. Your curse has become your purpose."
+        "🎭 THE KING'S OFFER|Minos finds you at your terminal. 'Daedalus has fled. You could follow. I won't stop you.' He pauses. 'Or you could stay. Maintain the Labyrinth. Save those who enter. Your choice, Sisyphus.' But you've already chosen."
+        "✨ THE REVELATION|As you code, you understand: The gods didn't curse you to push a boulder. They gave you the only gift that matters - eternal purpose. Every bug is a life saved. Every fix is a small rebellion against fate."
+        "🏛️ THE NEW MYTHOLOGY|You embed a message in the Labyrinth's core: 'HERE WORKED SISYPHUS, WHO CHOSE HIS STONE.' Future heroes will find it and understand: sometimes the greatest freedom is choosing your own chains."
+        "🌊 THE ETERNAL DEBUGGER|A new error appears. You smile. Tomorrow there will be more. Forever there will be more. But each one is a chance to save someone, to improve something, to create meaning from meaninglessness. You begin to type."
+        "💪 THE HAPPY SISYPHUS|You push back from your terminal and laugh - a real, deep laugh. The gods wanted to break you with eternal labor. Instead, you've become unbreakable. The boulder rolls down. You crack your knuckles. 'Again,' you say, and mean it."
+        "🎨 THE MASTERPIECE NEVER ENDS|New tributes arrive. You've hidden seventeen different escape routes in the code. Theseus will find his thread because you put it there. Heroes succeed because Sisyphus ensures it. Your curse is their salvation."
+        "♾️ ONE MUST IMAGINE SISYPHUS CODING|The sun sets. It rises. The bugs appear. You fix them. But now you know the secret - in the space between the bug and the fix, in that moment of problem-solving, you are completely, perfectly, eternally free. The cursor blinks. You smile. Time to push the boulder up the hill again. And you wouldn't have it any other way."
+    )
