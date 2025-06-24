@@ -1,5 +1,6 @@
 // File: src/dDynamicArray.c - Dynamic array utilities for Daedalus project
 
+#define LOG(msg) printf("[LOG] %s:%d - %s\n", __FILE__, __LINE__, msg)
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -158,24 +159,38 @@ void* d_PopDataFromArray( dArray_t* array )
  * -- Use realloc() internally which may move data to new memory location
  * -- Array capacity is updated to new_capacity on success
  */
-int d_ResizeArray( dArray_t* array, size_t new_capacity )
-{
-  if ( array == NULL )
-  {
-    return 1;
-  }
+ int d_ResizeArray( dArray_t* array, size_t new_capacity )
+ {
+   if ( array == NULL )
+   {
+    LOG("d_ResizeArray: array is NULL");
+     return 1;
+   }
 
-  void* new_data = realloc( array->data, new_capacity );
-  if ( new_data == NULL && new_capacity > 0 )
-  {
-    printf( "Failed to allocate new memory for array\n" );
-    return 1;
-  }
+   void* new_data = realloc( array->data, new_capacity );
+   if ( new_data == NULL && new_capacity > 0 )
+   {
+    LOG("d_ResizeArray: failed to allocate new memory for array");
+     return 1;
+   }
 
-  array->data = new_data;
-  array->capacity = new_capacity / array->element_size;
-  return 0;
-}
+   array->data = new_data;
+
+   // Handle division by zero when element_size is 0
+   if ( array->element_size == 0 )
+   {
+     // For zero element size, capacity in terms of "number of elements" is undefined
+     // Set capacity to 0 to avoid division by zero
+     array->capacity = 0;
+   }
+   else
+   {
+     array->capacity = new_capacity / array->element_size;
+   }
+
+   return 0;
+ }
+
 
 /*
  * Grow the dynamic array by adding additional capacity to current capacity
