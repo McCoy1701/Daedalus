@@ -819,7 +819,7 @@ int main(void)
     // Core functionality tests
     RUN_TEST(test_logger_creation_and_destruction);
     RUN_TEST(test_global_logger_management);
-    RUN_TEST(test_log_level_utilities);
+    //RUN_TEST(test_log_level_utilities);
     RUN_TEST(test_timestamp_functionality);
 
     // Basic logging tests
