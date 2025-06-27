@@ -836,6 +836,112 @@ int test_string_builder_append_n_truncation_edge_cases(void)
     return 1;
 }
 
+int test_string_builder_truncated_destruction(void)
+{
+    d_LogWarning("BUG HUNT: Testing destruction of truncated strings for memory integrity.");
+    dLogContext_t* ctx = d_PushLogContext("TruncatedDestruction");
+
+    d_LogDebug("Testing destruction after basic truncation...");
+    dString_t* sb1 = create_test_builder();
+    d_AppendString(sb1, "This is a long string that will be truncated", 0);
+    TEST_ASSERT(d_GetStringLength(sb1) > 20, "Should have substantial content before truncation");
+
+    d_LogDebugF("Before truncation: length=%zu, content='%s'", d_GetStringLength(sb1), d_PeekString(sb1));
+    d_TruncateString(sb1, 10);
+    TEST_ASSERT(d_GetStringLength(sb1) == 10, "Should be truncated to 10 characters");
+    TEST_ASSERT(safe_string_compare(d_PeekString(sb1), "This is a ", "truncated content"),
+               "Content should be properly truncated");
+
+    d_LogDebug("Destroying truncated string...");
+    d_DestroyString(sb1);
+    TEST_ASSERT(1, "Destruction of truncated string should not crash");
+
+    d_LogDebug("Testing destruction after truncation to zero length...");
+    dString_t* sb2 = create_test_builder();
+    d_AppendString(sb2, "Content that will be completely removed", 0);
+    d_TruncateString(sb2, 0);
+    TEST_ASSERT(d_GetStringLength(sb2) == 0, "Should be empty after truncation to zero");
+    TEST_ASSERT(safe_string_compare(d_PeekString(sb2), "", "empty after zero truncation"),
+               "Should be empty string after zero truncation");
+
+    d_LogDebug("Destroying zero-length truncated string...");
+    d_DestroyString(sb2);
+    TEST_ASSERT(1, "Destruction of zero-truncated string should not crash");
+
+    d_LogDebug("Testing destruction after multiple truncations...");
+    dString_t* sb3 = create_test_builder();
+    d_AppendString(sb3, "Multi-stage truncation test string for memory integrity", 0);
+
+    // Multiple truncation stages
+    d_TruncateString(sb3, 30);  // First truncation
+    TEST_ASSERT(d_GetStringLength(sb3) == 30, "First truncation should work");
+
+    d_TruncateString(sb3, 15);  // Second truncation
+    TEST_ASSERT(d_GetStringLength(sb3) == 15, "Second truncation should work");
+
+    d_TruncateString(sb3, 5);   // Final truncation
+    TEST_ASSERT(d_GetStringLength(sb3) == 5, "Final truncation should work");
+    TEST_ASSERT(safe_string_compare(d_PeekString(sb3), "Multi", "multi-truncated content"),
+               "Should preserve correct prefix after multiple truncations");
+
+    d_LogDebug("Destroying multi-truncated string...");
+    d_DestroyString(sb3);
+    TEST_ASSERT(1, "Destruction of multi-truncated string should not crash");
+
+    d_LogDebug("Testing destruction after truncation with buffer growth...");
+    dString_t* sb4 = create_test_builder();
+
+    // Force buffer growth first
+    for (int i = 0; i < 5; i++) {
+        d_AppendString(sb4, "Growing the buffer to exceed initial capacity and force reallocation ", 0);
+    }
+
+    size_t grown_length = d_GetStringLength(sb4);
+    TEST_ASSERT(grown_length > 200, "Should have grown substantially");
+    d_LogDebugF("Buffer grown to %zu characters", grown_length);
+
+    // Now truncate the grown buffer
+    d_TruncateString(sb4, 50);
+    TEST_ASSERT(d_GetStringLength(sb4) == 50, "Should truncate grown buffer correctly");
+
+    d_LogDebug("Destroying truncated grown-buffer string...");
+    d_DestroyString(sb4);
+    TEST_ASSERT(1, "Destruction of truncated grown buffer should not crash");
+
+    d_LogDebug("Testing destruction after truncation with d_AppendStringN content...");
+    dString_t* sb5 = create_test_builder();
+
+    // Use d_AppendStringN to create content, then truncate
+    d_AppendStringN(sb5, "This is a test of AppendStringN functionality", 20);
+    TEST_ASSERT(d_GetStringLength(sb5) == 20, "AppendStringN should limit to 20 chars");
+
+    // Now truncate further
+    d_TruncateString(sb5, 8);
+    TEST_ASSERT(d_GetStringLength(sb5) == 8, "Should truncate AppendStringN content");
+    TEST_ASSERT(safe_string_compare(d_PeekString(sb5), "This is ", "truncated AppendStringN"),
+               "Should properly truncate content added via AppendStringN");
+
+    d_LogDebug("Destroying truncated AppendStringN string...");
+    d_DestroyString(sb5);
+    TEST_ASSERT(1, "Destruction of truncated AppendStringN content should not crash");
+
+    d_LogDebug("Testing rapid truncate-destroy cycles...");
+    for (int cycle = 0; cycle < 10; cycle++) {
+        dString_t* temp = create_test_builder();
+        d_AppendString(temp, "Rapid cycle test content for memory stress testing", 0);
+        d_TruncateString(temp, cycle + 5); // Varying truncation lengths
+        d_DestroyString(temp);
+
+        // Rate-limited logging to avoid spam
+        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG,
+                          1, 2.0, "Truncate-destroy cycle %d completed", cycle);
+    }
+    TEST_ASSERT(1, "Rapid truncate-destroy cycles should complete without crashes");
+
+    d_PopLogContext(ctx);
+    return 1;
+}
+
 // =============================================================================
 // MAIN TEST RUNNER WITH COMPREHENSIVE LOGGING SETUP
 // =============================================================================
@@ -887,6 +993,7 @@ int main(void)
 
     RUN_TEST(test_string_builder_append_n_truncation_edge_cases);
     RUN_TEST(test_string_builder_append_n_truncation_basic);
+    RUN_TEST(test_string_builder_truncated_destruction);
 
     // =========================================================================
     // DAEDALUS LOGGER CLEANUP

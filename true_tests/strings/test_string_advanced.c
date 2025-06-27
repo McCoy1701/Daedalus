@@ -940,6 +940,130 @@ int test_format_extreme_edge_cases(void)
     d_PopLogContext(ctx);
     return 1;
 }
+int test_string_builder_lifecycle_isolation(void)
+{
+    d_LogWarning("BUG HUNT: Isolating exact memory lifecycle patterns from items.c usage.");
+    dLogContext_t* ctx = d_PushLogContext("LifecycleIsolation");
+
+    d_LogDebug("Testing exact item creation pattern - creating 5 string fields per item...");
+
+    // This mimics exactly what happens in create_weapon/create_armor/etc
+    for (int item = 0; item < 10; item++) {
+        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG,
+                          1, 2.0, "Creating item %d with full string lifecycle", item);
+
+        // Simulate the exact pattern from your items.c:
+        // 1. item->name = d_InitString();
+        dString_t* name = d_InitString();
+        TEST_ASSERT(name != NULL, "Name string should be created");
+
+        // 2. item->id = d_InitString();
+        dString_t* id = d_InitString();
+        TEST_ASSERT(id != NULL, "ID string should be created");
+
+        // 3. item->description = d_InitString();
+        dString_t* description = d_InitString();
+        TEST_ASSERT(description != NULL, "Description string should be created");
+
+        // 4. item->rarity = d_InitString();
+        dString_t* rarity = d_InitString();
+        TEST_ASSERT(rarity != NULL, "Rarity string should be created");
+
+        // 5. material.name = d_InitString();
+        dString_t* material_name = d_InitString();
+        TEST_ASSERT(material_name != NULL, "Material name should be created");
+
+        // Populate them exactly like your helper functions do
+        d_AppendString(name, "Test Weapon", 0);
+        d_AppendString(id, "test_weapon", 0);
+        d_AppendString(description, "A weapon made of steel", 0);
+        d_AppendString(rarity, "common", 0);
+        d_AppendString(material_name, "steel", 0);
+
+        // Verify they have content (like your tests do)
+        TEST_ASSERT(d_GetStringLength(name) > 0, "Name should have content");
+        TEST_ASSERT(d_GetStringLength(id) > 0, "ID should have content");
+        TEST_ASSERT(d_GetStringLength(description) > 0, "Description should have content");
+        TEST_ASSERT(d_GetStringLength(rarity) > 0, "Rarity should have content");
+        TEST_ASSERT(d_GetStringLength(material_name) > 0, "Material name should have content");
+
+        // NOW - destroy them in the EXACT same order as destroy_item()
+        d_LogDebugF("Destroying item %d strings...", item);
+        d_DestroyString(name);
+        d_DestroyString(id);
+        d_DestroyString(description);
+        d_DestroyString(rarity);
+        d_DestroyString(material_name);
+    }
+
+    d_LogDebug("Testing rapid creation/destruction cycles to stress allocation...");
+    for (int cycle = 0; cycle < 50; cycle++) {
+        dString_t* temp = d_InitString();
+        d_AppendString(temp, "Rapid cycle test string content", 0);
+
+        // Use some of the advanced functions that might have internal allocations
+        d_FormatString(temp, " - Cycle %d", cycle);
+        d_AppendProgressBar(temp, cycle, 50, 10, '#', '-');
+
+        // Verify before destruction
+        TEST_ASSERT(d_GetStringLength(temp) > 0, "Temp string should have content");
+
+        d_DestroyString(temp);
+    }
+
+    d_LogDebug("Testing the exact _validate_and_truncate_string pattern that uses d_AppendStringN...");
+    for (int trunc_test = 0; trunc_test < 20; trunc_test++) {
+        dString_t* truncated = d_InitString();
+
+        // This is the pattern from _validate_and_truncate_string
+        const char* long_name = "This is a very long name that will be truncated by AppendStringN";
+        d_AppendStringN(truncated, long_name, 15); // Truncate to 15 chars
+
+        TEST_ASSERT(d_GetStringLength(truncated) == 15, "Should be truncated to 15 chars");
+        TEST_ASSERT(strncmp(d_PeekString(truncated), "This is a very ", 15) == 0, "Content should be truncated correctly");
+
+        d_DestroyString(truncated);
+    }
+
+    d_LogDebug("Testing template operations that might have internal state...");
+    for (int template_test = 0; template_test < 15; template_test++) {
+        dString_t* templated = d_InitString();
+
+        const char* keys[] = {"name", "value"};
+        char value_str[20];
+        snprintf(value_str, sizeof(value_str), "%d", template_test);
+        const char* values[] = {"TestItem", value_str};
+
+        d_TemplateString(templated, "Item {name} has value {value}", keys, values, 2);
+
+        TEST_ASSERT(d_GetStringLength(templated) > 0, "Template should produce content");
+
+        d_DestroyString(templated);
+    }
+
+    d_LogDebug("Final test: Creating string builder, using ALL functions, then destroying...");
+    dString_t* comprehensive = d_InitString();
+
+    d_AppendString(comprehensive, "Initial", 0);
+    d_AppendStringN(comprehensive, " Truncated Content", 5); // " Trun"
+    d_AppendChar(comprehensive, '!');
+    d_AppendInt(comprehensive, 42);
+    d_AppendFloat(comprehensive, 3.14f, 2);
+    d_FormatString(comprehensive, " Formatted: %s", "test");
+    d_AppendProgressBar(comprehensive, 50, 100, 5, '#', '-');
+
+    const char* keys[] = {"test"};
+    const char* values[] = {"value"};
+    d_TemplateString(comprehensive, " Template: {test}", keys, values, 1);
+
+    d_LogDebugF("Comprehensive string final content: '%s'", d_PeekString(comprehensive));
+    TEST_ASSERT(d_GetStringLength(comprehensive) > 20, "Should have substantial content");
+
+    d_DestroyString(comprehensive);
+
+    d_PopLogContext(ctx);
+    return 1;
+}
 // =============================================================================
 // MAIN TEST RUNNER WITH DIVINE LOGGING ARCHITECTURE
 // =============================================================================
@@ -1002,6 +1126,7 @@ int main(void)
 
     RUN_TEST(test_format_extreme_edge_cases);
     RUN_TEST(test_template_advanced_unicode_and_boundaries);
+    RUN_TEST(test_string_builder_lifecycle_isolation);
 
     // =========================================================================
     // DAEDALUS LOGGER CLEANUP

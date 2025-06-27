@@ -85,9 +85,9 @@ $(OBJ_DIR)/em_dMatrixCreation.o: $(SRC_DIR)/dMatrixCreation.c
 
 $(OBJ_DIR)/em_dLinkedList.o: $(SRC_DIR)/dLinkedList.c
 	$(ECC) -c $< $(CINC) -o $@
-
-$(BIN_DIR)/libDaedalus.a: $(OBJ_DIR)/em_dLinkedList.o $(OBJ_DIR)/em_dMatrixMath.o $(OBJ_DIR)/em_dVectorMath.o
-	$(EMAR) $@ $^
+# commented out old shitty fuck
+#$(BIN_DIR)/libDaedalus.a: $(OBJ_DIR)/em_dLinkedList.o $(OBJ_DIR)/em_dMatrixMath.o $(OBJ_DIR)/em_dVectorMath.o
+#$(EMAR) $@ $^
 
 .PHONY: install
 install:
@@ -132,6 +132,20 @@ always:
 
 .PHONY: all
 all: always native shared
+
+# Complete static library target (not emscripten)
+.PHONY: static
+static: always $(BIN_DIR)/libDaedalus.a
+
+# Static library with ALL components
+$(BIN_DIR)/libDaedalus.a: $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings-dArrays.o $(OBJ_DIR)/dVectorMath.o $(OBJ_DIR)/dLogs.o
+	ar rcs $@ $^
+
+# Static library installation
+.PHONY: static_install
+static_install:
+	sudo cp $(BIN_DIR)/libDaedalus.a /usr/lib/
+	sudo cp $(INC_DIR)/Daedalus.h /usr/include/
 
 # =============================================================================
 # TESTING
