@@ -197,10 +197,6 @@ run-test-logging-basic: test-logging-basic
 test-logging-advanced: always $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o
 	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_logging_advanced $(TEST_DIR)/logging/test_logging_advanced.c $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o
 
-.PHONY: run-test-logging-advanced
-run-test-logging-advanced: test-logging-advanced
-	@./$(BIN_DIR)/test_logging_advanced
-
 .PHONY: test-logging-extreme
 test-logging-extreme: always $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o
 	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_logging_extreme $(TEST_DIR)/logging/test_logging_extreme.c $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o

@@ -257,6 +257,94 @@ int test_limiter_handles_null_and_empty_strings(void) {
     teardown_logging_tests();
     return 1;
 }
+
+// In true_tests/logging/test_logging_rate_limited.c
+
+int test_limiter_is_burst_proof(void) {
+    setup_logging_tests();
+    int max_logs_per_window = 1;
+    char assert_msg[128];
+
+    // 1. Log once to start the 1.0 second timer.
+    d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_INFO, max_logs_per_window, 1.0, "Burst Test");
+    TEST_ASSERT(log_handler_call_count == 1, "First log should always print.");
+
+    // 2. Wait for the window to expire.
+    sleep(1);
+
+    // 3. Hammer the logger to try and force a burst.
+    for (int i = 0; i < 10000; i++) {
+        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_INFO, max_logs_per_window, 1.0, "Burst Test");
+    }
+
+    // 4. Check the result.
+    // The total count should be exactly 2: the first log, and ONE log after the window expired.
+    // The new, correct algorithm prevents any further logs from getting through.
+    sprintf(assert_msg, "Logger should be burst-proof. Expected 2 total logs, Got %zu.", log_handler_call_count);
+    TEST_ASSERT(log_handler_call_count == 2, assert_msg);
+
+    teardown_logging_tests();
+    return 1;
+}
+
+int test_limiter_is_burst_proof_with_higher_limit(void) {
+    setup_logging_tests();
+    int max_logs_per_window = 10;
+    char assert_msg[128];
+
+    // 1. Log once to start the 1.0 second timer.
+    d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_INFO, max_logs_per_window, 1.0, "Burst Proof Higher Limit");
+    TEST_ASSERT(log_handler_call_count == 1, "First log should always print.");
+
+    // 2. Wait for the window to expire.
+    sleep(1);
+
+    // 3. Hammer the logger to try and force a burst. This time, it should allow exactly 10.
+    for (int i = 0; i < 10000; i++) {
+        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_INFO, max_logs_per_window, 1.0, "Burst Proof Higher Limit");
+    }
+
+    // 4. Check the final result.
+    // The total count should be exactly 1 (from before the sleep) + 10 (from the burst) = 11.
+    // This proves the new algorithm has perfect control and is not subject to bursts, regardless of the limit.
+    size_t expected_total = 1 + max_logs_per_window;
+    sprintf(assert_msg, "Logger should be burst-proof with higher limit. Expected %zu, Got %zu.", expected_total, log_handler_call_count);
+    TEST_ASSERT(log_handler_call_count == expected_total, assert_msg);
+
+    teardown_logging_tests();
+    return 1;
+}
+int test_limiter_is_truly_burst_proof(void) {
+    setup_logging_tests();
+    int max_logs = 1;
+    char assert_msg[128];
+
+    // Log once to start the timer.
+    d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_INFO, max_logs, 1.0, "Double Tap Test");
+    TEST_ASSERT(log_handler_call_count == 1, "First log should always print.");
+
+    // Wait for the window to fully expire.
+    sleep(1);
+
+    // --- The Double Tap ---
+    // Fire two logs back-to-back with no delay. This simulates two
+    // frames executing in the same millisecond.
+
+    // The First Tap (should succeed)
+    d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_INFO, max_logs, 1.0, "Double Tap Test");
+
+    // The Second Tap (MUST be suppressed by the new algorithm)
+    d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_INFO, max_logs, 1.0, "Double Tap Test");
+
+    // The final count must be EXACTLY 2.
+    // One from before the sleep, and one from the first tap.
+    // If it is 3, the logger is still bursting.
+    sprintf(assert_msg, "Logger must be truly burst-proof. Expected 2, Got %zu.", log_handler_call_count);
+    TEST_ASSERT(log_handler_call_count == 2, assert_msg);
+
+    teardown_logging_tests();
+    return 1;
+}
 int main(void) {
     TEST_SUITE_START("Daedalus Logging Rate Limiter Tests - FINAL BATTLE");
 
@@ -270,6 +358,10 @@ int main(void) {
     RUN_TEST(test_limiter_with_many_unique_messages);
     RUN_TEST(test_limiter_with_many_unique_messages_step_by_step);
     RUN_TEST(test_limiter_handles_null_and_empty_strings);
+
+    RUN_TEST(test_limiter_is_burst_proof);
+    RUN_TEST(test_limiter_is_burst_proof_with_higher_limit);
+    RUN_TEST(test_limiter_is_truly_burst_proof);
 
     TEST_SUITE_END();
 }

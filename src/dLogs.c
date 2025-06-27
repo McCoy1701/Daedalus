@@ -1893,37 +1893,38 @@ void d_LogRateLimited(dLogLevel_t level, uint32_t max_count, double time_window,
     d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FINAL_MESSAGE, level, max_count, time_window, "%s", message);
 }
 
+// In src/dLogs.c
+
 void d_LogRateLimitedF(dLogRateLimitFlag_t flag, dLogLevel_t level, uint32_t max_count, double time_window, const char* format, ...) {
     if (!format) return;
 
-    dLogger_t* logger = g_global_logger;
-    if (!logger || level < logger->config.default_level) return;
-
-    bool should_log = false;
-
-    // ---- Start of refined critical section ----
+    // The entire logic is one atomic, thread-safe operation.
     pthread_mutex_lock(&rate_limit_mutex);
+
+    dLogger_t* logger = g_global_logger;
+    if (!logger || level < logger->config.default_level) {
+        pthread_mutex_unlock(&rate_limit_mutex);
+        return;
+    }
 
     init_rate_limit_cache();
 
-    // We must copy the va_list before using it, as it can only be consumed once.
     va_list args;
     va_start(args, format);
-    va_list args_copy;
-    va_copy(args_copy, args);
 
     uint32_t message_hash;
-    dString_t* temp_buffer = get_tls_buffer(); // Use TLS buffer for formatting
+    dString_t* message_buffer = get_tls_buffer();
 
     if (flag == D_LOG_RATE_LIMIT_FLAG_HASH_FINAL_MESSAGE) {
-        d_FormatStringV(temp_buffer, format, args_copy);
-        message_hash = hash_message(d_PeekString(temp_buffer));
+        d_FormatStringV(message_buffer, format, args);
+        message_hash = hash_message(d_PeekString(message_buffer));
     } else {
         message_hash = hash_message(format);
     }
 
     double current_time = d_GetTimestamp();
     dLogRateLimit_t* rate_limit = NULL;
+    bool should_log = false;
 
     for (size_t i = 0; i < rate_limit_cache->count; i++) {
         dLogRateLimit_t* entry = (dLogRateLimit_t*)d_GetDataFromArrayByIndex(rate_limit_cache, i);
@@ -1934,36 +1935,35 @@ void d_LogRateLimitedF(dLogRateLimitFlag_t flag, dLogLevel_t level, uint32_t max
     }
 
     if (!rate_limit) {
-        dLogRateLimit_t new_entry = { .message_hash = message_hash, .count = 0, .max_count = max_count, .time_window = time_window, .first_log_time = current_time };
-        d_AppendArray(rate_limit_cache, &new_entry);
-        rate_limit = (dLogRateLimit_t*)d_GetDataFromArrayByIndex(rate_limit_cache, rate_limit_cache->count - 1);
-    }
-
-    if (current_time - rate_limit->first_log_time > time_window) {
-        rate_limit->count = 0;
-        rate_limit->first_log_time = current_time;
-    }
-
-    if (rate_limit->count < max_count) {
-        should_log = true;
-        rate_limit->count++;
-        // If we need to format the string for the HASH_FORMAT_STRING case, do it now
-        if (flag == D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING) {
-             d_FormatStringV(temp_buffer, format, args_copy);
+        // First time we've seen this message.
+        // ** THE FIX IS HERE: Check max_count BEFORE the first log. **
+        if (max_count > 0) {
+            should_log = true;
+            dLogRateLimit_t new_entry = { .message_hash = message_hash, .count = 1, .max_count = max_count, .time_window = time_window, .first_log_time = current_time };
+            d_AppendArray(rate_limit_cache, &new_entry);
         }
     } else {
-        rate_limit->count++;
+        // We've seen this message before.
+        if (current_time - rate_limit->first_log_time > time_window) {
+            // Window expired. Allow one log and reset.
+            should_log = true;
+            rate_limit->count = 1;
+            rate_limit->first_log_time = current_time;
+        } else if (rate_limit->count < max_count) {
+            // Still in window, but under count. Allow.
+            should_log = true;
+            rate_limit->count++;
+        }
     }
 
-    va_end(args_copy);
-    va_end(args);
+    if (should_log && flag == D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING) {
+        d_FormatStringV(message_buffer, format, args);
+    }
 
-    // ---- End of refined critical section ----
+    va_end(args);
     pthread_mutex_unlock(&rate_limit_mutex);
 
-
-    // Step 5: Perform the actual logging OUTSIDE the lock
     if (should_log) {
-        d_Log(level, d_PeekString(temp_buffer));
+        d_Log(level, d_PeekString(message_buffer));
     }
 }

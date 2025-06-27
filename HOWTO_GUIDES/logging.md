@@ -101,7 +101,7 @@ void game_loop() {
                         "High CPU usage detected");
 
         // Rate limited with formatting
-        d_LogRateLimitedF(D_LOG_LEVEL_ERROR, 3, 1.0,
+        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_ERROR, 3, 1.0,
                          "Network error in frame %d", frame);
 
         // Regular conditional logging
@@ -206,7 +206,7 @@ int main() {
         d_LogInfoF("Combat round %d", round);
 
         // Rate-limited combat events
-        d_LogRateLimitedF(D_LOG_LEVEL_WARNING, 3, 1.0,
+        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_WARNING, 3, 1.0,
                          "Player took damage in round %d", round);
 
         player.health -= 5.0f;
@@ -252,8 +252,8 @@ int main() {
 - `d_LogStructured_SetFormat(log, true)` - JSON format (false = key-value)
 
 ### Rate Limiting
-- `d_LogRateLimited(level, max_count, time_window, "message")`
-- `d_LogRateLimitedF(level, max_count, time_window, "format", args...)`
+- `d_LogRateLimited(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, level, max_count, time_window, "message")`
+- `d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, level, max_count, time_window, "format", args...)`
 
 ### Conditional Logging
 - `d_LogIf(condition, level, "message")`
