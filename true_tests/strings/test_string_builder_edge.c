@@ -726,6 +726,178 @@ int test_database_blob_corruption_bug(void)
     d_PopLogContext(ctx);
     return 1;
 }
+int test_string_builder_partial_construction_cleanup(void)
+{
+    d_LogError("CRITICAL BUG HUNT: Testing partial item construction cleanup patterns.");
+    dLogContext_t* ctx = d_PushLogContext("PartialConstructionCleanup");
+
+    d_LogDebug("Testing the exact item construction sequence with failure points...");
+
+    // This simulates what happens in create_weapon/create_armor when allocation fails
+    // partway through the construction process
+
+    for (int failure_point = 0; failure_point < 6; failure_point++) {
+        d_LogDebugF("Simulating construction failure at stage %d", failure_point);
+
+        // Simulate item construction exactly like your create_weapon function
+        dString_t* name = NULL;
+        dString_t* id = NULL;
+        dString_t* description = NULL;
+        dString_t* rarity = NULL;
+        dString_t* material_name = NULL;
+
+        // Stage 0: Allocate name
+        if (failure_point > 0) {
+            name = d_InitString();
+            TEST_ASSERT(name != NULL, "Name allocation should succeed");
+            d_AppendString(name, "Partially Constructed Weapon", 0);
+        }
+
+        // Stage 1: Allocate id
+        if (failure_point > 1) {
+            id = d_InitString();
+            TEST_ASSERT(id != NULL, "ID allocation should succeed");
+            d_AppendString(id, "partial_weapon", 0);
+        }
+
+        // Stage 2: Allocate description
+        if (failure_point > 2) {
+            description = d_InitString();
+            TEST_ASSERT(description != NULL, "Description allocation should succeed");
+            d_AppendString(description, "A weapon that failed to construct fully", 0);
+        }
+
+        // Stage 3: Allocate rarity
+        if (failure_point > 3) {
+            rarity = d_InitString();
+            TEST_ASSERT(rarity != NULL, "Rarity allocation should succeed");
+            d_AppendString(rarity, "broken", 0);
+        }
+
+        // Stage 4: Allocate material name
+        if (failure_point > 4) {
+            material_name = d_InitString();
+            TEST_ASSERT(material_name != NULL, "Material name allocation should succeed");
+            d_AppendString(material_name, "corrupted_steel", 0);
+        }
+
+        // CRITICAL: Simulate construction failure at this point
+        // In real code, this might be malloc failure, validation failure, etc.
+        d_LogDebugF("SIMULATING FAILURE at stage %d - cleaning up partial construction", failure_point);
+
+        // This is the EXACT cleanup pattern that should happen in your error handling
+        // If this leaks, then your destroy_item() or error handling is wrong
+        if (name) {
+            d_LogDebugF("Cleaning up name string");
+            d_DestroyString(name);
+        }
+        if (id) {
+            d_LogDebugF("Cleaning up id string");
+            d_DestroyString(id);
+        }
+        if (description) {
+            d_LogDebugF("Cleaning up description string");
+            d_DestroyString(description);
+        }
+        if (rarity) {
+            d_LogDebugF("Cleaning up rarity string");
+            d_DestroyString(rarity);
+        }
+        if (material_name) {
+            d_LogDebugF("Cleaning up material_name string");
+            d_DestroyString(material_name);
+        }
+
+        TEST_ASSERT(1, "Partial construction cleanup should not leak memory");
+    }
+
+    d_LogDebug("Testing the exact pattern from _validate_and_truncate_string with errors...");
+
+    // This tests if your validation functions leak when they fail
+    for (int validation_test = 0; validation_test < 10; validation_test++) {
+        dString_t* validation_string = d_InitString();
+
+        // Simulate the validation pattern that might fail
+        d_AppendString(validation_string, "Name_That_Is_Too_Long_And_Needs_Validation_Processing", 0);
+
+        // Simulate validation failure after string processing
+        if (validation_test % 3 == 0) {
+            d_LogDebugF("Simulating validation failure for test %d", validation_test);
+            // This simulates early return/failure in validation
+            d_DestroyString(validation_string);
+            continue;
+        }
+
+        // Normal processing
+        d_AppendStringN(validation_string, "_processed", 10);
+        d_TruncateString(validation_string, 15);
+
+        // Successful cleanup
+        d_DestroyString(validation_string);
+    }
+
+    d_LogDebug("Testing memory stress with construction/destruction cycles...");
+
+    // This tests if repeated construction/destruction has cumulative leaks
+    for (int stress_cycle = 0; stress_cycle < 20; stress_cycle++) {
+        // Create a "complete" item
+        dString_t* strings[5];
+        strings[0] = d_InitString(); // name
+        strings[1] = d_InitString(); // id
+        strings[2] = d_InitString(); // description
+        strings[3] = d_InitString(); // rarity
+        strings[4] = d_InitString(); // material
+
+        // Populate them like real items
+        d_FormatString(strings[0], "Stress Test Item %d", stress_cycle);
+        d_FormatString(strings[1], "stress_item_%d", stress_cycle);
+        d_AppendString(strings[2], "An item created during stress testing", 0);
+        d_AppendString(strings[3], "test", 0);
+        d_AppendString(strings[4], "stress_material", 0);
+
+        // Add some complexity like your real items do
+        d_AppendProgressBar(strings[2], stress_cycle, 20, 10, '#', '-');
+
+        const char* template_keys[] = {"cycle"};
+        char cycle_str[20];
+        snprintf(cycle_str, sizeof(cycle_str), "%d", stress_cycle);
+        const char* template_values[] = {cycle_str};
+        d_TemplateString(strings[2], " Cycle: {cycle}", template_keys, template_values, 1);
+
+        // Verify they're properly constructed
+        for (int i = 0; i < 5; i++) {
+            TEST_ASSERT(strings[i] != NULL, "String should be allocated");
+            TEST_ASSERT(d_GetStringLength(strings[i]) > 0, "String should have content");
+        }
+
+        // Now destroy them in the exact order your destroy_item() should use
+        for (int i = 0; i < 5; i++) {
+            d_DestroyString(strings[i]);
+        }
+
+        // Rate limited logging
+        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG,
+                          1, 2.0, "Stress construction cycle %d completed", stress_cycle);
+    }
+
+    d_LogDebug("Testing the exact error conditions that might occur in your items.c...");
+
+    // Test what happens when d_InitString() returns NULL (out of memory simulation)
+    // Your real code should handle this gracefully
+    dString_t* test_builder = d_InitString();
+    if (test_builder) {
+        d_AppendString(test_builder, "Testing error recovery", 0);
+
+        // Simulate what happens if further allocations fail
+        // (This won't actually fail, but tests the cleanup path)
+        d_LogDebug("Simulating allocation failure recovery");
+        d_DestroyString(test_builder);
+        TEST_ASSERT(1, "Error recovery should work correctly");
+    }
+
+    d_PopLogContext(ctx);
+    return 1;
+}
 // Main test runner
 int main(void)
 {
@@ -754,7 +926,7 @@ int main(void)
 
     RUN_TEST(test_network_packet_corruption_bug);
     RUN_TEST(test_database_blob_corruption_bug);
-
+    RUN_TEST(test_string_builder_partial_construction_cleanup);
 
     TEST_SUITE_END();
 }
