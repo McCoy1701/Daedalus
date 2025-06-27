@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define LOG() printf("[LOG] %s:%d - ", __FILE__, __LINE__)
+
 // Global test counters
 int total_tests = 0;
 int tests_passed = 0;
@@ -128,28 +130,40 @@ int test_dynamic_array_mixed_operations(void)
 int test_dynamic_array_resize_stress(void)
 {
     dArray_t* array = d_InitArray(10, sizeof(int));
+    LOG(); printf("Created array with capacity: %zu, element_size: %zu\n", array->capacity, array->element_size);
 
     // Fill initial array
     for (int i = 0; i < 10; i++) {
         int value = i * 10;
         d_AppendArray(array, &value);
     }
+    LOG(); printf("Filled array with %zu elements, capacity: %zu\n", array->count, array->capacity);
 
-    // Multiple resize operations
+    // Multiple resize operations - resize_sizes are in bytes, but capacity should be in element count
     size_t resize_sizes[] = {20 * sizeof(int), 5 * sizeof(int), 50 * sizeof(int), 1 * sizeof(int), 100 * sizeof(int)};
+    size_t expected_capacities[] = {20, 5, 50, 1, 100};  // Expected element counts
     int num_resizes = sizeof(resize_sizes) / sizeof(resize_sizes[0]);
 
     for (int i = 0; i < num_resizes; i++) {
+        LOG(); printf("Before resize %d: capacity=%zu, target_size=%zu (elements=%zu)\n", i, array->capacity, resize_sizes[i], expected_capacities[i]);
+        
         int result = d_ResizeArray(array, resize_sizes[i]);
+        LOG(); printf("After resize %d: result=%d, capacity=%zu, expected=%zu\n", i, result, array->capacity, expected_capacities[i]);
+        
         TEST_ASSERT(result == 0, "Resize operation should succeed");
-        TEST_ASSERT(array->capacity == resize_sizes[i], "Capacity should match resize target");
+        TEST_ASSERT(array->capacity == expected_capacities[i], "Capacity should match resize target in element count");
 
         // Verify that we can still access existing data (where valid)
         size_t max_check = (array->count < 5) ? array->count : 5;  // Check first 5 elements if they exist
+        LOG(); printf("Checking %zu elements for data preservation\n", max_check);
+        
         for (size_t j = 0; j < max_check; j++) {
             int* retrieved = (int*)d_GetDataFromArrayByIndex(array, j);
             if (retrieved != NULL) {  // May be NULL due to capacity issues
+                LOG(); printf("Element %zu: expected=%d, actual=%d\n", j, (int)(j * 10), *retrieved);
                 TEST_ASSERT(*retrieved == (int)(j * 10), "Data should be preserved across resizes");
+            } else {
+                LOG(); printf("Element %zu: retrieved NULL\n", j);
             }
         }
     }

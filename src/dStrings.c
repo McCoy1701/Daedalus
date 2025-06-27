@@ -294,8 +294,8 @@ void d_ClearString(dString_t* sb)
  */
 void d_TruncateString(dString_t* sb, size_t len)
 {
-    if (sb == NULL || len >= sb->len){
-        LOG("d_TruncateString: sb is NULL or len >= current length");
+    if (sb == NULL || len > sb->len){
+        LOG("d_TruncateString: sb is NULL or len > current length");
         return;
     }
 
@@ -662,116 +662,6 @@ void d_AppendProgressBar(dString_t* sb, int current, int max, int width, char fi
              d_AppendString(sb, separator, 0);
          }
      }
- }
-
-/*
-  * Split a string by delimiter into an array of strings (like Python's str.split())
-  *
-  * `text` - String to split (must be null-terminated)
-  * `delimiter` - Delimiter string to split by
-  * `count` - Pointer to receive the number of resulting strings
-  *
-  * `char**` - Array of newly allocated strings, or NULL on error
-  *
-  * -- Returns NULL if text or delimiter is NULL, or if allocation fails
-  * -- Caller must free the result using d_FreeSplitString()
-  * -- Each string in the result array is individually allocated
-  * -- Empty strings between delimiters are included in the result
-  * -- If delimiter is not found, returns array with single copy of original string
-  * -- *count is set to the number of strings in the returned array
-  */
- char** d_SplitString(const char* text, const char* delimiter, int* count) {
-     if (text == NULL || delimiter == NULL || count == NULL) {
-         if (count) *count = 0;
-         return NULL;
-     }
-
-     *count = 0;
-     int delimiter_len = strlen(delimiter);
-     if (delimiter_len == 0) {
-         if (count) *count = 0;
-         return NULL;
-     }
-
-     // First pass: count the number of parts
-     const char* pos = text;
-     int parts = 1; // At least one part
-     while ((pos = strstr(pos, delimiter)) != NULL) {
-         parts++;
-         pos += delimiter_len;
-     }
-
-     // Allocate array for string pointers
-     char** result = malloc(parts * sizeof(char*));
-     if (result == NULL) {
-         *count = 0;
-         return NULL;
-     }
-
-     // Second pass: extract the parts
-     pos = text;
-     int current_part = 0;
-
-     while (current_part < parts) {
-         const char* next_delim = strstr(pos, delimiter);
-
-         if (next_delim == NULL) {
-             // Last part - copy rest of string
-             int len = strlen(pos);
-             result[current_part] = malloc(len + 1);
-             if (result[current_part] == NULL) {
-                 // Clean up on allocation failure
-                 for (int i = 0; i < current_part; i++) {
-                     free(result[i]);
-                 }
-                 free(result);
-                 *count = 0;
-                 return NULL;
-             }
-             strcpy(result[current_part], pos);
-             current_part++;
-             break;
-         } else {
-             // Copy part before delimiter
-             int len = next_delim - pos;
-             result[current_part] = malloc(len + 1);
-             if (result[current_part] == NULL) {
-                 // Clean up on allocation failure
-                 for (int i = 0; i < current_part; i++) {
-                     free(result[i]);
-                 }
-                 free(result);
-                 *count = 0;
-                 return NULL;
-             }
-             strncpy(result[current_part], pos, len);
-             result[current_part][len] = '\0';
-             current_part++;
-             pos = next_delim + delimiter_len;
-         }
-     }
-
-     *count = parts;
-     return result;
- }
- /*
-  * Free memory allocated by d_SplitString()
-
-  *
-  * `result` - Array of strings returned by d_SplitString()
-  * `count` - Number of strings in the array
-  *
-  * -- Safe to call with NULL result pointer
-  * -- Frees each individual string and then the array itself
-  * -- Must be called for every successful d_SplitString() call to prevent memory leaks
-  */
- void d_FreeSplitString(char** result, int count) {
-     if (result == NULL) return;
-
-     for (int i = 0; i < count; i++) {
-         free(result[i]);
-     }
-     free(result);
  }
  /*
   * Extract a substring using Python-style slice notation (like str[start:end])

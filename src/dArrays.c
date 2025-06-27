@@ -1,5 +1,6 @@
 // File: src/dDynamicArray.c - Dynamic array utilities for Daedalus project
 
+#define LOG(msg) printf("[LOG] %s:%d - %s\n", __FILE__, __LINE__, msg)
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -61,9 +62,9 @@ dArray_t* d_InitArray( size_t capacity, size_t element_size )
  *
  * -- Does nothing if array or data is NULL
  * -- Copies element_size bytes from data into the array
- * -- Fails silently if array is at full capacity (count == capacity)
+ * -- Automatically grows array capacity when full (doubles capacity)
  * -- Elements are stored contiguously in memory for cache efficiency
- * -- Use d_ResizeArray() to increase capacity before appending if needed
+ * -- Growth strategy: start with capacity 1 if 0, otherwise double capacity
  */
 void d_AppendArray( dArray_t* array, void* data )
 {
@@ -72,16 +73,29 @@ void d_AppendArray( dArray_t* array, void* data )
     return;
   }
 
-  if ( array->count < array->capacity )
+  // Auto-grow array if at capacity
+  if ( array->count >= array->capacity )
   {
-    void* dest = ( char* )array->data + ( array->count * array->element_size );
-    memcpy( dest, data, array->element_size );
-    array->count++;
+    size_t new_capacity = array->capacity == 0 ? 1 : array->capacity * 2;
+    size_t new_size = new_capacity * array->element_size;
+
+    // Check for overflow
+    if (array->element_size > 0 && new_capacity > SIZE_MAX / array->element_size) {
+      printf("Array growth would overflow\n");
+      return;
+    }
+
+    if ( d_ResizeArray( array, new_size ) != 0 )
+    {
+      printf( "Failed to grow array from capacity %zd to %zd\n", array->capacity, new_capacity );
+      return;
+    }
   }
-  else
-  {
-    printf( "Failed to add data to array too many items! count: %zd, capacity %zd\n", array->count, array->capacity );
-  }
+
+  // Append the element
+  void* dest = ( char* )array->data + ( array->count * array->element_size );
+  memcpy( dest, data, array->element_size );
+  array->count++;
 }
 
 /*
@@ -105,7 +119,7 @@ void* d_GetDataFromArrayByIndex( dArray_t* array, size_t index )
     return NULL;
   }
 
-  if ( index < array->count )
+  if ( index < array->count && index < array->capacity )
   {
     return ( char* )array->data + ( index * array->element_size );
   }
@@ -158,24 +172,38 @@ void* d_PopDataFromArray( dArray_t* array )
  * -- Use realloc() internally which may move data to new memory location
  * -- Array capacity is updated to new_capacity on success
  */
-int d_ResizeArray( dArray_t* array, size_t new_capacity )
-{
-  if ( array == NULL )
-  {
-    return 1;
-  }
+ int d_ResizeArray( dArray_t* array, size_t new_capacity )
+ {
+   if ( array == NULL )
+   {
+    LOG("d_ResizeArray: array is NULL");
+     return 1;
+   }
 
-  void* new_data = realloc( array->data, new_capacity );
-  if ( new_data == NULL && new_capacity > 0 )
-  {
-    printf( "Failed to allocate new memory for array\n" );
-    return 1;
-  }
+   void* new_data = realloc( array->data, new_capacity );
+   if ( new_data == NULL && new_capacity > 0 )
+   {
+    LOG("d_ResizeArray: failed to allocate new memory for array");
+     return 1;
+   }
 
-  array->data = new_data;
-  array->capacity = new_capacity;
-  return 0;
-}
+   array->data = new_data;
+
+   // Handle division by zero when element_size is 0
+   if ( array->element_size == 0 )
+   {
+     // For zero element size, capacity in terms of "number of elements" is undefined
+     // Set capacity to 0 to avoid division by zero
+     array->capacity = 0;
+   }
+   else
+   {
+     array->capacity = new_capacity / array->element_size;
+   }
+
+   return 0;
+ }
+
 
 /*
  * Grow the dynamic array by adding additional capacity to current capacity
@@ -198,7 +226,7 @@ int d_GrowArray( dArray_t* array, size_t additional_capacity )
   {
     return 1;
   }
-  return d_ResizeArray( array, array->capacity + additional_capacity );
+  return d_ResizeArray( array, (array->capacity * array->element_size) + additional_capacity );
 }
 
 /*

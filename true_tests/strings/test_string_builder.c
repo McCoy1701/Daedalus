@@ -343,17 +343,6 @@ int test_string_builder_pythonic_utils(void)
     TEST_ASSERT(strcmp(d_PeekString(sb), "apple, banana, cherry") == 0, "d_JoinStrings should join with separator");
     d_ClearString(sb);
 
-    // Test Split
-    int count = 0;
-    char** parts = d_SplitString("one;two;three", ";", &count);
-    TEST_ASSERT(count == 3, "d_SplitString should find 3 parts");
-    if(count == 3) {
-        TEST_ASSERT(strcmp(parts[0], "one") == 0, "d_SplitString part 1 should be correct");
-        TEST_ASSERT(strcmp(parts[1], "two") == 0, "d_SplitString part 2 should be correct");
-        TEST_ASSERT(strcmp(parts[2], "three") == 0, "d_SplitString part 3 should be correct");
-    }
-    d_FreeSplitString(parts, count);
-
     // Test Slice
     d_SliceString(sb, "Hello, World!", 7, 12); // "World"
     TEST_ASSERT(strcmp(d_PeekString(sb), "World") == 0, "d_SliceString with positive indices should work");
