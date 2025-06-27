@@ -559,7 +559,173 @@ int test_massive_allocation_and_append(void)
     d_DestroyString(sb);
     return 1;
 }
+int test_string_builder_len_zero_behavior_CORRECTED(void)
+{
+    dString_t* sb = create_test_builder();
 
+    d_LogDebug("Testing len=0 behavior (should use strlen)...");
+    d_AppendString(sb, "test", 0);
+    TEST_ASSERT(d_GetStringLength(sb) == 4, "len=0 should use strlen() and add 'test'");
+    TEST_ASSERT(strcmp(d_PeekString(sb), "test") == 0, "Content should be 'test'");
+
+    d_LogDebug("Testing len=0 with empty string...");
+    d_ClearString(sb);
+    d_AppendString(sb, "", 0);
+    TEST_ASSERT(d_GetStringLength(sb) == 0, "len=0 with empty string should add nothing");
+
+    d_LogDebug("Testing explicit length vs actual string length...");
+    d_ClearString(sb);
+    d_AppendString(sb, "Hi", 10); // Request 10 but only 2 available
+
+    // CORRECTED: Your d_AppendStringN finds actual_len by scanning until null or max_len
+    // For "Hi" with max_len=10, actual_len = 2 (stops at null terminator)
+    TEST_ASSERT(d_GetStringLength(sb) == 10, "Should copy exactly the requested length");
+    TEST_ASSERT(strcmp(d_PeekString(sb), "Hi") == 0, "Content should be 'Hi'");
+
+    d_LogDebug("Testing explicit length with embedded nulls...");
+    d_ClearString(sb);
+    const char embedded_null[] = {'A', '\0', 'B', 'C', '\0'}; // Not null-terminated string!
+    d_AppendString(sb, embedded_null, 4); // Explicitly copy 4 bytes
+    TEST_ASSERT(d_GetStringLength(sb) == 4, "Should copy exactly 4 bytes including embedded null");
+    TEST_ASSERT(d_PeekString(sb)[0] == 'A', "First char should be 'A'");
+    TEST_ASSERT(d_PeekString(sb)[1] == '\0', "Second char should be null");
+    TEST_ASSERT(d_PeekString(sb)[2] == 'B', "Third char should be 'B'");
+    TEST_ASSERT(d_PeekString(sb)[3] == 'C', "Fourth char should be 'C'");
+
+    d_DestroyString(sb);
+    return 1;
+}
+
+int test_network_packet_corruption_bug(void)
+{
+    d_LogError("CRITICAL BUG: Testing network packet handling where null bytes are valid data.");
+    dLogContext_t* ctx = d_PushLogContext("NetworkPacketBug");
+
+    dString_t* packet_buffer = create_test_builder();
+
+    d_LogDebug("Simulating binary network packet with embedded nulls...");
+
+    // Simulate a network packet: [HEADER][NULL][PAYLOAD][NULL][CHECKSUM]
+    // This could be a real protocol like:
+    // - Binary RPC data
+    // - Compressed data streams
+    // - Encrypted payloads
+    // - Image/video data chunks
+
+    unsigned char network_packet[] = {
+        0x42, 0x00, 0x1A, 0x00,  // Header: Magic number + length
+        0x00,                     // NULL byte (valid data!)
+        'H', 'e', 'l', 'l', 'o', // Payload
+        0x00,                     // Another NULL (protocol separator)
+        0xFF, 0xEE, 0xDD, 0xCC   // Checksum
+    };
+
+    d_LogDebugF("Original packet size: %zu bytes", sizeof(network_packet));
+
+    // Try to append the ENTIRE packet (this should copy all 15 bytes)
+    d_AppendString(packet_buffer, (const char*)network_packet, sizeof(network_packet));
+
+    size_t copied_length = d_GetStringLength(packet_buffer);
+    d_LogErrorF("CORRUPTION DETECTED: Expected %zu bytes, but only copied %zu bytes!",
+                sizeof(network_packet), copied_length);
+
+    // This test SHOULD fail with your current buggy implementation
+    TEST_ASSERT(copied_length == sizeof(network_packet),
+               "Network packet corruption: Should copy ALL bytes including nulls");
+
+    // Verify the payload is completely corrupted
+    if (copied_length != sizeof(network_packet)) {
+        d_LogErrorF("SECURITY RISK: Packet truncated at first null byte (position 4)");
+        d_LogErrorF("Missing payload data could cause protocol desync!");
+        d_LogErrorF("Checksum validation will fail!");
+    }
+
+    d_DestroyString(packet_buffer);
+    d_PopLogContext(ctx);
+    return 1;
+}
+
+int test_database_blob_corruption_bug(void)
+{
+    d_LogError("CRITICAL BUG: Testing database BLOB handling where null bytes destroy data integrity.");
+    dLogContext_t* ctx = d_PushLogContext("DatabaseBlobBug");
+
+    dString_t* blob_data = create_test_builder();
+
+    d_LogDebug("Simulating database BLOB with binary data...");
+
+    // Simulate storing binary data like:
+    // - User profile pictures (JPEG/PNG data)
+    // - Encrypted password hashes
+    // - Serialized objects
+    // - Compressed documents
+
+    unsigned char jpeg_header[] = {
+        0xFF, 0xD8, 0xFF, 0xE0,  // JPEG SOI + APP0 marker
+        0x00, 0x10,              // APP0 length (contains null!)
+        'J', 'F', 'I', 'F',     // JFIF identifier
+        0x00,                    // NULL terminator for JFIF
+        0x01, 0x01,              // JFIF version
+        0x01, 0x00, 0x48         // Density info
+    };
+
+    d_LogDebugF("Original JPEG header size: %zu bytes", sizeof(jpeg_header));
+
+    // Database storage simulation: append exact blob length
+    d_AppendString(blob_data, "BLOB_START:", 0);
+    d_AppendString(blob_data, (const char*)jpeg_header, sizeof(jpeg_header));
+    d_AppendString(blob_data, ":BLOB_END", 0);
+
+    const char* stored_data = d_PeekString(blob_data);
+    size_t total_length = d_GetStringLength(blob_data);
+
+    d_LogDebugF("Expected total length: %zu", 11 + sizeof(jpeg_header) + 9);
+    d_LogDebugF("Actual stored length: %zu", total_length);
+
+    // Calculate expected vs actual
+    size_t expected_total = 11 + sizeof(jpeg_header) + 9; // "BLOB_START:" + header + ":BLOB_END"
+
+    if (total_length != expected_total) {
+        d_LogErrorF("DATA CORRUPTION: JPEG header truncated!");
+        d_LogErrorF("Database will store incomplete binary data!");
+        d_LogErrorF("Image reconstruction will fail!");
+        d_LogErrorF("User will see broken profile picture!");
+
+        // Show exactly where the corruption occurs
+        for (size_t i = 0; i < total_length; i++) {
+            if (stored_data[i] == '\0') {
+                d_LogErrorF("Found unexpected null termination at position %zu", i);
+                break;
+            }
+        }
+    }
+
+    // This test should PASS because your implementation correctly handles binary data
+    TEST_ASSERT(total_length == expected_total,
+               "Database BLOB should store complete binary data correctly");
+
+    // Verify the end marker is present using binary-safe search
+    // (strstr fails with binary data containing nulls)
+    bool found_end_marker = false;
+    const char* end_marker = ":BLOB_END";
+    size_t marker_len = strlen(end_marker);
+
+    for (size_t i = 0; i <= total_length - marker_len; i++) {
+        if (memcmp(stored_data + i, end_marker, marker_len) == 0) {
+            found_end_marker = true;
+            d_LogDebugF("Found end marker at position %zu", i);
+            break;
+        }
+    }
+
+    TEST_ASSERT(found_end_marker,
+               "BLOB end marker should be present with correct binary handling");
+
+    d_LogDebugF("SUCCESS: Binary BLOB data stored correctly with length %zu", total_length);
+    d_DestroyString(blob_data);
+    d_PopLogContext(ctx);
+    return 1;
+}
 // Main test runner
 int main(void)
 {
@@ -583,6 +749,12 @@ int main(void)
     RUN_TEST(test_rapid_mixed_operations);
     RUN_TEST(test_format_string_advanced);
     RUN_TEST(test_massive_allocation_and_append);
+
+    RUN_TEST(test_string_builder_len_zero_behavior_CORRECTED);
+
+    RUN_TEST(test_network_packet_corruption_bug);
+    RUN_TEST(test_database_blob_corruption_bug);
+
 
     TEST_SUITE_END();
 }

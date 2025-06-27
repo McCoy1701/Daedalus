@@ -58,6 +58,14 @@ char* d_CreateStringFromFile(const char *filename)
  *
  * -- Internal function that grows the buffer using doubling strategy
  * -- Buffer is always kept null-terminated
+ * -- MEMORY ALLOCATION: Uses realloc() which may move buffer location
+ * -- GROWTH STRATEGY: Doubles capacity until sufficient space is available
+ * -- OVERFLOW PROTECTION: Handles maximum allocation size boundary gracefully
+ * -- PERFORMANCE: O(1) amortized time complexity due to exponential growth
+ * -- PRECONDITIONS: sb must be valid pointer to initialized string builder
+ * -- SIDE EFFECTS: May invalidate existing pointers to sb->str buffer
+ * -- THREAD SAFETY: Not thread-safe, caller must synchronize access
+ * -- Edge case: If add_len would cause integer overflow, allocation is capped
  */
 static void d_StringBuilderEnsureSpace(dString_t* sb, size_t add_len)
 {
@@ -87,11 +95,6 @@ static void d_StringBuilderEnsureSpace(dString_t* sb, size_t add_len)
 
 /*
  * Create a new string builder
- *
- * `dString_t*` - Pointer to new string builder, or NULL on allocation failure
- *
- * -- Must be destroyed with d_DestroyString() to free memory
- * -- Initial capacity is 32 bytes but will grow automatically
  */
  dString_t* d_InitString(void)
  {
@@ -118,11 +121,6 @@ static void d_StringBuilderEnsureSpace(dString_t* sb, size_t add_len)
  }
 /*
  * Destroy a string builder and free its memory
- *
- * `sb` - Pointer to string builder to destroy
- *
- * -- After calling this function, the pointer is invalid and should not be used
- * -- Calling with NULL is safe and does nothing
  */
 void d_DestroyString(dString_t* sb)
 {
@@ -135,31 +133,23 @@ void d_DestroyString(dString_t* sb)
 }
 /*
  * Add a string to the string builder
- *
- * `sb` - Pointer to string builder
- * `str` - String to append (must be null-terminated if len is 0)
- * `len` - Length of string to append, or 0 to use strlen()
- *
- * -- If len is 0, strlen() is called to determine the length
- * -- If len > 0, exactly len characters are copied (partial strings allowed)
- * -- Does nothing if sb or str is NULL, or if str is empty
  */
  void d_AppendString(dString_t* sb, const char* str, size_t len)
- {
-     // Basic validation: must have a valid string builder and source string.
-     if (sb == NULL || str == NULL) {
-         return;
-     }
+  {
+      // Basic validation: must have a valid string builder and source string.
+      if (sb == NULL || str == NULL) {
+          return;
+      }
 
-     // If len is 0, we treat `str` as a normal C-string.
-     // We can safely check for an empty string and use strlen().
-     if (len == 0) {
-         if (*str == '\0') {
-             return; // Nothing to append.
-         }
-         len = strlen(str);
-     }
-     // If len > 0, we proceed even if the data contains null bytes.
+      // If len is 0, we treat `str` as a normal C-string.
+      // We can safely check for an empty string and use strlen().
+      if (len == 0) {
+          if (*str == '\0') {
+              return; // Nothing to append.
+          }
+          len = strlen(str);
+      }
+      // If len > 0, we proceed and copy EXACTLY len bytes, including null bytes.
 
      // Handle the self-append edge case.
      ptrdiff_t offset = -1;
@@ -184,6 +174,45 @@ void d_DestroyString(dString_t* sb)
      memmove(sb->str + sb->len, source_ptr, len);
      sb->len += len;
      sb->str[sb->len] = '\0'; // Ensure null-termination.
+ }
+ /*
+  * Add a limited portion of a string to the string builder
+  */
+ void d_AppendStringN(dString_t* sb, const char* str, size_t max_len)
+ {
+     if (sb == NULL || str == NULL || max_len == 0) {
+         return;
+     }
+
+     // Find the actual length to append (minimum of max_len and string length)
+     size_t actual_len = 0;
+     while (actual_len < max_len && str[actual_len] != '\0') {
+         actual_len++;
+     }
+
+     if (actual_len == 0) {
+         return; // Nothing to append
+     }
+
+     // Handle the self-append edge case (similar to d_AppendString)
+     ptrdiff_t offset = -1;
+     if (str >= sb->str && str < sb->str + sb->alloced) {
+         offset = str - sb->str;
+     }
+
+     // Ensure space and handle potential realloc
+     d_StringBuilderEnsureSpace(sb, actual_len);
+
+     const char* source_ptr = str;
+     if (offset != -1) {
+         // Recalculate pointer if buffer was reallocated
+         source_ptr = sb->str + offset;
+     }
+
+     // Safe append with exact length control
+     memmove(sb->str + sb->len, source_ptr, actual_len);
+     sb->len += actual_len;
+     sb->str[sb->len] = '\0'; // Ensure null termination
  }
 /*
  * Add a single character to the string builder
