@@ -43,9 +43,7 @@ $(OBJ_DIR)/dStrings-dArrays.o: $(SRC_DIR)/dStrings-dArrays.c
 $(OBJ_DIR)/dVectorMath.o: $(SRC_DIR)/dVectorMath.c
 	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
 
-
-
-$(BIN_DIR)/libDaedalus: $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings-dArrays.o $(OBJ_DIR)/dVectorMath.o
+$(BIN_DIR)/libDaedalus: $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings-dArrays.o $(OBJ_DIR)/dVectorMath.o $(OBJ_DIR)/dLogs.o
 	$(CC) $^ $(CINC) -shared -fPIC -pedantic  $(CFLAGS) -o $@.so
 
 .PHONY: native
