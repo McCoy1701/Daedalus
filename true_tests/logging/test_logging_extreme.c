@@ -227,7 +227,7 @@ int test_rate_limited_logging() {
 
     // Test formatted rate limiting
     for (int i = 0; i < 15; i++) {
-        d_LogRateLimitedF(D_LOG_LEVEL_ERROR, 5, 2.0,
+        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FINAL_MESSAGE, D_LOG_LEVEL_ERROR, 5, 2.0,
                          "Error in iteration %d", i);
     }
     TEST_ASSERT(true, "Formatted rate limited logging should not crash");
@@ -647,7 +647,7 @@ int test_extreme_integration() {
             }
 
             // Rate limited logging
-            d_LogRateLimitedF(D_LOG_LEVEL_ERROR, 3, 1.0,
+            d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FINAL_MESSAGE, D_LOG_LEVEL_ERROR, 3, 1.0,
                              "Repeated error in cycle %d", cycle);
 
             d_PopLogContext(cycle_ctx);
@@ -762,7 +762,7 @@ int test_epic_ultimate_chaos_final_boss() {
                 break;
             }
             case 6:
-                d_LogRateLimitedF(D_LOG_LEVEL_WARNING, 5, 0.5, "Rate limited format #%d", i);
+                d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FINAL_MESSAGE, D_LOG_LEVEL_WARNING, 5, 0.5, "Rate limited format #%d", i);
                 break;
         }
 

@@ -129,6 +129,7 @@ static bool is_color_terminal(void)
             strcmp(term, "linux") == 0);
 }
 
+
 // =============================================================================
 // GLOBAL CONFIGURATION
 // =============================================================================
@@ -144,7 +145,7 @@ static __thread dString_t* tls_format_buffer = NULL;
 
 // Global logger instance
 static dLogger_t* g_global_logger = NULL;
-
+static pthread_mutex_t rate_limit_mutex = PTHREAD_MUTEX_INITIALIZER;
 // Global color support detection
 static bool g_color_support_detected = false;
 static bool g_supports_color = false;
@@ -1195,17 +1196,17 @@ void d_LogRateLimited_Enhanced(dLogLevel_t level, uint32_t max_count, double tim
     } else {
         // Rate limit less aggressively - only suppress after hitting limit multiple times
         if (rate_limit->count == max_count) {
-            d_LogWarningF("⚠️  Rate limiting activated for message hash %u (max %u per %.1fs)", 
+            d_LogWarningF("⚠️  Rate limiting activated for message hash %u (max %u per %.1fs)",
                          msg_hash, max_count, time_window);
         }
         rate_limit->count++;
-        
+
         // Allow some messages through even when rate limited (every 10th message)
         if (rate_limit->count % 10 == 0) {
-            d_LogWarningF("🚫 Rate limited message (suppressed %u times): %s", 
+            d_LogWarningF("🚫 Rate limited message (suppressed %u times): %s",
                          rate_limit->count - max_count, message);
         }
-        
+
         // Log was rate limited
         was_rate_limited = true;
         update_log_stats(g_global_logger, level, 0.0, false, was_rate_limited, false);
@@ -1471,7 +1472,7 @@ void d_LogStructured_Commit(dLogStructured_t* structured) {
 
     // Add debug indicator for structured logs
     const char* format_type = structured->in_json_mode ? "JSON" : "KV";
-    
+
     // Commit the log using the correct d_LogEx signature
     d_LogEx(structured->base.level, structured->base.file, structured->base.line,
             structured->base.function, d_PeekString(structured->base.buffer));
@@ -1502,14 +1503,14 @@ dLogStructured_t* d_LogStructured_FieldTimestamp(dLogStructured_t* structured, c
 
     // Get current timestamp
     double timestamp = d_GetTimestamp();
-    
+
     // Convert to ISO 8601 format
     time_t time_secs = (time_t)timestamp;
     int milliseconds = (int)((timestamp - time_secs) * 1000);
-    
+
     struct tm* tm_info = gmtime(&time_secs);
     char timestamp_str[32];
-    snprintf(timestamp_str, sizeof(timestamp_str), 
+    snprintf(timestamp_str, sizeof(timestamp_str),
              "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
              tm_info->tm_year + 1900,
              tm_info->tm_mon + 1,
@@ -1847,39 +1848,122 @@ void d_LogIfF(bool condition, dLogLevel_t level, const char* format, ...) {
 }
 
 // =============================================================================
-// RATE LIMITED LOGGING WRAPPERS
+// RATE LIMITED LOGGING
 // =============================================================================
 
-/*
- * Rate limited logging - wrapper for the enhanced function
- */
-void d_LogRateLimited(dLogLevel_t level, uint32_t max_count, double time_window, const char* message) {
-    d_LogRateLimited_Enhanced(level, max_count, time_window, message);
-}
+// Helper function to format a string with va_list, needed by the rate limiter.
+// NOTE: This function should exist in your dLogs.c. If not, add it.
+void d_FormatStringV(dString_t* sb, const char* format, va_list args) {
+    if (!sb || !format) return;
 
-/*
- * Rate limited logging with formatting
- */
-void d_LogRateLimitedF(dLogLevel_t level, uint32_t max_count, double time_window, const char* format, ...) {
-    if (!format) return;
+    d_ClearString(sb); // Clear the buffer for fresh use
 
-    va_list args;
-    va_start(args, format);
-
-    // Calculate required size
     va_list args_copy;
     va_copy(args_copy, args);
     int needed = vsnprintf(NULL, 0, format, args_copy);
     va_end(args_copy);
 
-    if (needed > 0) {
-        char* temp_buffer = malloc(needed + 1);
-        if (temp_buffer) {
-            vsnprintf(temp_buffer, needed + 1, format, args);
-            d_LogRateLimited_Enhanced(level, max_count, time_window, temp_buffer);
-            free(temp_buffer);
+    if (needed >= 0) {
+        // Ensure string builder has capacity. Your dString library should handle this.
+        // For this example, we assume it can grow.
+        if (sb->len + needed + 1 > sb->alloced) {
+             sb->str = realloc(sb->str, sb->len + needed + 1);
+             sb->alloced = sb->len + needed + 1;
+        }
+        vsnprintf(sb->str + sb->len, needed + 1, format, args);
+        sb->len += needed;
+    }
+}
+
+
+void d_ResetRateLimiterCache() {
+    if (rate_limit_cache) {
+        d_DestroyArray(rate_limit_cache);
+        rate_limit_cache = NULL;
+    }
+}
+
+size_t d_GetRateLimiterCacheEntryCount(void) {
+    if (!rate_limit_cache) return 0;
+    return rate_limit_cache->count;
+}
+
+
+void d_LogRateLimited(dLogLevel_t level, uint32_t max_count, double time_window, const char* message) {
+    d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FINAL_MESSAGE, level, max_count, time_window, "%s", message);
+}
+
+// In src/dLogs.c
+
+void d_LogRateLimitedF(dLogRateLimitFlag_t flag, dLogLevel_t level, uint32_t max_count, double time_window, const char* format, ...) {
+    if (!format) return;
+
+    // The entire logic is one atomic, thread-safe operation.
+    pthread_mutex_lock(&rate_limit_mutex);
+
+    dLogger_t* logger = g_global_logger;
+    if (!logger || level < logger->config.default_level) {
+        pthread_mutex_unlock(&rate_limit_mutex);
+        return;
+    }
+
+    init_rate_limit_cache();
+
+    va_list args;
+    va_start(args, format);
+
+    uint32_t message_hash;
+    dString_t* message_buffer = get_tls_buffer();
+
+    if (flag == D_LOG_RATE_LIMIT_FLAG_HASH_FINAL_MESSAGE) {
+        d_FormatStringV(message_buffer, format, args);
+        message_hash = hash_message(d_PeekString(message_buffer));
+    } else {
+        message_hash = hash_message(format);
+    }
+
+    double current_time = d_GetTimestamp();
+    dLogRateLimit_t* rate_limit = NULL;
+    bool should_log = false;
+
+    for (size_t i = 0; i < rate_limit_cache->count; i++) {
+        dLogRateLimit_t* entry = (dLogRateLimit_t*)d_GetDataFromArrayByIndex(rate_limit_cache, i);
+        if (entry && entry->message_hash == message_hash) {
+            rate_limit = entry;
+            break;
         }
     }
 
+    if (!rate_limit) {
+        // First time we've seen this message.
+        // ** THE FIX IS HERE: Check max_count BEFORE the first log. **
+        if (max_count > 0) {
+            should_log = true;
+            dLogRateLimit_t new_entry = { .message_hash = message_hash, .count = 1, .max_count = max_count, .time_window = time_window, .first_log_time = current_time };
+            d_AppendArray(rate_limit_cache, &new_entry);
+        }
+    } else {
+        // We've seen this message before.
+        if (current_time - rate_limit->first_log_time > time_window) {
+            // Window expired. Allow one log and reset.
+            should_log = true;
+            rate_limit->count = 1;
+            rate_limit->first_log_time = current_time;
+        } else if (rate_limit->count < max_count) {
+            // Still in window, but under count. Allow.
+            should_log = true;
+            rate_limit->count++;
+        }
+    }
+
+    if (should_log && flag == D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING) {
+        d_FormatStringV(message_buffer, format, args);
+    }
+
     va_end(args);
+    pthread_mutex_unlock(&rate_limit_mutex);
+
+    if (should_log) {
+        d_Log(level, d_PeekString(message_buffer));
+    }
 }

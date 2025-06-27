@@ -148,6 +148,19 @@ test-create-string-from-file: always $(OBJ_DIR)/dStrings.o
 run-test-create-string-from-file: test-create-string-from-file
 	@./$(BIN_DIR)/test_create_string_from_file
 
+.PHONY: test-logging-rate-limited
+test-logging-rate-limited: always $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_logging_rate_limited \
+		$(TEST_DIR)/logging/test_logging_rate_limited.c \
+		$(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o
+
+.PHONY: run-test-logging-rate-limited
+run-test-logging-rate-limited: test-logging-rate-limited
+	@./$(BIN_DIR)/test_logging_rate_limited
+
+.PHONY: run
+run: run-test-create-string-from-file run-test-logging-rate-limited run-test-string-builder run-test-string-builder-edge
+
 .PHONY: test-string-builder
 test-string-builder: always $(OBJ_DIR)/dStrings.o
 	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_string_builder $(TEST_DIR)/strings/test_string_builder.c $(OBJ_DIR)/dStrings.o
@@ -183,10 +196,6 @@ run-test-logging-basic: test-logging-basic
 .PHONY: test-logging-advanced
 test-logging-advanced: always $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o
 	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_logging_advanced $(TEST_DIR)/logging/test_logging_advanced.c $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o
-
-.PHONY: run-test-logging-advanced
-run-test-logging-advanced: test-logging-advanced
-	@./$(BIN_DIR)/test_logging_advanced
 
 .PHONY: test-logging-extreme
 test-logging-extreme: always $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o

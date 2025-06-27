@@ -112,9 +112,9 @@ int test_dynamic_array_resize_shrink(void)
     size_t target_capacity = 3;
     size_t resize_bytes = target_capacity * sizeof(int);
     d_LogWarningF("⚠️ Attempting shrink resize: %zu → %zu elements (%zu bytes) - potential data loss",
-                  array->capacity, target_capacity, resize_bytes);
+                      array->capacity, target_capacity, resize_bytes);
 
-    int result = d_ResizeArray(array, resize_bytes);
+        int result = d_ResizeArray(array, resize_bytes);
 
     // Comprehensive logging for shrink operation
     dLogStructured_t* shrink_log = d_LogStructured(D_LOG_LEVEL_INFO);
@@ -133,8 +133,9 @@ int test_dynamic_array_resize_shrink(void)
     d_LogInfoF("✅ Shrink successful: capacity reduced to %zu", array->capacity);
 
     // Note: The count is not automatically adjusted, which might be a design choice
-    d_LogWarningF("⚠️ Design note: count remains %zu even though capacity is %zu", array->count, array->capacity);
-    TEST_ASSERT(array->count == 6, "Count is not automatically adjusted in current implementation");
+    d_LogWarningF("⚠️ Design note: count is now correctly adjusted to %zu to match new capacity", array->count);
+        TEST_ASSERT(array->count == target_capacity, "Count SHOULD be adjusted down to the new capacity");
+
 
     // The remaining accessible data should still be valid
     d_LogDebug("Verifying accessible data integrity after shrink");
@@ -212,17 +213,17 @@ int test_dynamic_array_resize_zero(void)
     // Test get operation - the implementation allows access to previously allocated memory
     d_LogDebug("🔍 CRITICAL TEST: Getting data from zero-capacity array");
     void* get_result = d_GetDataFromArrayByIndex(array, 0);
-    
+
     // Enhanced logging for the test behavior
     d_LogInfoF("Get operation result: pointer=%p", get_result);
-    
+
     if (get_result == NULL) {
         d_LogInfo("ℹ️ Get from zero-capacity array returned NULL");
     } else {
         d_LogInfoF("ℹ️ Get from zero-capacity array returned pointer: %p (implementation allows access to previously allocated data)", get_result);
         d_LogInfo("ℹ️ This is valid behavior - the implementation preserves access to data that was allocated before resize");
     }
-    
+
     // Accept either behavior as valid - the implementation may allow access to previously allocated memory
     TEST_ASSERT(1, "Zero-capacity array get operation completed (implementation behavior accepted)");
 
@@ -233,7 +234,7 @@ int test_dynamic_array_resize_zero(void)
     d_LogDebug("Testing pop operation with zero element size");
     void* pop_result = d_PopDataFromArray(array);
     d_LogDebugF("Pop from zero-capacity array returned: %p", pop_result);
-    
+
     if (pop_result == NULL) {
         d_LogInfo("ℹ️ Pop from zero-capacity array returned NULL");
     } else {
@@ -244,7 +245,7 @@ int test_dynamic_array_resize_zero(void)
     // Test multiple get operations
     for (int i = 0; i < 3; i++) {
         void* test_get = d_GetDataFromArrayByIndex(array, i);
-        d_LogRateLimitedF(D_LOG_LEVEL_DEBUG, 2, 1.0,
+        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG, 2, 1.0,
                          "Get index %d from zero-capacity: %s", i, test_get ? "non-NULL" : "NULL");
     }
 
@@ -545,7 +546,7 @@ int test_debug_hunter_memory_fragmentation_stress(void)
                     if (arrays[i]->count < arrays[i]->capacity) {
                         int value = i * 100 + op;
                         d_AppendArray(arrays[i], &value);
-                        d_LogRateLimitedF(D_LOG_LEVEL_DEBUG, 5, 4.0,
+                        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG, 5, 4.0,
                                         "Array %d: Appended %d", i, value);
                     }
                     break;
@@ -553,7 +554,7 @@ int test_debug_hunter_memory_fragmentation_stress(void)
                 case 1: // Pop
                     if (arrays[i]->count > 0) {
                         d_PopDataFromArray(arrays[i]);
-                        d_LogRateLimitedF(D_LOG_LEVEL_DEBUG, 5, 4.0,
+                        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG, 5, 4.0,
                                         "Array %d: Popped element", i);
                     }
                     break;
@@ -562,7 +563,7 @@ int test_debug_hunter_memory_fragmentation_stress(void)
                     if (arrays[i]->capacity < 50) {
                         size_t new_cap = arrays[i]->capacity + 5;
                         d_ResizeArray(arrays[i], new_cap * sizeof(int));
-                        d_LogRateLimitedF(D_LOG_LEVEL_DEBUG, 5, 4.0,
+                        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG, 5, 4.0,
                                         "Array %d: Resized to %zu", i, new_cap);
                     }
                     break;
@@ -571,7 +572,7 @@ int test_debug_hunter_memory_fragmentation_stress(void)
                     if (arrays[i]->capacity > 3) {
                         size_t new_cap = (arrays[i]->capacity > 5) ? arrays[i]->capacity - 2 : 3;
                         d_ResizeArray(arrays[i], new_cap * sizeof(int));
-                        d_LogRateLimitedF(D_LOG_LEVEL_DEBUG, 5, 4.0,
+                        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG, 5, 4.0,
                                         "Array %d: Shrunk to %zu", i, new_cap);
                     }
                     break;
@@ -774,38 +775,38 @@ int test_debug_hunter_resize_memory_alignment_chaos(void)
 {
     dLogContext_t* ctx = d_PushLogContext("MemoryAlignmentChaos");
     d_LogInfo("🔍 HUNTING: Memory alignment and padding bugs during resize operations");
-    
+
     // Test with different element sizes that might cause alignment issues
     size_t problematic_sizes[] = {1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 23, 31};
     int num_sizes = sizeof(problematic_sizes) / sizeof(problematic_sizes[0]);
-    
+
     for (int i = 0; i < num_sizes; i++) {
         size_t elem_size = problematic_sizes[i];
         d_LogInfoF("🔍 Testing alignment with element size: %zu bytes", elem_size);
-        
+
         dArray_t* array = d_InitArray(4, elem_size);
         TEST_ASSERT(array != NULL, "Array creation should succeed for any element size");
-        
+
         // Fill with pattern data
         char pattern_data[32];
         for (size_t j = 0; j < elem_size && j < 32; j++) {
             pattern_data[j] = (char)(0xAA + (j % 26));
         }
-        
+
         // Add some elements
         for (int k = 0; k < 4; k++) {
             d_AppendArray(array, pattern_data);
         }
-        
+
         // Resize to different sizes and check alignment
         size_t resize_sequence[] = {8, 2, 16, 1, 32};
         for (int r = 0; r < 5; r++) {
             size_t new_capacity = resize_sequence[r];
             int result = d_ResizeArray(array, new_capacity * elem_size);
-            
+
             if (result == 0) {
                 d_LogDebugF("Resize to %zu elements succeeded", new_capacity);
-                
+
                 // Verify data integrity after resize
                 size_t elements_to_check = (array->count < new_capacity) ? array->count : new_capacity;
                 for (size_t e = 0; e < elements_to_check; e++) {
@@ -824,7 +825,7 @@ int test_debug_hunter_resize_memory_alignment_chaos(void)
                 }
             }
         }
-        
+
         // Structured logging for alignment test
         dLogStructured_t* alignment_log = d_LogStructured(D_LOG_LEVEL_DEBUG);
         d_LogStructured_Field(alignment_log, "test", "memory_alignment_chaos");
@@ -834,10 +835,10 @@ int test_debug_hunter_resize_memory_alignment_chaos(void)
         d_LogStructured_FieldBool(alignment_log, "no_corruption_detected", true);
         d_LogStructured_SetFormat(alignment_log, false);
         d_LogStructured_Commit(alignment_log);
-        
+
         d_DestroyArray(array);
     }
-    
+
     d_LogInfo("🎉 Memory alignment chaos test completed - no alignment bugs detected");
     TEST_ASSERT(1, "Memory alignment stress test completed");
     d_PopLogContext(ctx);
@@ -848,10 +849,10 @@ int test_debug_hunter_resize_integer_overflow_trap(void)
 {
     dLogContext_t* ctx = d_PushLogContext("IntegerOverflowTrap");
     d_LogWarning("🔍 HUNTING: Integer overflow vulnerabilities in resize calculations");
-    
+
     dArray_t* array = d_InitArray(10, sizeof(int));
     d_LogInfoF("Created array for overflow testing: capacity=%zu", array->capacity);
-    
+
     // Test near-overflow conditions
     size_t dangerous_sizes[] = {
         SIZE_MAX / 2,
@@ -861,15 +862,15 @@ int test_debug_hunter_resize_integer_overflow_trap(void)
         SIZE_MAX - 100,
         SIZE_MAX - 10
     };
-    
+
     int num_dangerous = sizeof(dangerous_sizes) / sizeof(dangerous_sizes[0]);
-    
+
     for (int i = 0; i < num_dangerous; i++) {
         size_t dangerous_size = dangerous_sizes[i];
         d_LogWarningF("🚨 Testing overflow boundary: %zu bytes", dangerous_size);
-        
+
         int result = d_ResizeArray(array, dangerous_size);
-        
+
         // Enhanced overflow analysis
         dLogStructured_t* overflow_log = d_LogStructured(D_LOG_LEVEL_WARNING);
         d_LogStructured_Field(overflow_log, "test", "integer_overflow_boundary");
@@ -879,19 +880,19 @@ int test_debug_hunter_resize_integer_overflow_trap(void)
         d_LogStructured_FieldBool(overflow_log, "overflow_prevented", result != 0);
         d_LogStructured_SetFormat(overflow_log, true);
         d_LogStructured_Commit(overflow_log);
-        
+
         if (result != 0) {
             d_LogInfoF("✅ Overflow protection worked: resize failed safely with code %d", result);
         } else {
             d_LogWarningF("⚠️ Resize unexpectedly succeeded - system has massive memory capacity");
         }
-        
+
         TEST_ASSERT(1, "Overflow test should not crash");
     }
-    
+
     // Test element_size * capacity overflow scenarios
     d_LogDebug("Testing element_size multiplication overflow scenarios");
-    
+
     // Try creating arrays where capacity * element_size would overflow
     struct {
         size_t capacity;
@@ -903,15 +904,15 @@ int test_debug_hunter_resize_integer_overflow_trap(void)
         {SIZE_MAX / 4, 8, "quarter_max_with_long"},
         {SIZE_MAX / 100, 200, "large_structs"}
     };
-    
+
     for (int i = 0; i < 4; i++) {
-        d_LogDebugF("Testing %s: capacity=%zu, element_size=%zu", 
-                   overflow_tests[i].description, 
-                   overflow_tests[i].capacity, 
+        d_LogDebugF("Testing %s: capacity=%zu, element_size=%zu",
+                   overflow_tests[i].description,
+                   overflow_tests[i].capacity,
                    overflow_tests[i].element_size);
-        
+
         dArray_t* test_array = d_InitArray(overflow_tests[i].capacity, overflow_tests[i].element_size);
-        
+
         if (test_array == NULL) {
             d_LogInfoF("✅ Array creation safely failed for %s", overflow_tests[i].description);
         } else {
@@ -919,7 +920,7 @@ int test_debug_hunter_resize_integer_overflow_trap(void)
             d_DestroyArray(test_array);
         }
     }
-    
+
     d_LogInfo("🎉 Integer overflow trap testing completed");
     d_DestroyArray(array);
     d_PopLogContext(ctx);
@@ -930,27 +931,27 @@ int test_debug_hunter_resize_concurrent_access_simulation(void)
 {
     dLogContext_t* ctx = d_PushLogContext("ConcurrentAccessSim");
     d_LogInfo("🔍 HUNTING: Race conditions and concurrent access bugs during resize");
-    
+
     dArray_t* array = d_InitArray(5, sizeof(int));
     d_LogInfoF("Created array for concurrency simulation: capacity=%zu", array->capacity);
-    
+
     // Fill with initial data
     int base_values[] = {1000, 2000, 3000, 4000, 5000};
     for (int i = 0; i < 5; i++) {
         d_AppendArray(array, &base_values[i]);
     }
-    
+
     // Simulate concurrent operations by rapidly switching between operations
     // This tests for race condition-like bugs even in single-threaded context
     d_LogInfo("Simulating rapid concurrent-style operations");
-    
+
     for (int cycle = 0; cycle < 20; cycle++) {
-        d_LogRateLimitedF(D_LOG_LEVEL_DEBUG, 5, 2.0, "Concurrency simulation cycle %d", cycle);
-        
+        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG, 5, 2.0, "Concurrency simulation cycle %d", cycle);
+
         // Rapid resize operations
         size_t resize_target = (cycle % 2 == 0) ? 10 : 3;
         int resize_result = d_ResizeArray(array, resize_target * sizeof(int));
-        
+
         if (resize_result == 0) {
             // Immediately try to access data
             for (int i = 0; i < 3; i++) {
@@ -962,17 +963,17 @@ int test_debug_hunter_resize_concurrent_access_simulation(void)
                     }
                 }
             }
-            
+
             // Try rapid append/pop cycles
             int temp_value = 9999;
             d_AppendArray(array, &temp_value);
             int* popped = (int*)d_PopDataFromArray(array);
-            
+
             if (popped != NULL && *popped != 9999) {
                 d_LogErrorF("🚨 CONCURRENCY BUG: Append/pop mismatch: expected 9999, got %d", *popped);
             }
         }
-        
+
         // Stress test: multiple rapid operations
         for (int micro = 0; micro < 5; micro++) {
             void* quick_get = d_GetDataFromArrayByIndex(array, 0);
@@ -981,10 +982,10 @@ int test_debug_hunter_resize_concurrent_access_simulation(void)
             }
         }
     }
-    
+
     // Final integrity check
     d_LogInfo("Performing final integrity verification");
-    
+
     dLogStructured_t* concurrency_report = d_LogStructured(D_LOG_LEVEL_INFO);
     d_LogStructured_Field(concurrency_report, "test", "concurrent_access_simulation");
     d_LogStructured_FieldInt(concurrency_report, "simulation_cycles", 20);
@@ -993,7 +994,7 @@ int test_debug_hunter_resize_concurrent_access_simulation(void)
     d_LogStructured_FieldBool(concurrency_report, "no_race_conditions_detected", true);
     d_LogStructured_SetFormat(concurrency_report, false);
     d_LogStructured_Commit(concurrency_report);
-    
+
     // Verify final state
     for (size_t i = 0; i < array->count && i < 5; i++) {
         int* data = (int*)d_GetDataFromArrayByIndex(array, i);
@@ -1001,7 +1002,7 @@ int test_debug_hunter_resize_concurrent_access_simulation(void)
             d_LogDebugF("Final verification - Element %zu: %d", i, *data);
         }
     }
-    
+
     d_LogInfo("🎉 Concurrent access simulation completed - no race conditions detected");
     TEST_ASSERT(1, "Concurrent access simulation completed");
     d_DestroyArray(array);
@@ -1013,15 +1014,15 @@ int test_debug_hunter_resize_extreme_boundary_dance(void)
 {
     dLogContext_t* ctx = d_PushLogContext("ExtremeBoundaryDance");
     d_LogInfo("🔍 HUNTING: Extreme boundary conditions and off-by-one errors");
-    
+
     // Test arrays with single element capacity
     d_LogInfo("Testing single-element boundary conditions");
     dArray_t* single_array = d_InitArray(1, sizeof(long long));
-    
+
     // Fill to exact capacity
     long long magic_value = 0x123456789ABCDEF0LL;
     d_AppendArray(single_array, &magic_value);
-    
+
     // Extreme boundary tests
     struct {
         size_t resize_to;
@@ -1034,17 +1035,17 @@ int test_debug_hunter_resize_extreme_boundary_dance(void)
         {3, "resize_to_small_expansion"},
         {1000000, "resize_to_massive_expansion"}
     };
-    
+
     int num_boundary_tests = sizeof(boundary_tests) / sizeof(boundary_tests[0]);
-    
+
     for (int i = 0; i < num_boundary_tests; i++) {
         size_t target_capacity = boundary_tests[i].resize_to;
-        d_LogInfoF("🎯 Boundary test: %s (target capacity: %zu)", 
+        d_LogInfoF("🎯 Boundary test: %s (target capacity: %zu)",
                    boundary_tests[i].description, target_capacity);
-        
+
         size_t resize_bytes = target_capacity * sizeof(long long);
         int result = d_ResizeArray(single_array, resize_bytes);
-        
+
         // Log detailed boundary analysis
         dLogStructured_t* boundary_log = d_LogStructured(D_LOG_LEVEL_DEBUG);
         d_LogStructured_Field(boundary_log, "boundary_test", boundary_tests[i].description);
@@ -1054,10 +1055,10 @@ int test_debug_hunter_resize_extreme_boundary_dance(void)
         d_LogStructured_FieldInt(boundary_log, "count_after_resize", (int)single_array->count);
         d_LogStructured_SetFormat(boundary_log, true);
         d_LogStructured_Commit(boundary_log);
-        
+
         if (result == 0) {
             d_LogInfoF("✅ Boundary resize succeeded: capacity now %zu", single_array->capacity);
-            
+
             // Verify data integrity if possible
             if (single_array->capacity > 0 && single_array->count > 0) {
                 long long* retrieved = (long long*)d_GetDataFromArrayByIndex(single_array, 0);
@@ -1065,7 +1066,7 @@ int test_debug_hunter_resize_extreme_boundary_dance(void)
                     if (*retrieved == magic_value) {
                         d_LogDebug("✅ Magic value preserved through boundary resize");
                     } else {
-                        d_LogErrorF("🚨 BOUNDARY BUG: Magic value corrupted: expected 0x%llX, got 0x%llX", 
+                        d_LogErrorF("🚨 BOUNDARY BUG: Magic value corrupted: expected 0x%llX, got 0x%llX",
                                    magic_value, *retrieved);
                     }
                 }
@@ -1073,21 +1074,21 @@ int test_debug_hunter_resize_extreme_boundary_dance(void)
         } else {
             d_LogInfoF("ℹ️ Boundary resize failed safely with code %d", result);
         }
-        
+
         TEST_ASSERT(1, "Boundary test should not crash");
     }
-    
+
     // Extreme edge case: alternating between 0 and 1 capacity rapidly
     d_LogInfo("Testing rapid 0↔1 capacity oscillation");
     for (int oscillation = 0; oscillation < 10; oscillation++) {
         size_t target = (oscillation % 2 == 0) ? 0 : 1;
         d_ResizeArray(single_array, target * sizeof(long long));
-        
-        d_LogRateLimitedF(D_LOG_LEVEL_DEBUG, 3, 1.0, 
-                         "Oscillation %d: capacity=%zu, count=%zu", 
+
+        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG, 3, 1.0,
+                         "Oscillation %d: capacity=%zu, count=%zu",
                          oscillation, single_array->capacity, single_array->count);
     }
-    
+
     d_LogInfo("🎉 Extreme boundary dance completed successfully");
     d_DestroyArray(single_array);
     d_PopLogContext(ctx);
@@ -1098,41 +1099,41 @@ int test_debug_hunter_resize_memory_leak_detector(void)
 {
     dLogContext_t* ctx = d_PushLogContext("MemoryLeakDetector");
     d_LogInfo("🔍 HUNTING: Memory leaks and improper cleanup during resize operations");
-    
+
     // Test for memory leaks by creating and destroying many arrays with resize operations
     d_LogInfo("Starting memory leak detection stress test");
-    
+
     const int num_leak_tests = 100;
     size_t total_allocations = 0;
-    
+
     for (int leak_test = 0; leak_test < num_leak_tests; leak_test++) {
         // Create array with varying initial capacities
         size_t initial_capacity = (leak_test % 10) + 1;
         dArray_t* leak_test_array = d_InitArray(initial_capacity, sizeof(double));
-        
+
         if (leak_test_array != NULL) {
             total_allocations++;
-            
+
             // Fill with data
             for (size_t i = 0; i < initial_capacity; i++) {
                 double value = 3.14159 * (leak_test + 1) * (i + 1);
                 d_AppendArray(leak_test_array, &value);
             }
-            
+
             // Perform multiple resize operations to stress memory management
             size_t resize_pattern[] = {20, 5, 50, 2, 100, 1, 10};
             int pattern_size = sizeof(resize_pattern) / sizeof(resize_pattern[0]);
-            
+
             for (int p = 0; p < pattern_size; p++) {
                 size_t target_capacity = resize_pattern[p];
                 int resize_result = d_ResizeArray(leak_test_array, target_capacity * sizeof(double));
-                
+
                 if (resize_result == 0) {
                     // Verify we can still access some data
-                    size_t elements_to_check = (leak_test_array->count < target_capacity) ? 
+                    size_t elements_to_check = (leak_test_array->count < target_capacity) ?
                                              leak_test_array->count : target_capacity;
                     elements_to_check = (elements_to_check > initial_capacity) ? initial_capacity : elements_to_check;
-                    
+
                     for (size_t check = 0; check < elements_to_check; check++) {
                         double* data = (double*)d_GetDataFromArrayByIndex(leak_test_array, check);
                         if (data != NULL) {
@@ -1143,17 +1144,17 @@ int test_debug_hunter_resize_memory_leak_detector(void)
                     }
                 }
             }
-            
+
             // Properly destroy the array
             d_DestroyArray(leak_test_array);
         }
-        
+
         // Rate-limited progress logging
-        d_LogRateLimitedF(D_LOG_LEVEL_DEBUG, 10, 2.0, 
-                         "Memory leak test progress: %d/%d arrays processed", 
+        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG, 10, 2.0,
+                         "Memory leak test progress: %d/%d arrays processed",
                          leak_test + 1, num_leak_tests);
     }
-    
+
     // Memory pattern analysis
     dLogStructured_t* memory_report = d_LogStructured(D_LOG_LEVEL_INFO);
     d_LogStructured_Field(memory_report, "test", "memory_leak_detection");
@@ -1164,13 +1165,13 @@ int test_debug_hunter_resize_memory_leak_detector(void)
     d_LogStructured_FieldBool(memory_report, "all_arrays_destroyed", true);
     d_LogStructured_SetFormat(memory_report, false);
     d_LogStructured_Commit(memory_report);
-    
+
     d_LogInfoF("Memory leak detection completed: %zu arrays created and destroyed", total_allocations);
     d_LogInfo("🎉 Memory leak detection completed - no obvious leaks detected");
-    
+
     // Additional test: rapid allocation/deallocation cycles
     d_LogInfo("Testing rapid allocation/deallocation cycles for cleanup issues");
-    
+
     for (int rapid = 0; rapid < 50; rapid++) {
         dArray_t* rapid_array = d_InitArray(5, sizeof(int));
         if (rapid_array != NULL) {
@@ -1178,12 +1179,12 @@ int test_debug_hunter_resize_memory_leak_detector(void)
             d_ResizeArray(rapid_array, 50 * sizeof(int));
             d_ResizeArray(rapid_array, 1 * sizeof(int));
             d_ResizeArray(rapid_array, 25 * sizeof(int));
-            
+
             // Immediate cleanup
             d_DestroyArray(rapid_array);
         }
     }
-    
+
     d_LogInfo("✅ Rapid allocation/deallocation cycles completed");
     TEST_ASSERT(1, "Memory leak detection stress test completed");
     d_PopLogContext(ctx);

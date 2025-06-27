@@ -1315,6 +1315,7 @@ run_test "Logging Advanced Operations" "run-test-logging-advanced"
 run_test "Logging Extreme Operations" "run-test-logging-extreme"
 run_test "Logging Showcases" "run-test-logging-showcase"
 run_test "Logging Structured" "run-test-logging-structured"
+run_test "Logging Rate Limited" "run-test-logging-rate-limited"
 
 # Calculate overall execution time
 overall_end=$(date +%s.%N)
