@@ -283,7 +283,7 @@ int test_dynamic_array_index_edge_cases(void)
 
     // Rate-limited comprehensive index testing
     for (int i = -1; i <= 5; i++) {
-        d_LogRateLimitedF(D_LOG_LEVEL_DEBUG, 3, 1.0,
+        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG, 3, 1.0,
                          "Index boundary test: testing index %d", i);
     }
 
@@ -358,7 +358,7 @@ int test_dynamic_array_pop_edge_cases(void)
     d_LogDebug("Testing multiple sequential pops for robustness");
     for (int i = 0; i < 3; i++) {
         result = d_PopDataFromArray(array);
-        d_LogRateLimitedF(D_LOG_LEVEL_DEBUG, 2, 1.0,
+        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG, 2, 1.0,
                          "Sequential pop %d returned: %s", i + 1, result ? "non-NULL" : "NULL");
     }
 
@@ -374,7 +374,7 @@ int test_dynamic_array_memory_patterns(void)
     d_LogInfo("🧠 Testing memory layout and contiguity patterns");
 
     dArray_t* array = d_InitArray(3, sizeof(int));
-    d_LogRateLimitedF(D_LOG_LEVEL_INFO, 2, 1.0,
+    d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FINAL_MESSAGE, D_LOG_LEVEL_INFO, 2, 1.0,
                "Created array for memory testing: capacity=%zu, element_size=%zu",
                array->capacity, array->element_size);
 
@@ -383,7 +383,7 @@ int test_dynamic_array_memory_patterns(void)
     d_LogDebug("Filling array with contiguous test values");
     for (int i = 0; i < 3; i++) {
         d_AppendArray(array, &values[i]);
-        d_LogRateLimitedF(D_LOG_LEVEL_DEBUG, 2, 1.0, "Added value %d at logical position %d", values[i], i);
+        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG, 2, 1.0, "Added value %d at logical position %d", values[i], i);
     }
 
     // Verify memory is contiguous by checking pointer arithmetic

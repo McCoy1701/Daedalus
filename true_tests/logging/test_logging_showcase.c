@@ -258,7 +258,7 @@ int showcase_rate_limiting() {
     printf("   d_LogRateLimited(D_LOG_LEVEL_WARNING, 5, 2.0, \"Repeated warning!\");\n");
     printf("   \n");
     printf("   // Rate limited with formatting\n");
-    printf("   d_LogRateLimitedF(D_LOG_LEVEL_ERROR, 3, 1.0,\n");
+    printf("   d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FINAL_MESSAGE, D_LOG_LEVEL_ERROR, 3, 1.0,\n");
     printf("                     \"Network error #%%d occurred\", error_count);\n");
     printf("   \n");
     printf("   // Parameters: (level, max_count, time_window, message)\n");
@@ -275,7 +275,7 @@ int showcase_rate_limiting() {
 
         // Show different rate limits
         if (i % 5 == 0) {
-            d_LogRateLimitedF(D_LOG_LEVEL_INFO, 2, 0.5,
+            d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FINAL_MESSAGE, D_LOG_LEVEL_INFO, 2, 0.5,
                              "📊 Performance check #%d - limited to 2 per 0.5 seconds", i);
         }
 
@@ -289,7 +289,7 @@ int showcase_rate_limiting() {
     for (int i = 0; i < 15; i++) {
         d_LogRateLimited(D_LOG_LEVEL_ERROR, 5, 2.0,
                         "🌐 Network timeout - connection lost!");
-        d_LogRateLimitedF(D_LOG_LEVEL_WARNING, 3, 1.0,
+        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FINAL_MESSAGE, D_LOG_LEVEL_WARNING, 3, 1.0,
                          "🔄 Reconnection attempt #%d", i + 1);
         usleep(50000);  // 0.05 second
     }
@@ -609,7 +609,7 @@ int showcase_real_world_scenario() {
         d_LogBuilder_End(combat_round);
 
         // Rate-limited damage notifications
-        d_LogRateLimitedF(D_LOG_LEVEL_WARNING, 3, 1.0,
+        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FINAL_MESSAGE, D_LOG_LEVEL_WARNING, 3, 1.0,
                          "🔥 Dragon breathes fire! AOE damage dealt!");
 
         // Conditional critical events
