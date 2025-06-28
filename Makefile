@@ -1,5 +1,5 @@
 CC=gcc
-ECC = emcc
+ECC=emcc
 EMAR = emar rcs
 CINC = -Iinclude/
 CFLAGS = -std=c99 -Wall -Wextra -lm
@@ -8,86 +8,83 @@ SRC_DIR=src
 INC_DIR=include
 BIN_DIR=bin
 OBJ_DIR=obj
+EMS_DIR=ems_obj
+SHA_DIR=shared_obj
 LIB_DIR=lib
 
-.PHONY: shared
-shared: always $(BIN_DIR)/libDaedalus
-
-$(OBJ_DIR)/dKinematicBody2D.o: $(SRC_DIR)/dKinematicBody2D.c
-	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
-
-$(OBJ_DIR)/dLinkedList.o: $(SRC_DIR)/dLinkedList.c
-	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
-
-$(OBJ_DIR)/dMatrixCreation.o: $(SRC_DIR)/dMatrixCreation.c
-	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
-
-$(OBJ_DIR)/dMatrixMath.o: $(SRC_DIR)/dMatrixMath.c
-	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
-
-$(OBJ_DIR)/dQuadTree.o: $(SRC_DIR)/dQuadTree.c
-	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
-
-$(OBJ_DIR)/dLogs.o: $(SRC_DIR)/dLogs.c
-	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
-
-$(OBJ_DIR)/dStrings.o: $(SRC_DIR)/dStrings.c
-	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
-
-$(OBJ_DIR)/dArrays.o: $(SRC_DIR)/dArrays.c
-	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
-
-$(OBJ_DIR)/dStrings-dArrays.o: $(SRC_DIR)/dStrings-dArrays.c
-	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
-
-$(OBJ_DIR)/dVectorMath.o: $(SRC_DIR)/dVectorMath.c
-	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
-
-$(BIN_DIR)/libDaedalus: $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings-dArrays.o $(OBJ_DIR)/dVectorMath.o $(OBJ_DIR)/dLogs.o
-	$(CC) $^ $(CINC) -shared -fPIC -pedantic  $(CFLAGS) -o $@.so
-
 .PHONY: native
-native: always $(BIN_DIR)/debug_bin
+native: $(BIN_DIR)/debug
 
-$(OBJ_DIR)/debug_main.o: $(SRC_DIR)/main.c
-	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -ggdb
+NATIVE_OBJS = \
+							$(OBJ_DIR)/main.o\
+							$(OBJ_DIR)/dArrays.o\
+							$(OBJ_DIR)/dKinematicBody.o\
+							$(OBJ_DIR)/dLinkedList.o\
+							$(OBJ_DIR)/dLogs.o\
+							$(OBJ_DIR)/dMatrixMath.o\
+							$(OBJ_DIR)/dStrings-dArrays.o\
+							$(OBJ_DIR)/dStrings.o\
+							$(OBJ_DIR)/dVectorMath.o\
 
-$(OBJ_DIR)/debug_dVectorMath.o: $(SRC_DIR)/dVectorMath.c
-	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -ggdb
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
+	$(CC) -c $< -o $@ -ggdb $(CINC) $(CFLAGS)
 
-$(OBJ_DIR)/debug_dMatrixMath.o: $(SRC_DIR)/dMatrixMath.c
-	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -ggdb
+$(BIN_DIR)/debug: $(NATIVE_OBJS) | $(BIN_DIR)
+	$(CC) $^ -ggdb $(CINC) $(CFLAGS) -o $@
 
-$(OBJ_DIR)/debug_dMatrixCreation.o: $(SRC_DIR)/dMatrixCreation.c
-	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -ggdb
 
-$(OBJ_DIR)/debug_dLinkedList.o: $(SRC_DIR)/dLinkedList.c
-	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -ggdb
+.PHONY: shared
+shared: $(BIN_DIR)/libDaedalus
 
-$(BIN_DIR)/debug_bin: $(OBJ_DIR)/debug_dLinkedList.o $(OBJ_DIR)/debug_dMatrixMath.o $(OBJ_DIR)/debug_dVectorMath.o $(OBJ_DIR)/debug_main.o
-	$(CC) $^ $(CINC) $(CFLAGS) -ggdb -o $@
+SHARED_OBJS = \
+							$(SHA_DIR)/dArrays.o\
+							$(SHA_DIR)/dKinematicBody.o\
+							$(SHA_DIR)/dLinkedList.o\
+							$(SHA_DIR)/dLogs.o\
+							$(SHA_DIR)/dMatrixMath.o\
+							$(SHA_DIR)/dStrings-dArrays.o\
+							$(SHA_DIR)/dStrings.o\
+							$(SHA_DIR)/dVectorMath.o\
+
+$(SHA_DIR)/%.o: $(SRC_DIR)/%.c | $(SHA_DIR)
+	$(CC) -c $< $(CINC) -o $@ $(CFLAGS) -fPIC -pedantic
+
+$(BIN_DIR)/libDaedalus: $(SHARED_OBJS)  | $(BIN_DIR)
+	$(CC) $^ $(CINC) -shared -fPIC -pedantic  $(CFLAGS) -o $@.so
 
 
 .PHONY: EM
-EM: always $(BIN_DIR)/libDaedalus.a
+EM: $(BIN_DIR)/libDaedalus.a
 
-$(OBJ_DIR)/em_main.o: $(SRC_DIR)/main.c
+EMS_OBJS = \
+							$(EMS_DIR)/dArrays.o\
+							$(EMS_DIR)/dKinematicBody.o\
+							$(EMS_DIR)/dLinkedList.o\
+							$(EMS_DIR)/dLogs.o\
+							$(EMS_DIR)/dMatrixMath.o\
+							$(EMS_DIR)/dStrings-dArrays.o\
+							$(EMS_DIR)/dStrings.o\
+							$(EMS_DIR)/dVectorMath.o\
+
+$(EMS_DIR)/%.o: $(SRC_DIR)/%.c | $(EMS_DIR)
 	$(ECC) -c $< $(CINC) -o $@
 
-$(OBJ_DIR)/em_dVectorMath.o: $(SRC_DIR)/dVectorMath.c
-	$(ECC) -c $< $(CINC) -o $@
+$(BIN_DIR)/libDaedalus.a: $(EMS_OBJS) | $(BIN_DIR)
+	$(EMAR) $@ $^
 
-$(OBJ_DIR)/em_dMatrixMath.o: $(SRC_DIR)/dMatrixMath.c
-	$(ECC) -c $< $(CINC) -o $@
 
-$(OBJ_DIR)/em_dMatrixCreation.o: $(SRC_DIR)/dMatrixCreation.c
-	$(ECC) -c $< $(CINC) -o $@
+$(EMS_DIR):
+	mkdir -p $(EMS_DIR)
 
-$(OBJ_DIR)/em_dLinkedList.o: $(SRC_DIR)/dLinkedList.c
-	$(ECC) -c $< $(CINC) -o $@
-# commented out old shitty fuck
-#$(BIN_DIR)/libDaedalus.a: $(OBJ_DIR)/em_dLinkedList.o $(OBJ_DIR)/em_dMatrixMath.o $(OBJ_DIR)/em_dVectorMath.o
-#$(EMAR) $@ $^
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
+
+$(BIN_DIR):
+	mkdir -p $(BIN_DIR)
+
+$(SHA_DIR):
+	mkdir -p $(SHA_DIR)
+
 
 .PHONY: install
 install:
@@ -99,23 +96,9 @@ uninstall:
 	sudo rm /usr/lib/libDaedalus.so
 	sudo rm /usr/include/Daedalus.h
 
-.PHONY: em_install
-em_install:
-	sudo cp $(BIN_DIR)/libDaedalus.a /usr/lib/
-	sudo cp $(INC_DIR)/Daedalus.h /usr/include/
-
-.PHONY: em_uninstall
-em_uninstall:
-	sudo rm /usr/lib/libDaedalus.so
-	sudo rm /usr/include/Daedalus.h
-
-.PHONY: updateHeader
-updateHeader:
-	sudo cp $(INC_DIR)/Daedalus.h /usr/include/Daedalus.h
-
 .PHONY: clean
 clean:
-	rm -rf $(OBJ_DIR) $(BIN_DIR) $(LIB_DIR)
+	rm -rf $(OBJ_DIR) $(BIN_DIR) $(LIB_DIR) $(EMS_DIR)
 	clear
 
 .PHONY: bear
@@ -131,21 +114,7 @@ always:
 	mkdir -p $(BIN_DIR) $(OBJ_DIR) $(LIB_DIR)
 
 .PHONY: all
-all: always native shared
-
-# Complete static library target (not emscripten)
-.PHONY: static
-static: always $(BIN_DIR)/libDaedalus.a
-
-# Static library with ALL components
-$(BIN_DIR)/libDaedalus.a: $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dMatrixMath.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings-dArrays.o $(OBJ_DIR)/dVectorMath.o $(OBJ_DIR)/dLogs.o
-	ar rcs $@ $^
-
-# Static library installation
-.PHONY: static_install
-static_install:
-	sudo cp $(BIN_DIR)/libDaedalus.a /usr/lib/
-	sudo cp $(INC_DIR)/Daedalus.h /usr/include/
+all: shared
 
 # =============================================================================
 # TESTING

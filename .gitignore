@@ -1,5 +1,16 @@
-.vscode/
+.vscode
+.sisyphus/
+sisyphus.legend
+
+# c cache
+
 .cache/
+
+obj/
+index/
+bin/
+core
+./resources/world/world_test.dat
 compile_commands.json
 
 .sisyphus/

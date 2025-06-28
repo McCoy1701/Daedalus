@@ -20,7 +20,7 @@
 #endif
 
 // For thread ID and mutex support
-#ifdef _WIN32
+/*#ifdef _WIN32
     #include <windows.h>
     #define GET_THREAD_ID() GetCurrentThreadId()
     typedef CRITICAL_SECTION dMutex_t;
@@ -29,15 +29,20 @@
     #define MUTEX_LOCK(m) EnterCriticalSection(m)
     #define MUTEX_UNLOCK(m) LeaveCriticalSection(m)
 #else
-    #include <sys/syscall.h>
-    #include <pthread.h>
-    #define GET_THREAD_ID() (uint32_t)syscall(SYS_gettid)
+  #ifdef __EMSCRIPTEN__
+      #include <pthread.h>
+      #define GET_THREAD_ID() ((uint32_t)pthread_self())
+  #else
+      #include <sys/syscall.h>
+      #include <unistd.h>
+      #define GET_THREAD_ID() ((uint32_t)syscall(SYS_gettid))
+  #endif
     typedef pthread_mutex_t dMutex_t;
     #define MUTEX_INIT(m) pthread_mutex_init(m, NULL)
     #define MUTEX_DESTROY(m) pthread_mutex_destroy(m)
     #define MUTEX_LOCK(m) pthread_mutex_lock(m)
     #define MUTEX_UNLOCK(m) pthread_mutex_unlock(m)
-#endif
+#endif*/
 
 // =============================================================================
 // CUSTOM COLOR PALETTE SYSTEM - Matching Your CSS Color Scheme
