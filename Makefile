@@ -4,6 +4,12 @@ EMAR = emar rcs
 CINC = -Iinclude/
 CFLAGS = -std=c99 -Wall -Wextra -lm
 
+# Emscripten web deployment targets
+INDEX_DIR=index
+
+$(INDEX_DIR):
+	mkdir -p $(INDEX_DIR)
+
 SRC_DIR=src
 INC_DIR=include
 BIN_DIR=bin
@@ -123,6 +129,15 @@ TEST_DIR=true_tests
 TEST_CFLAGS = -Wall -Wextra -ggdb $(CINC)
 
 # Individual test targets
+
+.PHONY: test-logging-emscripten
+test-logging-emscripten: always $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_logging_emscripten $(TEST_DIR)/logging/test_logging_emscripten.c $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o
+
+.PHONY: run-test-logging-emscripten
+run-test-logging-emscripten: test-logging-emscripten
+	@./$(BIN_DIR)/test_logging_emscripten
+
 .PHONY: test-create-string-from-file
 test-create-string-from-file: always $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
 	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_create_string_from_file $(TEST_DIR)/strings/test_create_string_from_file.c $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
@@ -281,6 +296,46 @@ run-test-dynamic-array-debug-hunting: test-dynamic-array-debug-hunting
 test-dynamic-array-errors: always $(OBJ_DIR)/dArrays.o
 	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_errors $(TEST_DIR)/dynamicarrays/test_dynamic_array_errors.c $(OBJ_DIR)/dArrays.o
 
+# Emscripten test targets using the static library
+.PHONY: test-logging-emscripten-web
+test-logging-emscripten-web: EM $(INDEX_DIR)
+	$(ECC) $(CINC) -O2 \
+		-s WASM=1 \
+		-s EXPORTED_FUNCTIONS='["_main"]' \
+		-s EXPORTED_RUNTIME_METHODS='["ccall","cwrap"]' \
+		-s ALLOW_MEMORY_GROWTH=1 \
+		-s INITIAL_MEMORY=16MB \
+		-s STACK_SIZE=1MB \
+		--preload-file . \
+		true_tests/logging/test_logging_emscripten.c \
+		$(BIN_DIR)/libDaedalus.a \
+		-o $(INDEX_DIR)/test_logging_emscripten.html
+
+.PHONY: test-logging-advanced-emscripten-web  
+test-logging-advanced-emscripten-web: EM $(INDEX_DIR)
+	$(ECC) $(CINC) -O2 \
+		-s WASM=1 \
+		-s EXPORTED_FUNCTIONS='["_main"]' \
+		-s EXPORTED_RUNTIME_METHODS='["ccall","cwrap"]' \
+		-s ALLOW_MEMORY_GROWTH=1 \
+		-s INITIAL_MEMORY=32MB \
+		-s STACK_SIZE=2MB \
+		--preload-file . \
+		true_tests/logging/test_logging_advanced.c \
+		$(BIN_DIR)/libDaedalus.a \
+		-o $(INDEX_DIR)/test_logging_advanced_emscripten.html
+
+# Clean web artifacts
+.PHONY: clean-web
+clean-web:
+	rm -rf $(INDEX_DIR)
+
+# Serve tests locally for browser testing
+.PHONY: serve-emscripten-tests
+serve-emscripten-tests: test-logging-emscripten-web
+	@echo "🌐 Starting local web server for Emscripten tests..."
+	@echo "📍 Navigate to: http://localhost:8000/"
+	@cd $(INDEX_DIR) && python3 -m http.server 8000
 # Global test runner (summary output)
 # Traditional approach (current - kept for compatibility)
 .PHONY: test

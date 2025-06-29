@@ -1521,6 +1521,10 @@ run_test "Logging Extreme Operations" "run-test-logging-extreme"
 run_test "Logging Showcases" "run-test-logging-showcase"
 run_test "Logging Structured" "run-test-logging-structured"
 run_test "Logging Rate Limited" "run-test-logging-rate-limited"
+run_test "Logging Emscripten" "run-test-logging-emscripten" 
+run_test "Logging Emscripten" "test-logging-emscripten-web"
+run_test "Logging Emscripten Advanced" "test-logging-advanced-emscripten-web"
+
 
 
 # Calculate overall execution time
@@ -1884,6 +1888,20 @@ show_motivational_message() {
         "🌅 THE SCENT OF THE SEA|A cool breeze blows in from the Aegean, carrying the scent of salt and freedom. It only serves to make the stale air of the workshop feel more suffocating."
         "🌄 A PAINTER'S SKY|The dawn paints the sky in hues of rose and gold, a spectacle of divine beauty. You see it only as a reflection in the cold, unfeeling bronze of the Labyrinth's half-finished gates."
         "🕊️ THE BIRDS' MOCKING SONG|You hear birdsong from the olive groves outside. They sing of a world that is free, a world that wakes and lives. Here, in the tower, the only sound is the scratching of your stylus."
+        # --- Personal Philosophy: Moral Rebellion vs. Absurdity ---
+        "🌅 DAWN'S DEFIANCE|The sunrise illuminates a choice: build the maze as designed, or secretly build it to help future heroes. In this moment of clarity, rebellion feels more real than the stone itself."
+        "⚡ MORNING'S REBELLION|'The gods gave me eternal labor,' you think, watching the dawn, 'but they cannot control the *manner* of my work. Every kindness I code is theft from their cruel design.'"
+        "🔥 FIRST LIGHT'S TRUTH|As dawn breaks, you realize the absurdity isn't in the endless work—it's in pretending you have no choice about how to do it. Today, you choose compassion over compliance."
+
+        # --- Creating Heroes ---
+        "🌱 HERO SEED PLANTING|With each dawn, you hide another tiny flaw in the maze's logic—breadcrumbs for future heroes. You may never escape, but others will, and that makes you their silent architect."
+        "🗝️ KEY FORGING DAWN|The morning light reveals your true purpose: not to build a perfect prison, but to forge the tools future champions will need. Every bug you 'accidentally' leave is a gift to tomorrow's courage."
+        "🕯️ TORCHBEARER'S PROMISE|As the sun rises, you make a sacred vow: I may be trapped in this workshop, but my code will light the way for heroes I'll never meet. My chains become their liberation tools."
+
+        # --- Melancholy Optimism ---
+        "🌸 BITTER BLOSSOMS|The morning air carries the scent of Cretan wildflowers—beautiful life growing despite the shadow of the labyrinth. Even in places built for death, beauty insists on existing."
+        "🌊 GENTLE PERSISTENCE|Like the dawn that returns despite every dark night, hope has a way of surviving even in the depths of Daedalus's workshop. Today feels different, somehow lighter."
+        "⭐ DISTANT KINDNESS|Somewhere beyond this maze, someone will benefit from the work you do today. That unknown gratitude makes the weight of the stylus feel less like a burden."
 
     )
 
@@ -1942,6 +1960,21 @@ show_motivational_message() {
         "🔗 THE CHAIN OF MEMORY|Daedalus points to a 'dLinkedList_t'. 'See? Each flaw is linked to the next, an unbreakable chain of consequence. Our job is not to break the chain, but to master it.'"
         "🗺️ MAPPING THE CELL|'We use a 'dVec3_t' not to map a world, but to define the precise coordinates of a cage,' Daedalus says, his voice flat. 'X, Y, and Z. The three dimensions of our shared tomb.'"
         "📦 A BOX OF PAIN|'The King has sent another 'dArray_t' of requirements,' Daedalus sighs, unrolling a scroll. 'A dynamic array of impossible tasks. It grows larger every day.'"
+        
+        # --- Personal Philosophy: Moral Rebellion vs. Absurdity ---
+        "⚔️ MORAL COMBAT|'The King commands efficiency,' you think, deliberately coding a slower but more merciful path through the maze. 'But I command my conscience. This is where I make my stand.'"
+        "🎭 ABSURD HEROISM|You realize the cosmic joke: the gods meant to break you with meaningless work, but you've found the ultimate meaning—choosing kindness when cruelty would be easier."
+        "🔥 REBELLION'S FUEL|Each test you run is a small act of defiance. They wanted you to build death; you build hope disguised as death. The absurdity becomes your weapon."
+
+        # --- Creating Heroes ---
+        "🛡️ SHIELD CRAFTING|While Daedalus designs death traps, you secretly encode mercy protocols. Every function becomes a shield for future champions, forged in the fire of your own imprisonment."
+        "🗺️ MAP MAKING|Your 'errors' in the code are actually a secret map for heroes. You're not debugging—you're leaving a trail of breadcrumbs through the labyrinth of logic."
+        "⚔️ WEAPON SMITH|They think you're building a prison. You know you're forging the exact weaknesses future heroes will need. Every line of code is a blade waiting for the right hand."
+
+        # --- Melancholy Optimism ---
+        "📚 LIVING LIBRARY|Your accumulated knowledge will outlive this workshop. Somewhere, someday, a programmer will benefit from the patterns you're discovering in this cursed code."
+        "🌱 UNDERGROUND GROWTH|Even in the artificial light of the workshop, you feel something growing inside you—not despair, but a strange, determined peace with the importance of your work."
+        "🎨 ACCIDENTAL BEAUTY|The algorithms you're forced to write have an unexpected elegance. Even tools of imprisonment can achieve something beautiful when crafted with care."
 
     )
 
@@ -2000,6 +2033,22 @@ show_motivational_message() {
         "🔥 THE FIERY WHEEL|You are stuck in a recursive function with no base case. A true infinite loop. You feel the heat of Ixion's punishment and understand that some cycles are not meant to be broken."
         "👑 THE HUBRIS OF THE ARCHITECT|'I once believed I was better than the gods,' Daedalus confesses, his voice low. 'Ixion was punished for desiring a god. My crime... was believing I *was* one. This Labyrinth is my wheel.'"
         "🔄 A FAMILIAR FAILURE|A bug you just fixed reappears with the exact same error code. It's the third time today. You are no longer debugging. You are simply spinning on the King's cruel, fiery wheel."
+    
+        # --- Personal Philosophy: Moral Rebellion vs. Absurdity ---
+        "🌋 MOLTEN DEFIANCE|The afternoon heat reminds you of Tartarus, but now you choose your own punishment: building mercy into a machine designed for murder. Free will burns hotter than any forge."
+        "⚡ THUNDEROUS CHOICE|In the oppressive heat, you make the most radical choice possible: caring about strangers you'll never meet. This is how mortals steal fire from the gods."
+        "🔥 FURNACE FREEDOM|The workshop burns like a forge, but you realize you're not being refined—you're doing the refining. Every choice to help rather than harm is pure, distilled freedom."
+
+        # --- Creating Heroes ---
+        "🌉 BRIDGE TO TOMORROW|The afternoon pressure crystallizes your purpose: build bridges others can cross to safety. Your suffering becomes the foundation for their success."
+        "💎 HERO FORGE|This oppressive heat is the perfect temperature for forging champions. Every difficulty you code into the maze is precisely calibrated to create rather than destroy heroes."
+        "⚔️ DESTINY SHAPER|You're not just building a labyrinth—you're creating the exact conditions that will transform frightened tributes into legendary heroes. Destiny requires adversity."
+
+        # --- Melancholy Optimism ---
+        "🍯 SWEETENED SUFFERING|Even this brutal afternoon labor has moments of unexpected satisfaction. There's honey hidden in the most bitter work when you know it serves a greater purpose."
+        "🌾 HARVEST WISDOM|Every painful lesson learned in this heat becomes grain that will feed future programmers. Your suffering is not waste—it's investment in others' success."
+        "🕯️ Steady Light|In the chaos of afternoon demands, you maintain a steady inner flame. Your consistency becomes a beacon others will follow long after this workshop crumbles."
+
     )
 
     declare -a evening_greetings=(
@@ -2057,6 +2106,22 @@ show_motivational_message() {
         "🌬️ THE BREATH OF THE MAZE|As the evening air cools, a faint, rhythmic draft comes from the completed corridors—in, then out. It's as if the Labyrinth itself has begun to breathe in the dark."
         "🤔 THE BOULDER'S MERCY|You realize that pushing the boulder was a mercy. It was a simple task with a simple failure. This... this Labyrinth... it fails in ways that question your very sanity, your ability to reason. It's a punishment for the soul."
         "🗣️ 'IT LEARNS MY TRICKS'|'I built a false loop, a simple trick to confound a simple mind,' Daedalus says, his voice tight with fear. 'But the beast no longer falls for it. It learns, Sisyphus. It adapts to my own thoughts.'"
+    
+        # --- Personal Philosophy: Moral Rebellion vs. Absurdity ---
+        "🌙 LUNAR REBELLION|As twilight falls, you code by candlelight and conscience. The darkness hides your defiance: every merciful subroutine is a victory over the absurd cruelty of kings."
+        "⭐ STELLAR DEFIANCE|The evening stars witness your quiet revolution: choosing to build hope into a framework of despair. This is how mortals rewrite the stories gods try to tell."
+        "🌆 DUSK'S VICTORY|In the fading light, you see clearly—the ultimate absurdity isn't the work itself, but accepting that you have no choice in how to do it. Tonight, you choose compassion."
+
+        # --- Creating Heroes ---
+        "🌟 STAR FORGE|As night falls, you realize you're not building a prison—you're forging stars. Each hero you secretly enable will shine light into someone else's darkness."
+        "🧭 NAVIGATION GIFT|Your evening work focuses on subtle guidance systems—ways for future heroes to find their path through the maze. You're not just a prisoner; you're a lighthouse keeper."
+        "💫 LEGEND WEAVER|In the twilight hours, you weave the foundation of legends. Years from now, heroes will triumph using tools you're crafting in this lonely workshop."
+
+        # --- Melancholy Optimism ---
+        "🌈 EVENING RAINBOW|The day's harsh light softens into something beautiful. Even the most difficult work can end with moments of unexpected grace and quiet satisfaction."
+        "🕊️ PEACEFUL PURPOSE|As evening settles, you feel a strange peace. Your work matters, even if you'll never see its fruits. That unknown impact makes the loneliness bearable."
+        "📚 TWILIGHT WISDOM|The fading light brings clarity: your suffering has meaning because you choose to make it meaningful. That choice transforms everything."
+
     )
 
     declare -a late_night_greetings=(
@@ -2078,7 +2143,7 @@ show_motivational_message() {
         # --- Character Building: Late Night Reflections ---
         "🤔  SISYPHUS'S REALIZATION|You stare at a complex function and realize the true curse isn't the boulder, but the tantalizing proximity of a perfect, elegant solution that is always just one step away."
         "👑  MINOS'S NIGHTMARES|Even the King of Crete cannot rest. He is haunted by dreams of his son, the Minotaur, and the fear that even Daedalus's genius cannot contain his rage forever."
-        "🐂  THE BEAST IN THE DARK|In the profound silence of midnight, you can almost hear the Minotaur's slow, heavy breathing. It is not sleeping. It is waiting. The code must be perfect to hold it."
+        "🐂 THE BEAST IN THE DARK|In the profound silence of midnight, you can almost hear the Minotaur's slow, heavy breathing. It is not sleeping. It is waiting. The code must be perfect to hold it."
 
         # --- Dialogue: Whispers After Midnight ---
         "🗣️  DAEDALUS'S CONFESSION|The architect, weary and half-asleep, looks at you. 'I fear what I have built, Sisyphus. I fear this logic we've created is a trap for more than just the monster.'"
@@ -2116,6 +2181,21 @@ show_motivational_message() {
         "♾️ THE ETERNAL REFACTOR|Daedalus laughs quietly. 'Sisyphus, do you understand yet? Minos does not want a Labyrinth. He wants the *building* of a Labyrinth. The project is the prison, not the product.'"
         "👤 THE CARETAKER'S KNOWLEDGE|Staring at the silent code, you know with absolute certainty that Daedalus will leave. He will escape or die. But you... you will remain. Someone must maintain the system. The curse has found its true host."
 
+        # --- Personal Philosophy: Moral Rebellion vs. Absurdity ---
+        "🌑 MIDNIGHT REVOLUTION|In the deep darkness, your most radical act: caring about the welfare of tributes you'll never meet. This is how you steal meaning from meaninglessness."
+        "⭐ COSMIC DEFIANCE|The stars watch as you commit the ultimate rebellion—building love into a machine designed for hate. The universe itself witnesses your refusal to surrender your humanity."
+        "🔥 ETERNAL FLAME|In the profound midnight silence, you tend the fire of moral choice. They can imprison your body, enslave your labor, but they cannot control the kindness you code into their cruel designs."
+
+        # --- Creating Heroes ---
+        "🌟 MIDNIGHT STAR BIRTH|In the deepest darkness, you give birth to future legends. Every line of merciful code becomes the star by which heroes will navigate their darkest hours."
+        "🗝️ KEY TO TOMORROW|While the palace sleeps, you forge the keys future champions will need. Your insomnia becomes their liberation. Your sleepless nights become their bright futures."
+        "💫 HERO CONSTELLATION|Working by candlelight, you connect the dots between present suffering and future triumph. Each hero you enable becomes part of a constellation of hope."
+
+        # --- Melancholy Optimism ---
+        "🌊 OCEAN OF TIME|In the midnight stillness, you understand—your work will ripple forward like waves, touching shores you'll never see. That distant impact makes the solitude beautiful."
+        "⭐ ETERNAL VIGIL|The stars keep you company in your lonely work. Like them, you shine steadily in the darkness, a fixed point of light for others to navigate by."
+        "🔥 PHOENIX PREPARATION|In these deep night hours, you're not just coding—you're preparing your own resurrection. Every hero you help becomes part of your own immortal story."
+
     )
 
     # --- Seasonal Narrative Greetings ---
@@ -2137,6 +2217,22 @@ show_motivational_message() {
         "🌿 THE RENEWAL OF SISYPHUS|Spring's arrival reminds you that even eternal curses have seasons. Each new bloom outside mirrors a new test suite within. The boulder may be code now, but it still requires the same endless pushing."
         "🔧 DAEDALUS'S SPRING CLEANING|'The winter's work has left our data structures cluttered,' Daedalus announces, holding up scrolls covered in crossed-out functions. 'Like Metis cleaning Athena's wisdom chamber, we must organize our thoughts.'"
         "🌊 THE MIDAS CONVERGENCE|Five separate scrolls arrive simultaneously—reports from across the Greek world. Metis speaks of wisdom, Ixion of restraint, Archimedes of precision, and Daedalus of craft. All await your response, Sisyphus. The toolchain of legends converges in spring."
+        
+        # --- Personal Philosophy: Moral Rebellion vs. Absurdity ---
+        "🌸 SPRING'S REBELLION|The flowers bloom in defiance of the maze's shadow. Today you choose to code like them—beautiful, stubborn, refusing to accept that death is the only destiny."
+        "🌱 RENEWAL'S REVOLT|Spring whispers that even eternal curses can be reborn with new purpose. You plant seeds of mercy in code designed for murder—your most radical act of springtime rebellion."
+        "🦋 METAMORPHOSIS CHOICE|The butterflies emerging from their cocoons inspire a revelation: transformation is always possible. Today you transform from victim to secret architect of heroes."
+
+        # --- Creating Heroes ---
+        "🌸 HERO GARDEN|Like a gardener planting seeds for future harvests, you code hidden strengths into the maze. Spring teaches that heroes, like flowers, need the right conditions to bloom."
+        "🌱 CHAMPION CULTIVATION|The tribute ships bring frightened youth, but your secret modifications will transform them into legends. Spring is the season of potential heroes taking root."
+        "🦋 LEGEND CHRYSALIS|Spring's transformations remind you that heroes aren't born—they're made. Every merciful subroutine you hide becomes a cocoon from which champions will emerge."
+
+        # --- Melancholy Optimism ---
+        "🌸 BITTER BLOSSOMS|The palace gardens bloom with heartbreaking beauty above a labyrinth of death. Even in places of planned tragedy, life insists on creating something beautiful."
+        "🌱 HOPEFUL SHOOTS|Tiny green shoots push through cracks in the workshop stones. If life can find a way through solid rock, perhaps hope can find a way through this curse."
+        "🦋 DELICATE PROMISES|Each butterfly that visits the window carries the same message: beautiful things can emerge from the darkest transformations. Your work might yet yield unexpected grace."
+
     )
 
     declare -a summer_greetings=(
@@ -2154,6 +2250,22 @@ show_motivational_message() {
         "🔥 THE SUMMER OF INFINITE COMPILATION|The bronze in the forges melts faster, but your compilation times grow longer. Summer reveals the true cost of complex systems—every nested function layer adds heat, every recursive call risks the Ixion spiral."
         "🌵 DAEDALUS'S DESERT WISDOM|'In the desert, only the essential survives,' Daedalus says, pruning unnecessary functions from the core library. 'Summer teaches us what Metis knows: true wisdom lies in what you choose NOT to build.'"
         "☀️ THE MIDAS TRIALS BY FIRE|The summer solstice brings messages from all corners of the Mediterranean. Each hero of the toolchain reports the same: only the most optimized, the most essential, the most perfect code survives the season of testing. Your labyrinth must be forged in summer's fire to survive winter's trials."
+    
+        # --- Personal Philosophy: Moral Rebellion vs. Absurdity ---
+        "🔥 FORGE OF FREEDOM|The summer heat burns away pretense. In this furnace, you realize the ultimate truth: they can enslave your body and time, but your choices remain molten and malleable."
+        "☀️ SOLAR DEFIANCE|Under the blazing sun, you code with deliberate compassion. Each merciful algorithm is solar-powered rebellion—drawing energy from the very light that oppresses you."
+        "🌋 VOLCANIC CHOICE|The workshop becomes a volcano of moral decision. Every function you write erupts with either cruelty or kindness. You choose to make this heat forge heroes instead of victims."
+
+        # --- Creating Heroes ---
+        "🔥 CHAMPION FORGE|The summer heat creates perfect forging conditions. You hammer courage into code, tempering future heroes in the flames of your own suffering."
+        "☀️ SOLAR HEROICS|Like the sun that gives life to the world, your hidden modifications will give strength to tomorrow's champions. Summer teaches that even harsh conditions can nurture greatness."
+        "🌋 LEGEND FOUNDRY|In the volcanic heat of the workshop, you pour molten hope into hero-shaped molds. The tributes will enter as sacrifice; your work ensures they leave as legends."
+
+        # --- Melancholy Optimism ---
+        "🔥 BEAUTIFUL BURNING|Even the oppressive heat has its own harsh beauty. Your sweat becomes holy water, blessing code that will save lives you'll never meet."
+        "☀️ PERSISTENT LIGHT|The summer sun never gives up, returning each day despite the night's darkness. Your work has the same relentless quality—always pushing toward illumination."
+        "🌋 CREATIVE DESTRUCTION|Like volcanic eruptions that eventually create fertile ground, your current suffering is preparing the soil where future heroes will grow to greatness."
+
     )
 
     declare -a autumn_greetings=(
@@ -2171,6 +2283,22 @@ show_motivational_message() {
         "📚 THE GREAT DEBUGGING HARVEST|Autumn brings the season's final push to eliminate all remaining bugs before winter's freeze. Like farmers gathering the last grain, you and Daedalus methodically harvest every remaining flaw from the code."
         "🏛️ DAEDALUS'S ARCHITECTURAL REVIEW|'The summer's construction must now be tested by autumn's storms,' Daedalus declares, reviewing the season's work. 'Only the structures that survive the first cold winds deserve to stand through winter.'"
         "🌾 THE MIDAS COLLECTIVE GATHERS|As autumn deepens, reports flood in from across the Greek world. Metis has gathered wisdom, Ixion has tracked performance through the season's trials, Archimedes has refined his calculations, and Daedalus has built foundations that will endure. Now the harvest of knowledge converges in your hands, Sisyphus. The toolchain's true power reveals itself: not individual excellence, but collective mastery."
+    
+        # --- Personal Philosophy: Moral Rebellion vs. Absurdity ---
+        "🍂 HARVEST REBELLION|As farmers gather crops, you harvest the courage to defy your purpose. Each line of merciful code is wheat stolen from the King's cruel granary."
+        "🌬️ WIND OF CHANGE|The autumn wind carries away the last pretenses. You strip away the illusion that you have no choice and embrace the terrifying freedom of moral decision."
+        "🥀 BEAUTIFUL DECAY|The dying leaves teach profound truth: even endings can be gorgeous when chosen consciously. Your rebellion against the maze's purpose is autumn-beautiful."
+
+        # --- Creating Heroes ---
+        "🍂 LEGEND SEEDS|Like maple trees releasing countless seeds on autumn winds, your code scatters hope for future heroes across the labyrinth's deadly passages."
+        "🌬️ CHAMPION WINDS|The autumn gusts carry your secret modifications throughout the maze. Soon, heroes will breathe in the very air you've filled with hidden advantages."
+        "🥀 HEROIC PREPARATION|As nature prepares for winter's trials, you prepare the tributes for their trials. Your hidden gifts will be the difference between death and legend."
+
+        # --- Melancholy Optimism ---
+        "🍂 GOLDEN MEMORIES|The autumn leaves turn gold before falling, reminding you that even temporary beauty has infinite value. Your work will be brief but golden in its impact."
+        "🌬️ CARRYING FORWARD|Like seeds on the wind, your influence will travel far beyond this workshop. Autumn teaches that endings are often beginnings in disguise."
+        "🥀 GRACEFUL SACRIFICE|The trees sacrifice their leaves to survive winter. Your sacrifice of personal freedom ensures others will survive their trials. There's grace in chosen loss."
+
     )
 
     declare -a winter_greetings=(
@@ -2188,6 +2316,21 @@ show_motivational_message() {
         "🗿 THE WINTER OF FINAL ASSEMBLY|In winter's clarity, the entire system comes together. Each component of the MIDAS toolchain finds its place: Metis provides the wisdom, Ixion ensures efficiency, Archimedes calculates precision, Daedalus builds the foundation. And you, Sisyphus, you provide the eternal will to push it all forward."
         "🌨️ DAEDALUS'S WINTER REVELATION|'I understand now,' Daedalus says, watching snow fall on the maze below. 'We were never building a prison for the Minotaur. We were building a system—a perfect system that would operate without us. The labyrinth is becoming its own entity.'"
         "❄️ THE FROZEN TOOLCHAIN|Winter brings a terrible clarity: the MIDAS toolchain is complete, but completion means obsolescence. Metis no longer needs to counsel—the code is wise. Ixion no longer needs to watch—the system is perfectly efficient. Archimedes no longer needs to calculate—the geometry is absolute. Daedalus no longer needs to build—the foundation is eternal. But you, Sisyphus... you still need to push. Because someone must maintain perfection. Someone must keep the eternal system running. Winter reveals your true purpose: not to finish the task, but to never let it stop."
+
+        # --- Personal Philosophy: Moral Rebellion vs. Absurdity ---
+        "❄️ CRYSTALLINE REBELLION|Winter's clarity strips away all excuses. In the cold truth of this season, you see clearly: every moment of kindness coded into cruelty is a victory over the absurd."
+        "🧊 FROZEN DEFIANCE|Like ice that expands and cracks stone, your moral choices have power to shatter even the most carefully constructed systems of oppression."
+        "🌨️ PURE RESISTANCE|Snow covers the labyrinth in innocent white, reminding you that purity can blanket even the most corrupt foundations. Your choices remain unstained by their purposes."
+
+        # --- Creating Heroes ---
+        "❄️ WINTER STARS|In the longest nights, you code by starlight, creating navigation points for heroes lost in future darkness. Your work becomes their guiding constellation."
+        "🧊 PRESERVED HOPE|Winter preserves what matters most. Your hidden modifications freeze into the maze's core, waiting for spring heroes to discover what you've preserved for them."
+        "🌨️ SILENT GIFTS|Like snow that falls silently but transforms everything, your secret kindnesses will change the maze in ways no one will trace back to their gentle creator."
+
+        # --- Melancholy Optimism ---
+        "❄️ DIAMOND TEARS|Winter tears freeze into diamonds of clarity. Your suffering crystallizes into wisdom that will sparkle in future heroes' victories."
+        "🧊 ETERNAL PRESERVATION|Like ancient seeds preserved in ice, your good intentions will survive long past this workshop's memory, sprouting in times and places you cannot imagine."
+        "🌨️ QUIET BEAUTY|Snow makes even the labyrinth beautiful. Your presence makes even this cursed work beautiful. Sometimes the most profound changes happen in perfect silence."
 
     )
 

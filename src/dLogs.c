@@ -19,8 +19,19 @@
     #include <strings.h>
 #endif
 
-// For thread ID and mutex support
-/*#ifdef _WIN32
+// Enhanced cross-platform threading support
+#ifdef __EMSCRIPTEN__
+    // Emscripten environment - simplified threading model
+    #include <pthread.h>
+    #define GET_THREAD_ID() 1  // Single-threaded context
+    typedef int dMutex_t;  // Dummy mutex for Emscripten
+    #define MUTEX_INIT(m) (*(m) = 0)
+    #define MUTEX_DESTROY(m) (*(m) = 0)
+    #define MUTEX_LOCK(m) (void)(m)
+    #define MUTEX_UNLOCK(m) (void)(m)
+    // Don't redefine - use Emscripten's existing definition
+#elif defined(_WIN32)
+    // Windows environment
     #include <windows.h>
     #define GET_THREAD_ID() GetCurrentThreadId()
     typedef CRITICAL_SECTION dMutex_t;
@@ -29,20 +40,17 @@
     #define MUTEX_LOCK(m) EnterCriticalSection(m)
     #define MUTEX_UNLOCK(m) LeaveCriticalSection(m)
 #else
-  #ifdef __EMSCRIPTEN__
-      #include <pthread.h>
-      #define GET_THREAD_ID() ((uint32_t)pthread_self())
-  #else
-      #include <sys/syscall.h>
-      #include <unistd.h>
-      #define GET_THREAD_ID() ((uint32_t)syscall(SYS_gettid))
-  #endif
+    // POSIX environment (Linux, macOS, etc.)
+    #include <pthread.h>
+    #include <sys/syscall.h>
+    #include <unistd.h>
+    #define GET_THREAD_ID() ((uint32_t)syscall(SYS_gettid))
     typedef pthread_mutex_t dMutex_t;
     #define MUTEX_INIT(m) pthread_mutex_init(m, NULL)
     #define MUTEX_DESTROY(m) pthread_mutex_destroy(m)
     #define MUTEX_LOCK(m) pthread_mutex_lock(m)
     #define MUTEX_UNLOCK(m) pthread_mutex_unlock(m)
-#endif*/
+#endif
 
 // =============================================================================
 // CUSTOM COLOR PALETTE SYSTEM - Matching Your CSS Color Scheme
@@ -150,8 +158,11 @@ static __thread dString_t* tls_format_buffer = NULL;
 
 // Global logger instance
 static dLogger_t* g_global_logger = NULL;
+#ifdef __EMSCRIPTEN__
+static int rate_limit_mutex = 0;
+#else
 static pthread_mutex_t rate_limit_mutex = PTHREAD_MUTEX_INITIALIZER;
-// Global color support detection
+#endif// Global color support detection
 static bool g_color_support_detected = false;
 static bool g_supports_color = false;
 
@@ -1904,11 +1915,11 @@ void d_LogRateLimitedF(dLogRateLimitFlag_t flag, dLogLevel_t level, uint32_t max
     if (!format) return;
 
     // The entire logic is one atomic, thread-safe operation.
-    pthread_mutex_lock(&rate_limit_mutex);
+    MUTEX_LOCK(&rate_limit_mutex);        // ✨ WORKS IN ALL REALMS
 
     dLogger_t* logger = g_global_logger;
     if (!logger || level < logger->config.default_level) {
-        pthread_mutex_unlock(&rate_limit_mutex);
+        MUTEX_UNLOCK(&rate_limit_mutex);  // ✨ WORKS IN ALL REALMS
         return;
     }
 
@@ -1966,7 +1977,7 @@ void d_LogRateLimitedF(dLogRateLimitFlag_t flag, dLogLevel_t level, uint32_t max
     }
 
     va_end(args);
-    pthread_mutex_unlock(&rate_limit_mutex);
+    MUTEX_UNLOCK(&rate_limit_mutex);      // ✨ WORKS IN ALL REALMS
 
     if (should_log) {
         d_Log(level, d_PeekString(message_buffer));
