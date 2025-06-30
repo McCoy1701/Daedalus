@@ -104,7 +104,7 @@ uninstall:
 
 .PHONY: clean
 clean:
-	rm -rf $(OBJ_DIR) $(BIN_DIR) $(LIB_DIR) $(EMS_DIR)
+	rm -rf $(OBJ_DIR) $(BIN_DIR) $(LIB_DIR) $(EMS_DIR) $(SHA_DIR)
 	clear
 
 .PHONY: bear
