@@ -898,6 +898,60 @@ int test_string_builder_partial_construction_cleanup(void)
     d_PopLogContext(ctx);
     return 1;
 }
+
+int test_set_string_reallocation_and_corruption(void)
+{
+    d_LogWarning("BUG HUNT: Testing d_SetString for memory corruption during reallocation.");
+    dLogContext_t* ctx = d_PushLogContext("SetStringRealloc");
+
+    dString_t* sb = create_test_builder();
+    
+    d_LogDebug("Setting initial small string...");
+    d_SetString(sb, "Initial", 0);
+    TEST_ASSERT(strcmp(d_PeekString(sb), "Initial") == 0, "Initial set should work.");
+
+    d_LogDebug("Setting to a very large string to force reallocation...");
+    const char* large_string = "This is a significantly larger string designed to force the underlying buffer to be reallocated, which is a common source of memory bugs if not handled with care.";
+    d_SetString(sb, large_string, 0);
+    TEST_ASSERT(d_GetStringLength(sb) == strlen(large_string), "Length should match large string after realloc set.");
+    TEST_ASSERT(strcmp(d_PeekString(sb), large_string) == 0, "Content should be correct after realloc set.");
+
+    d_LogDebug("Setting back to a small string to test buffer reuse...");
+    d_SetString(sb, "Small again", 0);
+    TEST_ASSERT(d_GetStringLength(sb) == 11, "Length should be correct after setting to small string.");
+    TEST_ASSERT(strcmp(d_PeekString(sb), "Small again") == 0, "Content should be correct after setting to small string.");
+    
+    d_DestroyString(sb);
+    d_PopLogContext(ctx);
+    return 1;
+}
+
+int test_set_string_self_assignment(void)
+{
+    d_LogWarning("BUG HUNT: Testing d_SetString self-assignment edge cases.");
+    dLogContext_t* ctx = d_PushLogContext("SetStringSelfAssign");
+
+    dString_t* sb = create_test_builder();
+    d_SetString(sb, "Hello-World", 0);
+    const char* original_content = d_PeekString(sb);
+    size_t original_len = d_GetStringLength(sb);
+
+    d_LogDebug("Testing setting a string to its own content...");
+    d_SetString(sb, original_content, 0);
+    TEST_ASSERT(d_GetStringLength(sb) == original_len, "Self-assignment should not change length.");
+    TEST_ASSERT(strcmp(d_PeekString(sb), "Hello-World") == 0, "Self-assignment should not change content.");
+
+    d_LogDebug("Testing setting a string to a substring of itself...");
+    const char* substring_ptr = d_PeekString(sb) + 6; // "World"
+    d_SetString(sb, substring_ptr, 0);
+    TEST_ASSERT(d_GetStringLength(sb) == 5, "Length should be 5 after setting to substring 'World'.");
+    TEST_ASSERT(strcmp(d_PeekString(sb), "World") == 0, "Content should be 'World' after setting to substring.");
+
+    d_DestroyString(sb);
+    d_PopLogContext(ctx);
+    return 1;
+}
+
 // Main test runner
 int main(void)
 {
@@ -927,6 +981,9 @@ int main(void)
     RUN_TEST(test_network_packet_corruption_bug);
     RUN_TEST(test_database_blob_corruption_bug);
     RUN_TEST(test_string_builder_partial_construction_cleanup);
+
+    RUN_TEST(test_set_string_reallocation_and_corruption);
+    RUN_TEST(test_set_string_self_assignment);
 
     TEST_SUITE_END();
 }
