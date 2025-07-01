@@ -1,4 +1,7 @@
-// File: src/dStrings.c - String utilities for Daedalus project
+/* dStrings.c - The heart of the Daedalus string manipulation library, a testament to the power of dynamic, safe, and expressive string handling in C. */
+// Wisdom: A string is not just a sequence of characters; it is a story waiting to be told, a message to be delivered, a command to be executed. Handle it with the respect it deserves.
+
+
 #define LOG( msg ) printf( "%s | File: %s, Line: %d\n", msg, __FILE__, __LINE__ )
 
 #include "Daedalus.h"
@@ -175,6 +178,47 @@ void d_DestroyString(dString_t* sb)
      sb->len += len;
      sb->str[sb->len] = '\0'; // Ensure null-termination.
  }
+
+/*
+ * Set the content of an existing dString_t to a new value
+ */
+int d_SetString(dString_t* string, const char* content, int flags)
+{
+    // Check your inputs.
+    if (!string)
+    {
+        return -1; // Error: null dString_t pointer
+    }
+
+    // No content? Clear the string.
+    if (!content)
+    {
+        d_ClearString(string);
+        return 0;
+    }
+
+    size_t content_len = strlen(content);
+
+    // If the new content is the same as the old, do nothing.
+    if (string->str && strcmp(string->str, content) == 0)
+    {
+        return 0; // Success: no change needed
+    }
+
+    // Ensure there's enough space. This might reallocate.
+    d_StringBuilderEnsureSpace(string, content_len);
+    if (!string->str)
+    {
+        return -1; // Error: memory allocation failed
+    }
+
+    // Copy the new content. Use memmove for safety
+    memmove(string->str, content, content_len);
+    string->len = content_len;
+    string->str[string->len] = '\0'; // Null-terminate.
+
+    return 0; // Success
+}
  /*
   * Add a limited portion of a string to the string builder
   */

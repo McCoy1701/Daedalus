@@ -15,6 +15,7 @@ int total_tests = 0;
 int tests_passed = 0;
 int tests_failed = 0;
 
+
 // =============================================================================
 // DIVINE HELPER FUNCTIONS WITH ENHANCED LOGGING
 // =============================================================================
@@ -1064,6 +1065,53 @@ int test_string_builder_lifecycle_isolation(void)
     d_PopLogContext(ctx);
     return 1;
 }
+
+int test_set_string_replaces_content(void)
+{
+    d_LogInfo("VERIFICATION: d_SetString correctly replaces existing content.");
+    dLogContext_t* ctx = d_PushLogContext("SetStringReplace");
+
+    dString_t* sb = create_test_builder();
+    d_AppendString(sb, "This is the original content.", 0);
+
+    d_LogDebug("Replacing original content with new content...");
+    d_SetString(sb, "This is the new content.", 0);
+    TEST_ASSERT(divine_string_compare(d_PeekString(sb), "This is the new content.", "replace content"),
+               "d_SetString should replace the old content entirely.");
+
+    d_LogDebug("Setting content again to ensure no double-free or memory issues...");
+    d_SetString(sb, "Final content.", 0);
+    TEST_ASSERT(divine_string_compare(d_PeekString(sb), "Final content.", "final content"),
+               "d_SetString should work correctly on subsequent calls.");
+
+    d_DestroyString(sb);
+    d_PopLogContext(ctx);
+    return 1;
+}
+
+int test_set_string_and_append_integration(void)
+{
+    d_LogInfo("VERIFICATION: Integration of d_SetString and d_AppendString.");
+    dLogContext_t* ctx = d_PushLogContext("SetAndAppend");
+
+    dString_t* sb = create_test_builder();
+
+    d_LogDebug("Setting initial string, then appending...");
+    d_SetString(sb, "Initial: ", 0);
+    d_AppendString(sb, "Appended.", 0);
+    TEST_ASSERT(divine_string_compare(d_PeekString(sb), "Initial: Appended.", "set then append"),
+               "Append should work correctly after a set operation.");
+
+    d_LogDebug("Setting string again, overwriting the appended content...");
+    d_SetString(sb, "Overwritten!", 0);
+    TEST_ASSERT(divine_string_compare(d_PeekString(sb), "Overwritten!", "overwrite appended"),
+               "Set should overwrite all previous content.");
+
+    d_DestroyString(sb);
+    d_PopLogContext(ctx);
+    return 1;
+}
+
 // =============================================================================
 // MAIN TEST RUNNER WITH DIVINE LOGGING ARCHITECTURE
 // =============================================================================
@@ -1127,6 +1175,10 @@ int main(void)
     RUN_TEST(test_format_extreme_edge_cases);
     RUN_TEST(test_template_advanced_unicode_and_boundaries);
     RUN_TEST(test_string_builder_lifecycle_isolation);
+
+    // d_SetString tests
+    RUN_TEST(test_set_string_replaces_content);
+    RUN_TEST(test_set_string_and_append_integration);
 
     // =========================================================================
     // DAEDALUS LOGGER CLEANUP

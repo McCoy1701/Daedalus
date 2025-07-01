@@ -549,7 +549,6 @@ int test_string_builder_memory_stress(void)
     d_LogWarning("BUG HUNT: Memory allocation stress testing.");
     dLogContext_t* ctx = d_PushLogContext("MemoryStress");
 
-    d_LogDebug("Creating multiple string builders simultaneously...");
     dString_t* builders[10];
     for (int i = 0; i < 10; i++) {
         builders[i] = create_test_builder();
@@ -942,6 +941,67 @@ int test_string_builder_truncated_destruction(void)
     return 1;
 }
 
+int test_set_string_basic(void)
+{
+    d_LogInfo("VERIFICATION: Basic functionality of d_SetString.");
+    dLogContext_t* ctx = d_PushLogContext("SetStringBasic");
+
+    dString_t* sb = create_test_builder();
+
+    d_LogDebug("Setting initial content...");
+    d_SetString(sb, "Initial Value", 0);
+    TEST_ASSERT(d_GetStringLength(sb) == 13, "Length should be 13 after initial set");
+    TEST_ASSERT(safe_string_compare(d_PeekString(sb), "Initial Value", "initial set"), "Content should be 'Initial Value'");
+
+    d_LogDebug("Setting a new, longer value...");
+    d_SetString(sb, "A new and much longer value for the string", 0);
+    TEST_ASSERT(d_GetStringLength(sb) == 42, "Length should update to 42 for longer string");
+    TEST_ASSERT(safe_string_compare(d_PeekString(sb), "A new and much longer value for the string", "longer set"), "Content should match the new longer value");
+
+    d_LogDebug("Setting a shorter value...");
+    d_SetString(sb, "Short", 0);
+    TEST_ASSERT(d_GetStringLength(sb) == 5, "Length should update to 5 for shorter string");
+    TEST_ASSERT(safe_string_compare(d_PeekString(sb), "Short", "shorter set"), "Content should match the new shorter value");
+
+    d_DestroyString(sb);
+    d_PopLogContext(ctx);
+    return 1;
+}
+
+int test_set_string_edge_cases(void)
+{
+    d_LogWarning("BUG HUNT: Edge case testing for d_SetString.");
+    dLogContext_t* ctx = d_PushLogContext("SetStringEdgeCases");
+
+    dString_t* sb = create_test_builder();
+    d_AppendString(sb, "Original", 0);
+
+    d_LogDebug("Testing set with NULL content (should clear)...");
+    d_SetString(sb, NULL, 0);
+    TEST_ASSERT(d_GetStringLength(sb) == 0, "Length should be 0 after setting to NULL");
+    TEST_ASSERT(safe_string_compare(d_PeekString(sb), "", "set to null"), "Content should be empty after setting to NULL");
+
+    d_LogDebug("Testing set with an empty string...");
+    d_AppendString(sb, "Not empty anymore", 0);
+    d_SetString(sb, "", 0);
+    TEST_ASSERT(d_GetStringLength(sb) == 0, "Length should be 0 after setting to empty string");
+    TEST_ASSERT(safe_string_compare(d_PeekString(sb), "", "set to empty"), "Content should be empty after setting to empty string");
+
+    d_LogDebug("Testing set with the same content...");
+    d_SetString(sb, "Same Same", 0);
+    d_SetString(sb, "Same Same", 0);
+    TEST_ASSERT(d_GetStringLength(sb) == 9, "Length should be unchanged when setting same content");
+    TEST_ASSERT(safe_string_compare(d_PeekString(sb), "Same Same", "set to same"), "Content should be unchanged when setting same content");
+
+    d_LogDebug("Testing set with NULL string builder (should not crash)...");
+    int result = d_SetString(NULL, "test", 0);
+    TEST_ASSERT(result == -1, "Setting with NULL builder should return error");
+
+    d_DestroyString(sb);
+    d_PopLogContext(ctx);
+    return 1;
+}
+
 // =============================================================================
 // MAIN TEST RUNNER WITH COMPREHENSIVE LOGGING SETUP
 // =============================================================================
@@ -994,6 +1054,9 @@ int main(void)
     RUN_TEST(test_string_builder_append_n_truncation_edge_cases);
     RUN_TEST(test_string_builder_append_n_truncation_basic);
     RUN_TEST(test_string_builder_truncated_destruction);
+
+    RUN_TEST(test_set_string_basic);
+    RUN_TEST(test_set_string_edge_cases);
 
     // =========================================================================
     // DAEDALUS LOGGER CLEANUP

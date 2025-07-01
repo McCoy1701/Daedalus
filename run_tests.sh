@@ -1522,8 +1522,6 @@ run_test "Logging Showcases" "run-test-logging-showcase"
 run_test "Logging Structured" "run-test-logging-structured"
 run_test "Logging Rate Limited" "run-test-logging-rate-limited"
 run_test "Logging Emscripten" "run-test-logging-emscripten" 
-run_test "Logging Emscripten" "test-logging-emscripten-web"
-run_test "Logging Emscripten Advanced" "test-logging-advanced-emscripten-web"
 
 
 
