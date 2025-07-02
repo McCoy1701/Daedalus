@@ -158,6 +158,7 @@ run-test-logging-rate-limited: test-logging-rate-limited
 
 .PHONY: run
 run: run-test-create-string-from-file run-test-logging-rate-limited run-test-string-builder run-test-string-builder-edge
+	@./$(BIN_DIR)/test_dsetstring
 
 .PHONY: test-string-builder
 test-string-builder: always $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
