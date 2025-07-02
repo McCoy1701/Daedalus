@@ -1002,6 +1002,223 @@ int test_set_string_edge_cases(void)
     return 1;
 }
 
+int test_is_string_invalid_valid_cases(void)
+{
+    d_LogInfo("VERIFICATION: d_IsStringInvalid with valid strings.");
+    dLogContext_t* ctx = d_PushLogContext("IsStringInvalidValid");
+
+    dString_t* sb = create_test_builder();
+    d_AppendString(sb, "Hello", 0);
+
+    TEST_ASSERT(!d_IsStringInvalid(sb), "Valid string should not be invalid");
+
+    d_ClearString(sb);
+    d_AppendString(sb, " ", 0);
+    TEST_ASSERT(!d_IsStringInvalid(sb), "String with space should not be invalid");
+
+    d_DestroyString(sb);
+    d_PopLogContext(ctx);
+    return 1;
+}
+
+int test_is_string_invalid_invalid_cases(void)
+{
+    d_LogInfo("VERIFICATION: d_IsStringInvalid with invalid strings.");
+    dLogContext_t* ctx = d_PushLogContext("IsStringInvalidInvalid");
+
+    dString_t* sb_null_ptr = NULL;
+    TEST_ASSERT(d_IsStringInvalid(sb_null_ptr), "NULL dString_t pointer should be invalid");
+
+    dString_t* sb_null_str = create_test_builder();
+    free(sb_null_str->str); // Simulate NULL internal string
+    sb_null_str->str = NULL;
+    TEST_ASSERT(d_IsStringInvalid(sb_null_str), "dString_t with NULL internal str should be invalid");
+    free(sb_null_str); // Manually free the dString_t struct
+
+    dString_t* sb_empty = create_test_builder();
+    TEST_ASSERT(d_IsStringInvalid(sb_empty), "Empty dString_t should be invalid");
+
+    d_AppendString(sb_empty, "", 0);
+    TEST_ASSERT(d_IsStringInvalid(sb_empty), "dString_t with empty content should be invalid");
+
+    d_DestroyString(sb_empty);
+    d_PopLogContext(ctx);
+    return 1;
+}
+
+int test_string_comparison_basic(void)
+{
+    d_LogInfo("VERIFICATION: Basic string comparison functionality.");
+    dLogContext_t* ctx = d_PushLogContext("StringComparisonBasic");
+
+    // Test d_CompareStrings
+    d_LogDebug("Testing d_CompareStrings with identical strings...");
+    dString_t* str1 = create_test_builder();
+    dString_t* str2 = create_test_builder();
+    d_AppendString(str1, "hello", 0);
+    d_AppendString(str2, "hello", 0);
+    
+    int result = d_CompareStrings(str1, str2);
+    TEST_ASSERT(result == 0, "Identical strings should compare as equal");
+
+    d_LogDebug("Testing d_CompareStrings with lexicographically different strings...");
+    d_ClearString(str2);
+    d_AppendString(str2, "world", 0);
+    result = d_CompareStrings(str1, str2);
+    TEST_ASSERT(result < 0, "'hello' should be less than 'world'");
+
+    result = d_CompareStrings(str2, str1);
+    TEST_ASSERT(result > 0, "'world' should be greater than 'hello'");
+
+    d_LogDebug("Testing d_CompareStrings with NULL parameters...");
+    result = d_CompareStrings(NULL, NULL);
+    TEST_ASSERT(result == 0, "Both NULL should be equal");
+
+    result = d_CompareStrings(NULL, str1);
+    TEST_ASSERT(result < 0, "NULL should be less than valid string");
+
+    result = d_CompareStrings(str1, NULL);
+    TEST_ASSERT(result > 0, "Valid string should be greater than NULL");
+
+    // Test d_CompareStringToCString
+    d_LogDebug("Testing d_CompareStringToCString with identical content...");
+    result = d_CompareStringToCString(str1, "hello");
+    TEST_ASSERT(result == 0, "dString 'hello' should equal C-string 'hello'");
+
+    d_LogDebug("Testing d_CompareStringToCString with different content...");
+    result = d_CompareStringToCString(str1, "world");
+    TEST_ASSERT(result < 0, "dString 'hello' should be less than C-string 'world'");
+
+    result = d_CompareStringToCString(str1, "abc");
+    TEST_ASSERT(result > 0, "dString 'hello' should be greater than C-string 'abc'");
+
+    d_LogDebug("Testing d_CompareStringToCString with NULL parameters...");
+    result = d_CompareStringToCString(NULL, NULL);
+    TEST_ASSERT(result == 0, "NULL dString and NULL C-string should be equal");
+
+    result = d_CompareStringToCString(NULL, "");
+    TEST_ASSERT(result == 0, "NULL dString and empty C-string should be equal");
+
+    result = d_CompareStringToCString(NULL, "hello");
+    TEST_ASSERT(result < 0, "NULL dString should be less than valid C-string");
+
+    result = d_CompareStringToCString(str1, NULL);
+    TEST_ASSERT(result > 0, "Valid dString should be greater than NULL C-string");
+
+    d_DestroyString(str1);
+    d_DestroyString(str2);
+    d_PopLogContext(ctx);
+    return 1;
+}
+
+int test_string_comparison_edge_cases(void)
+{
+    d_LogWarning("BUG HUNT: String comparison edge cases and boundary conditions.");
+    dLogContext_t* ctx = d_PushLogContext("StringComparisonEdgeCases");
+
+    d_LogDebug("Testing comparison with empty strings...");
+    dString_t* empty1 = create_test_builder();
+    dString_t* empty2 = create_test_builder();
+    
+    int result = d_CompareStrings(empty1, empty2);
+    TEST_ASSERT(result == 0, "Two empty strings should be equal");
+
+    result = d_CompareStringToCString(empty1, "");
+    TEST_ASSERT(result == 0, "Empty dString should equal empty C-string");
+
+    d_LogDebug("Testing comparison with strings of different lengths...");
+    dString_t* short_str = create_test_builder();
+    dString_t* long_str = create_test_builder();
+    d_AppendString(short_str, "hi", 0);
+    d_AppendString(long_str, "hello", 0);
+
+    result = d_CompareStrings(short_str, long_str);
+    TEST_ASSERT(result > 0, "'hi' should be greater than 'hello' lexicographically");
+
+    result = d_CompareStringToCString(short_str, "hello");
+    TEST_ASSERT(result > 0, "dString 'hi' should be greater than C-string 'hello'");
+
+    d_LogDebug("Testing comparison with special characters...");
+    d_ClearString(short_str);
+    d_ClearString(long_str);
+    d_AppendString(short_str, "Test123", 0);
+    d_AppendString(long_str, "Test!@#", 0);
+
+    result = d_CompareStrings(short_str, long_str);
+    d_LogDebugF("Comparison result for 'Test123' vs 'Test!@#': %d", result);
+    TEST_ASSERT(result != 0, "Strings with different special chars should not be equal");
+
+    d_LogDebug("Testing comparison with case sensitivity...");
+    d_ClearString(short_str);
+    d_ClearString(long_str);
+    d_AppendString(short_str, "Hello", 0);
+    d_AppendString(long_str, "hello", 0);
+
+    result = d_CompareStrings(short_str, long_str);
+    TEST_ASSERT(result < 0, "'Hello' should be less than 'hello' (uppercase first)");
+
+    result = d_CompareStringToCString(short_str, "hello");
+    TEST_ASSERT(result < 0, "dString 'Hello' should be less than C-string 'hello'");
+
+    d_LogDebug("Testing comparison with very long strings...");
+    d_ClearString(short_str);
+    d_ClearString(long_str);
+    
+    const char* long_content1 = "This is a very long string designed to test comparison functionality with substantial content that exceeds typical buffer sizes and ensures the comparison works correctly with extended text";
+    const char* long_content2 = "This is a very long string designed to test comparison functionality with substantial content that exceeds typical buffer sizes and ensures the comparison works correctly with extended data";
+    
+    d_AppendString(short_str, long_content1, 0);
+    d_AppendString(long_str, long_content2, 0);
+
+    result = d_CompareStrings(short_str, long_str);
+    TEST_ASSERT(result > 0, "Long string with 'text' should be greater than one with 'data'");
+
+    result = d_CompareStringToCString(short_str, long_content2);
+    TEST_ASSERT(result > 0, "dString with 'text' should be greater than C-string with 'data'");
+
+    d_LogDebug("Testing comparison with strings containing null bytes...");
+    d_ClearString(short_str);
+    d_AppendChar(short_str, 'A');
+    d_AppendChar(short_str, '\0');
+    d_AppendChar(short_str, 'B');
+
+    dString_t* null_byte_str = create_test_builder();
+    d_AppendChar(null_byte_str, 'A');
+    d_AppendChar(null_byte_str, '\0');
+    d_AppendChar(null_byte_str, 'C');
+
+    result = d_CompareStrings(short_str, null_byte_str);
+    d_LogDebugF("Comparison with embedded nulls: %d", result);
+    // strcmp will stop at first null, so both will appear as "A"
+    TEST_ASSERT(result == 0, "Strings with embedded nulls should compare based on content before first null");
+
+    d_LogDebug("Testing comparison performance with identical prefixes...");
+    d_ClearString(short_str);
+    d_ClearString(long_str);
+    
+    const char* common_prefix = "CommonPrefixThatIsVeryLongAndIdenticalInBothStrings";
+    d_AppendString(short_str, common_prefix, 0);
+    d_AppendString(short_str, "A", 0);
+    
+    d_AppendString(long_str, common_prefix, 0);
+    d_AppendString(long_str, "B", 0);
+
+    result = d_CompareStrings(short_str, long_str);
+    TEST_ASSERT(result < 0, "String ending with 'A' should be less than one ending with 'B'");
+
+    result = d_CompareStringToCString(short_str, d_PeekString(long_str));
+    TEST_ASSERT(result < 0, "Same comparison should work with C-string version");
+
+    d_DestroyString(empty1);
+    d_DestroyString(empty2);
+    d_DestroyString(short_str);
+    d_DestroyString(long_str);
+    d_DestroyString(null_byte_str);
+    d_PopLogContext(ctx);
+    return 1;
+}
+
+
 // =============================================================================
 // MAIN TEST RUNNER WITH COMPREHENSIVE LOGGING SETUP
 // =============================================================================
@@ -1021,7 +1238,6 @@ int main(void)
 
     dLogger_t* logger = d_CreateLogger(config);
     d_SetGlobalLogger(logger);
-    d_AddLogHandler(d_GetGlobalLogger(), d_ConsoleLogHandler, NULL);
 
     d_LogInfo("Initializing MIDAS-Enhanced String Builder Test Suite");
     d_LogDebugF("Daedalus Logging System: %s", "ACTIVE");
@@ -1057,7 +1273,13 @@ int main(void)
 
     RUN_TEST(test_set_string_basic);
     RUN_TEST(test_set_string_edge_cases);
+    
+    RUN_TEST(test_is_string_invalid_valid_cases);
+    RUN_TEST(test_is_string_invalid_invalid_cases);
 
+    // String comparison tests
+    RUN_TEST(test_string_comparison_basic);
+    RUN_TEST(test_string_comparison_edge_cases);
     // =========================================================================
     // DAEDALUS LOGGER CLEANUP
     // =========================================================================

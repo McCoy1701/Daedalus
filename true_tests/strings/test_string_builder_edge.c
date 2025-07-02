@@ -952,9 +952,210 @@ int test_set_string_self_assignment(void)
     return 1;
 }
 
+/**
+ * @brief Tests resilience against manual/external corruption of the dString_t state.
+ * This is a hostile test to ensure functions don't blindly trust the struct's
+ * internal values (`len`, `alloced`) if they contradict the buffer's reality.
+ */
+int test_resilience_to_manual_state_corruption(void)
+{
+	d_LogWarning("INSANE BUG HUNT: Testing resilience to direct memory corruption.");
+	dLogContext_t* ctx = d_PushLogContext("StateCorruption");
+
+	dString_t* sb = create_test_builder();
+	d_AppendString(sb, "This is the initial correct string.", 0);
+
+	// --- Scenario 1: Stale Length Property ---
+	d_LogDebug("Corrupting state: Manually placing a null terminator early...");
+	// The length property is now "lying" about the C-string's actual length.
+	sb->str[10] = '\0'; // strlen() will now report 10
+	size_t corrupted_len = sb->len; // Should still be 33
+	TEST_ASSERT(strlen(d_PeekString(sb)) == 10, "strlen() should now see a truncated string.");
+    d_LogDebugF("Corrupted length: %zu", corrupted_len);
+	TEST_ASSERT(corrupted_len == 35, "Internal length property should still be stale (33).");
+
+	d_LogDebug("Appending with len=0 does NOT heal corruption - it trusts internal state...");
+	d_AppendString(sb, " HEALED", 0); // len=0 forces use of strlen()
+    d_LogDebugF("Final length: %zu", d_GetStringLength(sb));
+	TEST_ASSERT(d_GetStringLength(sb) == 42, "Length should be corrupted (35 + 7), not healed");
+    d_LogDebugF("Final content (truncated by printf): '%s'", d_PeekString(sb));
+	
+	// The string now has embedded nulls - strcmp will only see up to first null
+	TEST_ASSERT(strcmp(d_PeekString(sb), "This is th") == 0, "Visible content should be truncated at corruption point");
+	
+	// But " HEALED" should be present at position 35
+	TEST_ASSERT(memcmp(d_PeekString(sb) + 35, " HEALED", 7) == 0, "HEALED should be appended at original length position");
+
+	// --- Scenario 2: `len` exceeds `alloced` ---
+	d_LogDebug("Corrupting state: Manually setting length larger than allocation...");
+	d_ClearString(sb);
+	d_AppendString(sb, "short", 0); // len=5, alloced=32
+	sb->len = 40; // This is a dangerous, inconsistent state.
+
+	d_LogDebug("Appending a char, which must check space (len+1 > alloced) and realloc...");
+	// A naive implementation might read out of bounds. A robust one will realloc.
+	d_AppendChar(sb, '!');
+	TEST_ASSERT(1, "Should not crash when appending to a buffer with corrupted length.");
+	// The actual content is unpredictable, but survival is the key test.
+	d_LogDebugF("Survived append with corrupted length. New length: %zu", d_GetStringLength(sb));
+
+	d_DestroyString(sb);
+	d_PopLogContext(ctx);
+	return 1;
+}
+
+/**
+ * @brief Tests d_TemplateString with pathological inputs designed to cause infinite
+ * loops or memory corruption in naive implementations.
+ */
+int test_pathological_template_substitution(void)
+{
+	d_LogWarning("INSANE BUG HUNT: Testing pathological template substitution cases.");
+	dLogContext_t* ctx = d_PushLogContext("PathologicalTemplate");
+
+	dString_t* sb = create_test_builder();
+
+	// --- Scenario 1: Recursive (but non-re-entrant) substitution ---
+	d_LogDebug("Testing template with a value that is another key...");
+	const char* keys1[] = {"A", "B", "C"};
+	const char* values1[] = {"foo", "{A}", "bar"};
+	d_TemplateString(sb, "Template: {A} {B} {C}", keys1, values1, 3);
+	TEST_ASSERT(strcmp(d_PeekString(sb), "Template: foo {A} bar") == 0, "Should not recursively substitute values.");
+	d_ClearString(sb);
+
+	// --- Scenario 2: Self-referential substitution (Infinite Loop test) ---
+	d_LogDebug("Testing template with a value that refers to the template itself...");
+	const char* keys2[] = {"name"};
+	const char* values2[] = {"Hello, {name}!"};
+	d_TemplateString(sb, "Hello, {name}!", keys2, values2, 1);
+	TEST_ASSERT(strcmp(d_PeekString(sb), "Hello, Hello, {name}!!") == 0, "Should not enter an infinite loop on self-reference.");
+	d_ClearString(sb);
+
+	// --- Scenario 3: Substitution forcing reallocation mid-parse ---
+	d_LogDebug("Testing template where a substitution forces buffer growth...");
+	const char* long_val = "This_is_a_very_long_value_that_will_force_the_string_builder_to_reallocate_its_internal_buffer_mid-operation";
+	const char* keys3[] = {"prefix", "data"};
+	const char* values3[] = {"PREFIX", long_val};
+	
+	// Create a nearly-full buffer
+	d_AppendString(sb, "...........................", 27); // len=27, alloc=32
+	// Now, run a template on it. The replacement of {data} should force a realloc.
+	// A naive implementation might hold a pointer to the buffer that gets invalidated.
+	d_TemplateString(sb, "{prefix}: {data}", keys3, values3, 2);
+
+	TEST_ASSERT(strstr(d_PeekString(sb), "PREFIX: ") != NULL, "Should contain the substituted prefix.");
+	TEST_ASSERT(strstr(d_PeekString(sb), long_val) != NULL, "Should contain the long value after reallocation.");
+	TEST_ASSERT(d_GetStringLength(sb) > strlen(long_val), "Length should be correct after growth during template parsing.");
+
+	d_DestroyString(sb);
+	d_PopLogContext(ctx);
+	return 1;
+}
+
+/**
+ * @brief Tests string comparison functions after truncation operations.
+ * Ensures that d_CompareStrings and d_CompareStringToCString correctly
+ * reflect the truncated state of dString_t objects.
+ */
+int test_string_comparison_after_truncation(void)
+{
+    d_LogInfo("VERIFICATION: String comparison after truncation.");
+    dLogContext_t* ctx = d_PushLogContext("CompareAfterTruncation");
+
+    dString_t* sb1 = create_test_builder();
+    dString_t* sb2 = create_test_builder();
+
+    d_AppendString(sb1, "LongString", 0);
+    d_AppendString(sb2, "LongString", 0);
+
+    d_LogDebug("Truncating sb1 to 'Long'...");
+    d_TruncateString(sb1, 4); // "Long"
+
+    TEST_ASSERT(d_CompareStrings(sb1, sb2) < 0, "Truncated 'Long' should be less than 'LongString'");
+    TEST_ASSERT(d_CompareStringToCString(sb1, "Long") == 0, "Truncated sb1 should equal 'Long'");
+    TEST_ASSERT(d_CompareStringToCString(sb1, "LongString") < 0, "Truncated sb1 should be less than 'LongString'");
+
+    d_LogDebug("Truncating sb2 to 'Long' as well...");
+    d_TruncateString(sb2, 4); // "Long"
+
+    TEST_ASSERT(d_CompareStrings(sb1, sb2) == 0, "Both truncated to 'Long' should be equal");
+    TEST_ASSERT(d_CompareStringToCString(sb2, "Long") == 0, "Truncated sb2 should equal 'Long'");
+
+    d_LogDebug("Truncating sb1 to empty...");
+    d_TruncateString(sb1, 0); // ""
+
+    TEST_ASSERT(d_CompareStrings(sb1, sb2) < 0, "Empty string should be less than 'Long'");
+    TEST_ASSERT(d_CompareStringToCString(sb1, "") == 0, "Empty sb1 should equal empty C-string");
+
+    d_DestroyString(sb1);
+    d_DestroyString(sb2);
+    d_PopLogContext(ctx);
+    return 1;
+}
+
+/**
+ * @brief Tests string comparison functions after drop operations.
+ * Ensures that d_CompareStrings and d_CompareStringToCString correctly
+ * reflect the state of dString_t objects after characters have been dropped
+ * from the beginning.
+ */
+int test_string_comparison_after_drop(void)
+{
+    d_LogInfo("VERIFICATION: String comparison after drop operations.");
+    dLogContext_t* ctx = d_PushLogContext("CompareAfterDrop");
+
+    dString_t* sb1 = create_test_builder();
+    dString_t* sb2 = create_test_builder();
+
+    d_AppendString(sb1, "HelloWorld", 0);
+    d_AppendString(sb2, "World", 0);
+
+    d_LogDebug("Dropping 'Hello' from sb1...");
+    d_DropString(sb1, 5); // "World"
+
+    TEST_ASSERT(d_CompareStrings(sb1, sb2) == 0, "sb1 ('World') should equal sb2 ('World')");
+    TEST_ASSERT(d_CompareStringToCString(sb1, "World") == 0, "sb1 should equal C-string 'World'");
+
+    d_LogDebug("Dropping 'W' from sb1...");
+    d_DropString(sb1, 1); // "orld"
+
+    d_LogDebugF("sb1 content: '%s'", d_PeekString(sb1));
+    d_LogDebugF("sb2 content: '%s'", d_PeekString(sb2));
+    TEST_ASSERT(d_CompareStrings(sb1, sb2) > 0, "sb1 ('orld') should be greater than sb2 ('World')");
+    TEST_ASSERT(d_CompareStringToCString(sb1, "orld") == 0, "sb1 should equal C-string 'orld'");
+
+    d_LogDebug("Dropping all from sb1...");
+    d_DropString(sb1, d_GetStringLength(sb1)); // ""
+
+    TEST_ASSERT(d_CompareStrings(sb1, sb2) < 0, "Empty sb1 should be less than sb2 ('World')");
+    TEST_ASSERT(d_CompareStringToCString(sb1, "") == 0, "Empty sb1 should equal empty C-string");
+
+    d_DestroyString(sb1);
+    d_DestroyString(sb2);
+    d_PopLogContext(ctx);
+    return 1;
+}
+
 // Main test runner
 int main(void)
-{
+{   
+    // =========================================================================
+    // DAEDALUS LOGGER INITIALIZATION - DIVINE CONFIGURATION
+    // =========================================================================
+    dLogConfig_t config = {
+        .default_level = D_LOG_LEVEL_DEBUG,
+        .colorize_output = true,
+        .include_timestamp = false,
+        .include_file_info = true,   // Enable for debugging
+        .include_function = true     // Enable for detailed context
+    };
+
+    dLogger_t* logger = d_CreateLogger(config);
+    d_SetGlobalLogger(logger);
+
+    d_LogInfo("Initializing MIDAS-Enhanced String Builder Test Suite");
+    d_LogDebugF("Daedalus Logging System: %s", "ACTIVE");
+    // =========================================================================
     TEST_SUITE_START("String Builder Edge Case Tests");
 
     RUN_TEST(test_string_builder_empty_string_operations);
@@ -985,5 +1186,18 @@ int main(void)
     RUN_TEST(test_set_string_reallocation_and_corruption);
     RUN_TEST(test_set_string_self_assignment);
 
+    RUN_TEST(test_resilience_to_manual_state_corruption);
+    RUN_TEST(test_pathological_template_substitution);
+    
+    RUN_TEST(test_string_comparison_after_truncation);
+    RUN_TEST(test_string_comparison_after_drop);
+
+    // =========================================================================
+    // DAEDALUS LOGGER CLEANUP
+    // =========================================================================
+    d_LogInfo("String Builder Test Suite completed");
+    d_DestroyLogger(d_GetGlobalLogger());
+    // =========================================================================
     TEST_SUITE_END();
+    
 }

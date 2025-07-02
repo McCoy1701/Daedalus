@@ -1112,6 +1112,84 @@ int test_set_string_and_append_integration(void)
     return 1;
 }
 
+/**
+ * @brief Tests string comparison functions after d_AppendStringN operations.
+ * Ensures that d_CompareStrings and d_CompareStringToCString correctly
+ * reflect the state of dString_t objects after partial appends.
+ */
+int test_string_comparison_after_append_n(void)
+{
+    d_LogInfo("VERIFICATION: String comparison after d_AppendStringN operations.");
+    dLogContext_t* ctx = d_PushLogContext("CompareAfterAppendN");
+
+    dString_t* sb1 = create_test_builder();
+    dString_t* sb2 = create_test_builder();
+
+    d_AppendStringN(sb1, "HelloWorld", 5); // sb1 becomes "Hello"
+    d_AppendString(sb2, "Hello", 0);       // sb2 becomes "Hello"
+
+    TEST_ASSERT(d_CompareStrings(sb1, sb2) == 0, "sb1 (Hello) should equal sb2 (Hello) after AppendStringN");
+    TEST_ASSERT(d_CompareStringToCString(sb1, "Hello") == 0, "sb1 (Hello) should equal C-string 'Hello'");
+
+    d_ClearString(sb1);
+    d_AppendStringN(sb1, "Testing123", 7); // sb1 becomes "Testing"
+    d_AppendString(sb2, "World", 0);       // sb2 becomes "HelloWorld"
+
+    d_LogDebugF("sb1 content: '%s'", d_PeekString(sb1));
+    d_LogDebugF("sb2 content: '%s'", d_PeekString(sb2));
+
+    TEST_ASSERT(d_CompareStrings(sb1, sb2) > 0, "sb1 (Testing) should be greater than sb2 (HelloWorld)");
+    TEST_ASSERT(d_CompareStringToCString(sb1, "Testing") == 0, "sb1 (Testing) should equal C-string 'Testing'");
+
+    d_DestroyString(sb1);
+    d_DestroyString(sb2);
+    d_PopLogContext(ctx);
+    return 1;
+}
+
+/**
+ * @brief Epic advanced test for string comparison, combining various scenarios.
+ * This test aims to push the comparison functions to their limits by mixing
+ * different string states, lengths, and content types.
+ */
+int test_string_comparison_epic_advanced(void)
+{
+    d_LogInfo("VERIFICATION: Epic advanced string comparison scenarios.");
+    dLogContext_t* ctx = d_PushLogContext("CompareEpicAdvanced");
+
+    dString_t* sba = create_test_builder();
+    dString_t* sbb = create_test_builder();
+
+    // Scenario 1: Long strings, one truncated, one with embedded null
+    d_AppendString(sba, "This is a very long string for comparison.", 0);
+    d_AppendString(sbb, "This is a very long string for comparison.", 0);
+
+    d_TruncateString(sba, 10); // sba = "This is a "
+    d_AppendStringN(sbb, "\0EMBEDDED", 10); // sbb = "This is a \0EMBEDDED" (length 29, but strcmp sees 10)
+
+    TEST_ASSERT(d_CompareStrings(sba, sbb) < 0, "Truncated should be less than original long string");
+    TEST_ASSERT(d_CompareStringToCString(sba, "This is a ") == 0, "Truncated should match C-string");
+
+    // Scenario 2: Case sensitivity and mixed content
+    d_SetString(sba, "Apple", 0);
+    d_SetString(sbb, "apple", 0);
+
+    TEST_ASSERT(d_CompareStrings(sba, sbb) < 0, "Uppercase 'Apple' should be less than lowercase 'apple'");
+    TEST_ASSERT(d_CompareStringToCString(sba, "apple") < 0, "dString 'Apple' vs C-string 'apple'");
+
+    // Scenario 3: Empty strings and NULLs after various operations
+    d_ClearString(sba);
+    d_DropString(sbb, d_GetStringLength(sbb)); // sbb becomes empty
+
+    TEST_ASSERT(d_CompareStrings(sba, sbb) == 0, "Two empty dStrings should be equal");
+    TEST_ASSERT(d_CompareStringToCString(sba, "") == 0, "Empty dString vs empty C-string");
+
+    d_DestroyString(sba);
+    d_DestroyString(sbb);
+    d_PopLogContext(ctx);
+    return 1;
+}
+
 // =============================================================================
 // MAIN TEST RUNNER WITH DIVINE LOGGING ARCHITECTURE
 // =============================================================================
@@ -1179,6 +1257,10 @@ int main(void)
     // d_SetString tests
     RUN_TEST(test_set_string_replaces_content);
     RUN_TEST(test_set_string_and_append_integration);
+
+    // New comparison tests
+    RUN_TEST(test_string_comparison_after_append_n);
+    RUN_TEST(test_string_comparison_epic_advanced);
 
     // =========================================================================
     // DAEDALUS LOGGER CLEANUP

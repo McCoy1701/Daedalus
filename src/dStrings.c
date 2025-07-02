@@ -736,6 +736,7 @@ void d_AppendProgressBar(dString_t* sb, int current, int max, int width, char fi
          }
      }
  }
+ 
  /*
   * Extract a substring using Python-style slice notation (like str[start:end])
   *
@@ -789,3 +790,46 @@ void d_AppendProgressBar(dString_t* sb, int current, int max, int width, char fi
       sb->len += slice_len;
       sb->str[sb->len] = '\0'; // Ensure null termination
  }
+
+/*
+ * Compare two dString_t objects lexicographically
+ */
+int d_CompareStrings(const dString_t* str1, const dString_t* str2)
+{
+    // If both are the same kind of invalid, consider them equal.
+    if (d_IsStringInvalid(str1) && d_IsStringInvalid(str2)) {
+        return 0;
+    }
+    // If one is invalid and the other is not, they are not equal.
+    if (d_IsStringInvalid(str1)) {
+        return -1; // Treat invalid str1 as "less than" valid str2.
+    }
+    if (d_IsStringInvalid(str2)) {
+        return 1;  // Treat valid str1 as "greater than" invalid str2.
+    }
+
+    // If both are valid, perform the standard string comparison.
+    return strcmp(str1->str, str2->str);
+}
+
+/*
+ * Compare a dString_t with a standard C-string
+ */
+int d_CompareStringToCString(const dString_t* d_str, const char* c_str)
+{
+    // An invalid dString and a NULL/empty C-string can be considered "equal".
+    if (d_IsStringInvalid(d_str) && (c_str == NULL || *c_str == '\0')) {
+        return 0;
+    }
+
+    // If one is invalid/NULL and the other is not, they are not equal.
+    if (d_IsStringInvalid(d_str)) {
+        return -1; // Treat invalid d_str as "less than" a valid c_str.
+    }
+    if (c_str == NULL) {
+        return 1;  // Treat valid d_str as "greater than" a NULL c_str.
+    }
+
+    // If both are valid, perform the standard string comparison.
+    return strcmp(d_str->str, c_str);
+}
