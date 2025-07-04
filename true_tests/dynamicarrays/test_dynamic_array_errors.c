@@ -43,15 +43,15 @@ int test_append_array_null_safety(void)
     TEST_ASSERT(array != NULL, "Array should be created successfully");
 
     // Test appending to NULL array - should not crash
-    d_AppendArray(NULL, &test_value);
+    d_AppendDataToArray(NULL, &test_value);
     TEST_ASSERT(1, "Appending to NULL array should not crash");
 
     // Test appending NULL data - should not crash
-    d_AppendArray(array, NULL);
+    d_AppendDataToArray(array, NULL);
     TEST_ASSERT(array->count == 0, "Count should remain 0 after NULL data append");
 
     // Test normal append
-    d_AppendArray(array, &test_value);
+    d_AppendDataToArray(array, &test_value);
     TEST_ASSERT(array->count == 1, "Count should be 1 after successful append");
 
     d_DestroyArray(array);
@@ -65,17 +65,17 @@ int test_append_array_capacity_overflow(void)
 
     // Fill to capacity
     int values[] = {10, 20, 30};
-    d_AppendArray(array, &values[0]);
-    d_AppendArray(array, &values[1]);
+    d_AppendDataToArray(array, &values[0]);
+    d_AppendDataToArray(array, &values[1]);
     TEST_ASSERT(array->count == 2, "Should have 2 elements at capacity");
 
     // Try to exceed capacity
-    d_AppendArray(array, &values[2]);
+    d_AppendDataToArray(array, &values[2]);
     TEST_ASSERT(array->count > 2, "Count should remain 2 when capacity exceeded");
 
     // Verify existing data is intact
-    int* first = (int*)d_GetDataFromArrayByIndex(array, 0);
-    int* second = (int*)d_GetDataFromArrayByIndex(array, 1);
+    int* first = (int*)d_IndexDataFromArray(array, 0);
+    int* second = (int*)d_IndexDataFromArray(array, 1);
     TEST_ASSERT(first != NULL && *first == 10, "First element should be intact");
     TEST_ASSERT(second != NULL && *second == 20, "Second element should be intact");
 
@@ -86,14 +86,14 @@ int test_append_array_capacity_overflow(void)
 int test_get_data_null_safety(void)
 {
     // Test getting from NULL array
-    void* result = d_GetDataFromArrayByIndex(NULL, 0);
+    void* result = d_IndexDataFromArray(NULL, 0);
     TEST_ASSERT(result == NULL, "Should return NULL for NULL array");
 
     dArray_t* array = d_InitArray(3, sizeof(int));
     TEST_ASSERT(array != NULL, "Array should be created successfully");
 
     // Test getting from empty array
-    result = d_GetDataFromArrayByIndex(array, 0);
+    result = d_IndexDataFromArray(array, 0);
     TEST_ASSERT(result == NULL, "Should return NULL for empty array");
 
     d_DestroyArray(array);
@@ -108,22 +108,22 @@ int test_get_data_bounds_checking(void)
     // Add some data
     int values[] = {100, 200, 300};
     for (int i = 0; i < 3; i++) {
-        d_AppendArray(array, &values[i]);
+        d_AppendDataToArray(array, &values[i]);
     }
 
     // Test valid indices
     for (size_t i = 0; i < 3; i++) {
-        int* data = (int*)d_GetDataFromArrayByIndex(array, i);
+        int* data = (int*)d_IndexDataFromArray(array, i);
         TEST_ASSERT(data != NULL, "Should return valid pointer for valid index");
         TEST_ASSERT(*data == values[i], "Data should match expected value");
     }
 
     // Test out of bounds index (at count boundary)
-    void* result = d_GetDataFromArrayByIndex(array, 3);
+    void* result = d_IndexDataFromArray(array, 3);
     TEST_ASSERT(result == NULL, "Should return NULL for index == count");
 
     // Test very large index
-    result = d_GetDataFromArrayByIndex(array, SIZE_MAX);
+    result = d_IndexDataFromArray(array, SIZE_MAX);
     TEST_ASSERT(result == NULL, "Should return NULL for very large index");
 
     d_DestroyArray(array);
@@ -156,7 +156,7 @@ int test_pop_data_normal_operation(void)
     // Add data
     int values[] = {111, 222, 333};
     for (int i = 0; i < 3; i++) {
-        d_AppendArray(array, &values[i]);
+        d_AppendDataToArray(array, &values[i]);
     }
     TEST_ASSERT(array->count == 3, "Should have 3 elements");
 
@@ -201,7 +201,7 @@ int test_resize_array_data_preservation(void)
     // Add data
     int values[] = {555, 666};
     for (int i = 0; i < 2; i++) {
-        d_AppendArray(array, &values[i]);
+        d_AppendDataToArray(array, &values[i]);
     }
 
     // Resize to larger capacity
@@ -211,7 +211,7 @@ int test_resize_array_data_preservation(void)
 
     // Verify data integrity after resize
     for (int i = 0; i < 2; i++) {
-        int* retrieved = (int*)d_GetDataFromArrayByIndex(array, i);
+        int* retrieved = (int*)d_IndexDataFromArray(array, i);
         TEST_ASSERT(retrieved != NULL, "Should get valid pointer after resize");
         TEST_ASSERT(*retrieved == values[i], "Data should be preserved after resize");
     }
@@ -265,7 +265,7 @@ int test_destroy_array_null_safety(void)
     // Add some data
     int values[] = {777, 888, 999};
     for (int i = 0; i < 3; i++) {
-        d_AppendArray(array, &values[i]);
+        d_AppendDataToArray(array, &values[i]);
     }
 
     // Destroy should not crash
@@ -295,7 +295,7 @@ int test_memory_allocation_failure_recovery(void)
     // Add initial data
     int values[] = {1111, 2222};
     for (int i = 0; i < 2; i++) {
-        d_AppendArray(array, &values[i]);
+        d_AppendDataToArray(array, &values[i]);
     }
 
     // Try to resize to extremely large size (likely to fail)
@@ -307,8 +307,8 @@ int test_memory_allocation_failure_recovery(void)
         TEST_ASSERT(array->count == 2, "Count should be unchanged after failed resize");
 
         // Verify we can still access existing data
-        int* first = (int*)d_GetDataFromArrayByIndex(array, 0);
-        int* second = (int*)d_GetDataFromArrayByIndex(array, 1);
+        int* first = (int*)d_IndexDataFromArray(array, 0);
+        int* second = (int*)d_IndexDataFromArray(array, 1);
         TEST_ASSERT(first != NULL && *first == 1111, "First element should still be accessible");
         TEST_ASSERT(second != NULL && *second == 2222, "Second element should still be accessible");
     }

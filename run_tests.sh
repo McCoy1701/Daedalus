@@ -1516,6 +1516,10 @@ run_test "Dynamic Array Resize Operations" "run-test-dynamic-array-resize"
 run_test "Dynamic Array Performance" "run-test-dynamic-array-performance"
 run_test "Dynamic Array Advanced Operations" "run-test-dynamic-array-advanced"
 run_test "Dynamic Array Error Handling" "run-test-dynamic-array-errors"
+
+run_test "Static Array Basic Operations" "run-test-static-array-basic"
+run_test "Static Array Advanced Operations" "run-test-static-array-advanced"
+
 run_test "Logging Basic Operations" "run-test-logging-basic"
 run_test "Logging Advanced Operations" "run-test-logging-advanced"
 run_test "Logging Extreme Operations" "run-test-logging-extreme"

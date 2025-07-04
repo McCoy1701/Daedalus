@@ -16,7 +16,7 @@ void d_FreeSplitStringArray(dArray_t* string_array) {
     // Iterate through the array and free each string builder.
     for (size_t i = 0; i < string_array->count; i++) {
         // Get the location of the dString_t* stored in the array's data.
-        dString_t** sb_ptr_location = (dString_t**)d_GetDataFromArrayByIndex(string_array, i);
+        dString_t** sb_ptr_location = (dString_t**)d_IndexDataFromArray(string_array, i);
         if (sb_ptr_location != NULL && *sb_ptr_location != NULL) {
             // Dereference the location to get the actual dString_t* and destroy it.
             d_DestroyString(*sb_ptr_location);
@@ -72,7 +72,7 @@ dArray_t* d_SplitString(const char* text, const char* delimiter) {
             }
         }
 
-        d_AppendArray(result_array, &segment_sb); // Append the pointer to the new string builder
+        d_AppendDataToArray(result_array, &segment_sb); // Append the pointer to the new string builder
 
         // Move the position past the delimiter for the next search.
         current_pos = next_delim + delimiter_len;
@@ -96,7 +96,7 @@ dArray_t* d_SplitString(const char* text, const char* delimiter) {
         }
     }
 
-    d_AppendArray(result_array, &final_segment_sb);
+    d_AppendDataToArray(result_array, &final_segment_sb);
 
     return result_array;
 }

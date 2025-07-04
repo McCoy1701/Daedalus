@@ -88,8 +88,8 @@ extern int test_d_createStringFromFile( void );
 
 /* Dynamic Arrays */
 extern int test_d_initArray( void );
-extern int test_d_appendArray( void );
-extern int test_d_getDataFromArrayByIndex( void );
+extern int test_d_AppendDataToArray( void );
+extern int test_d_IndexDataFromArray( void );
 extern int test_d_popDataFromArray( void );
 extern int test_d_resizeArray( void );
 extern int test_d_destroyArray( void );

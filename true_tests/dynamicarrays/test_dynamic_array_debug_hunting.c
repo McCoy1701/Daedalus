@@ -46,7 +46,7 @@ int test_debug_hunt_memory_corruption_detection(void)
     
     d_LogDebug("Adding magic-protected elements to detect corruption");
     for (int i = 0; i < 3; i++) {
-        d_AppendArray(array, &elements[i]);
+        d_AppendDataToArray(array, &elements[i]);
         d_LogDebugF("Added element %d with magic guards: start=0x%X, value=%d, end=0x%X", 
                    i, elements[i].magic_start, elements[i].value, elements[i].magic_end);
     }
@@ -57,7 +57,7 @@ int test_debug_hunt_memory_corruption_detection(void)
     d_LogStructured_Field(corruption_log, "test", "memory_corruption_detection");
     
     for (size_t i = 0; i < array->count; i++) {
-        DebugElement_t* elem = (DebugElement_t*)d_GetDataFromArrayByIndex(array, i);
+        DebugElement_t* elem = (DebugElement_t*)d_IndexDataFromArray(array, i);
         if (elem) {
             bool start_intact = (elem->magic_start == MAGIC_START);
             bool end_intact = (elem->magic_end == MAGIC_END);
@@ -85,14 +85,14 @@ int test_debug_hunt_memory_corruption_detection(void)
     // Force expansion and re-check
     d_LogDebug("Testing corruption detection during capacity expansion");
     size_t old_capacity = array->capacity;
-    d_AppendArray(array, &elements[3]);
-    d_AppendArray(array, &elements[4]);
+    d_AppendDataToArray(array, &elements[3]);
+    d_AppendDataToArray(array, &elements[4]);
     
     d_LogInfoF("Array expanded from %zu to %zu capacity", old_capacity, array->capacity);
     
     // Re-verify after expansion
     for (size_t i = 0; i < array->count; i++) {
-        DebugElement_t* elem = (DebugElement_t*)d_GetDataFromArrayByIndex(array, i);
+        DebugElement_t* elem = (DebugElement_t*)d_IndexDataFromArray(array, i);
         if (elem && (elem->magic_start != MAGIC_START || elem->magic_end != MAGIC_END)) {
             d_LogErrorF("🚨 CORRUPTION after expansion at element %zu!", i);
             corruption_detected = true;
@@ -121,8 +121,8 @@ int test_debug_hunt_use_after_free_simulation(void)
     
     d_LogDebug("Storing pointers to track potential use-after-free scenarios");
     for (int i = 0; i < 5; i++) {
-        d_AppendArray(array, &test_values[i]);
-        stored_pointers[i] = d_GetDataFromArrayByIndex(array, i);
+        d_AppendDataToArray(array, &test_values[i]);
+        stored_pointers[i] = d_IndexDataFromArray(array, i);
         d_LogDebugF("Stored pointer %d: %p -> value %d", i, stored_pointers[i], test_values[i]);
     }
     
@@ -137,7 +137,7 @@ int test_debug_hunt_use_after_free_simulation(void)
     d_LogDebugF("Current data pointer: %p, capacity: %zu", old_data_ptr, old_capacity);
     
     for (int i = 0; i < 4; i++) {
-        d_AppendArray(array, &extra_values[i]);
+        d_AppendDataToArray(array, &extra_values[i]);
     }
     
     // Check if reallocation occurred
@@ -170,7 +170,7 @@ int test_debug_hunt_use_after_free_simulation(void)
     // Verify current data integrity through proper API
     d_LogDebug("Verifying data integrity through proper API access");
     for (size_t i = 0; i < 5; i++) {
-        int* current_ptr = (int*)d_GetDataFromArrayByIndex(array, i);
+        int* current_ptr = (int*)d_IndexDataFromArray(array, i);
         TEST_ASSERT(current_ptr != NULL, "Should get valid pointer through API");
         TEST_ASSERT(*current_ptr == test_values[i], "Original values should be preserved");
         d_LogDebugF("Element %zu: current_ptr=%p, value=%d (expected %d)", 
@@ -221,7 +221,7 @@ int test_debug_hunt_state_consistency_validation(void)
         size_t old_capacity = array->capacity;
         
         d_LogDebugF("Adding element %d: value=%.3f", i, test_doubles[i]);
-        d_AppendArray(array, &test_doubles[i]);
+        d_AppendDataToArray(array, &test_doubles[i]);
         
         // Validate state after append
         dLogStructured_t* state_log = d_LogStructured(D_LOG_LEVEL_DEBUG);
@@ -239,7 +239,7 @@ int test_debug_hunt_state_consistency_validation(void)
         CHECK_INVARIANT(array->data != NULL, "Data pointer should remain valid");
         
         // Validate that we can retrieve the element we just added
-        double* retrieved = (double*)d_GetDataFromArrayByIndex(array, array->count - 1);
+        double* retrieved = (double*)d_IndexDataFromArray(array, array->count - 1);
         CHECK_INVARIANT(retrieved != NULL, "Should be able to retrieve just-added element");
         if (retrieved) {
             CHECK_INVARIANT(*retrieved == test_doubles[i], "Retrieved value should match stored value");
@@ -263,7 +263,7 @@ int test_debug_hunt_state_consistency_validation(void)
     
     // Validate all stored elements
     for (size_t i = 0; i < array->count; i++) {
-        double* elem = (double*)d_GetDataFromArrayByIndex(array, i);
+        double* elem = (double*)d_IndexDataFromArray(array, i);
         CHECK_INVARIANT(elem != NULL, "All elements should be retrievable");
         if (elem && i < 5) {
             CHECK_INVARIANT(*elem == test_doubles[i], "All stored values should be intact");
@@ -272,8 +272,8 @@ int test_debug_hunt_state_consistency_validation(void)
     
     // Validate memory layout
     if (array->count >= 2) {
-        double* first = (double*)d_GetDataFromArrayByIndex(array, 0);
-        double* second = (double*)d_GetDataFromArrayByIndex(array, 1);
+        double* first = (double*)d_IndexDataFromArray(array, 0);
+        double* second = (double*)d_IndexDataFromArray(array, 1);
         if (first && second) {
             ptrdiff_t diff = second - first;
             CHECK_INVARIANT(diff == 1, "Elements should be contiguous in memory");
@@ -315,7 +315,7 @@ int test_debug_hunt_boundary_overflow_detection(void)
     // Fill array to capacity
     int values[] = {10, 20, 30};
     for (int i = 0; i < 3; i++) {
-        d_AppendArray(array, &values[i]);
+        d_AppendDataToArray(array, &values[i]);
     }
     d_LogInfoF("Array filled to capacity: count=%zu, capacity=%zu", array->count, array->capacity);
     
@@ -346,7 +346,7 @@ int test_debug_hunt_boundary_overflow_detection(void)
                          "Testing index %zu (expected: %s)", test_idx, 
                          should_be_valid ? "VALID" : "INVALID");
         
-        void* result = d_GetDataFromArrayByIndex(array, test_idx);
+        void* result = d_IndexDataFromArray(array, test_idx);
         
         dLogStructured_t* boundary_test = d_LogStructured(D_LOG_LEVEL_DEBUG);
         d_LogStructured_Field(boundary_test, "test", "boundary_access");
@@ -440,7 +440,7 @@ int test_debug_hunt_data_integrity_stress_test(void)
         checksum ^= value;  // XOR checksum
         
         size_t old_capacity = array->capacity;
-        d_AppendArray(array, &value);
+        d_AppendDataToArray(array, &value);
         
         // Log capacity changes
         if (array->capacity != old_capacity) {
@@ -449,7 +449,7 @@ int test_debug_hunt_data_integrity_stress_test(void)
             // Validate all existing data after reallocation
             uint64_t verification_checksum = 0;
             for (size_t j = 0; j <= i; j++) {
-                uint64_t* elem = (uint64_t*)d_GetDataFromArrayByIndex(array, j);
+                uint64_t* elem = (uint64_t*)d_IndexDataFromArray(array, j);
                 if (elem) {
                     verification_checksum ^= *elem;
                     if (*elem != stored_values[j]) {
@@ -482,7 +482,7 @@ int test_debug_hunt_data_integrity_stress_test(void)
     for (size_t i = 0; i < sizeof(random_indices)/sizeof(random_indices[0]); i++) {
         size_t idx = random_indices[i];
         if (idx < array->count) {
-            uint64_t* elem = (uint64_t*)d_GetDataFromArrayByIndex(array, idx);
+            uint64_t* elem = (uint64_t*)d_IndexDataFromArray(array, idx);
             TEST_ASSERT(elem != NULL, "Random access should succeed for valid index");
             
             if (elem) {
@@ -544,7 +544,7 @@ int test_debug_hunt_data_integrity_stress_test(void)
     uint64_t final_checksum = 0;
     
     for (size_t i = 0; i < remaining_elements; i++) {
-        uint64_t* elem = (uint64_t*)d_GetDataFromArrayByIndex(array, i);
+        uint64_t* elem = (uint64_t*)d_IndexDataFromArray(array, i);
         if (elem) {
             final_checksum ^= *elem;
             bool value_correct = (*elem == stored_values[i]);

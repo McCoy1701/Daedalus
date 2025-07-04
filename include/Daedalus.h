@@ -92,6 +92,14 @@ typedef struct
   void* data;
 } dArray_t;
 
+typedef struct
+{
+  size_t capacity;      // Maximum number of elements (fixed at initialization)
+  size_t count;         // Current number of elements stored
+  size_t element_size;  // Size in bytes of each element
+  void* data;           // Pointer to the fixed-size data buffer
+} dStaticArray_t;
+
 typedef struct {    // dString_t
     char* str;      // The actual string buffer
     size_t alloced; // Total allocated memory
@@ -363,134 +371,93 @@ static inline bool d_IsStringInvalid(const dString_t* s)
 }
 
 char* d_CreateStringFromFile(const char *filename);
-/*
- * Create a new string builder
+
+/**
+ * @brief Create a new string builder.
  *
- * `dString_t*` - Pointer to new string builder, or NULL on allocation failure
- *
- * -- Must be destroyed with d_DestroyString() to free memory
- * -- Initial capacity is 32 bytes but will grow automatically
- * -- MEMORY OWNERSHIP: Caller owns returned pointer and must free it
- * -- ALLOCATION STRATEGY: Uses calloc() for structure, malloc() for buffer
- * -- INITIALIZATION STATE: Buffer is null-terminated empty string
- * -- FAILURE MODES: Returns NULL if either allocation fails
- * -- CLEANUP ON FAILURE: Automatically frees partial allocations
- * -- MINIMUM CAPACITY: Always starts with d_string_builder_min_size bytes
- * -- RELATED FUNCTIONS: Must pair with d_DestroyString() to prevent leaks
- * -- POSTCONDITIONS: On success, returns valid string builder with len=0, alloced>=32
+ * @return A new string builder, or NULL on allocation failure.
  */
 dString_t *d_InitString(void);
-/*
- * Destroy a string builder and free its memory
- *
- * `sb` - Pointer to string builder to destroy
- *
- * -- After calling this function, the pointer is invalid and should not be used
- * -- Calling with NULL is safe and does nothing
- * -- MEMORY CLEANUP: Frees both internal buffer and structure itself
- * -- DOUBLE-FREE PROTECTION: Safe to call multiple times with same pointer
- * -- DANGLING POINTER RISK: Caller must set pointer to NULL after calling
- * -- RELATED FUNCTIONS: Paired with d_InitString() for complete lifecycle
- * -- THREAD SAFETY: Not thread-safe if multiple threads access same builder
- * -- DEBUG CONSIDERATION: Consider zeroing memory in debug builds
- * -- PRECONDITIONS: sb must be NULL or valid pointer from d_InitString()
+
+/**
+ * @brief Destroy a string builder and free its memory.
+ * 
+ * @param sb The string builder to destroy.
+ * 
+ * @return: Success/failure indicator.
  */
 void d_DestroyString(dString_t* sb);
-/*
- * Add a string to the string builder
- *
- * `sb` - Pointer to string builder
- * `str` - String to append (must be null-terminated if len is 0)
- * `len` - Length of string to append, or 0 to use strlen()
- *
- * -- If len is 0, strlen() is called to determine the length
- * -- If len > 0, exactly len characters are copied (partial strings allowed)
- * -- Does nothing if sb or str is NULL, or if str is empty
- * -- SELF-APPEND SAFETY: Handles case where str points within sb->str buffer
- * -- BUFFER MANAGEMENT: Automatically grows buffer using d_StringBuilderEnsureSpace()
- * -- NULL BYTE HANDLING: When len > 0, can append strings containing null bytes
- * -- PERFORMANCE: O(len) for copying, O(len) for strlen() when len=0
- * -- MEMORY OVERLAP: Uses memmove() for safe overlapping memory operations
- * -- EDGE CASES: Empty strings with len=0 are detected and skipped
- * -- POINTER INVALIDATION: May invalidate existing pointers to sb->str
- * -- THREAD SAFETY: Not thread-safe, caller must synchronize access
- * -- PRECONDITIONS: sb must be valid, str must be valid or NULL
- * -- POSTCONDITIONS: sb->len increased by actual characters appended, always null-terminated
+
+/**
+ * @brief Add a C string to the string builder. 
+ * 
+ * @param sb The string builder to append to.
+ * @param str The string to append (must be null-terminated if len is 0).
+ * @param len The length of string to append, or 0 to use strlen().
+ * 
+ * @return: Success/failure indicator.
  */
 void d_AppendString(dString_t* sb, const char* str, size_t len);
-/*
- * Set the content of an existing dString_t to a new value
+
+/**
+ * @brief Set the content of an existing dString_t to a new value.
  *
- * @param string: Pointer to existing dString_t structure
- * @param content: C-string content to copy into the dString_t
- * @param flags: Optional flags for string handling behavior
- * @return: Success/failure indicator
- * -- Frees existing string content if any
- * -- Allocates new memory for content and copies data
- * -- Handles null pointers gracefully
- * -- Updates internal string length and capacity
+ * @param string: Pointer to existing dString_t structure.
+ * @param content: C-string content to copy into the dString_t.
+ * @param flags: Optional flags for string handling behavior.
+ * 
+ * @return: Success/failure indicator.
  */
 int d_SetString(dString_t* string, const char* content, int flags);
-/*
- * Add a limited portion of a string to the string builder
+
+/**
+ * @brief Create a new string builder with the same content as another string.
  *
- * `sb` - Pointer to string builder
- * `str` - String to append (must be null-terminated if max_len exceeds actual string)
- * `max_len` - Maximum number of characters to append
+ * @param source The string to copy content from.
  *
- * -- Appends at most max_len characters from str
- * -- If str is shorter than max_len, appends the entire string
- * -- Safe with NULL pointers (does nothing)
- * -- Does not require str to be null-terminated if max_len <= actual length
- * -- Useful for controlled truncation and substring operations
- * -- Handles self-append scenarios safely (appending string to itself)
- * -- Uses same memory management as d_AppendString for consistency
- * -- Performance: O(min(max_len, strlen(str))) for length calculation
- * -- Thread safety: Not thread-safe, caller must synchronize access
+ * @return A new string builder with the same content as the source, or NULL on error.
+ */
+dString_t* d_CloneString(const dString_t* source);
+
+/**
+ * @brief Negatively Append, removing content from the end of the string.
+ * 
+ * @param sb The string builder to remove from.
+ * @param count The number of characters to remove.
  */
 void d_AppendStringN(dString_t* sb, const char* str, size_t max_len);
-/*
- * Add a single character to the string builder
- *
- * `sb` - Pointer to string builder
- * `c` - Character to append
- *
- * -- Does nothing if sb is NULL
- * -- Can append any character including '\0' (though this may confuse string functions)
+
+/**
+ * @brief Add a single character to the string builder.
+ * 
+ * @param sb The string builder to append to.
+ * @param c The character to append.
  */
 void d_AppendChar(dString_t* sb, char c);
-/*
- * Add an integer to the string builder as a decimal string
- *
- * `sb` - Pointer to string builder
- * `val` - Integer value to append
- *
- * -- Does nothing if sb is NULL
- * -- Uses snprintf internally for safe conversion
- * -- Supports full 32-bit integer range including negative values
+/**
+ * @brief Add an integer to the string builder as a decimal string.
+ * 
+ * @param sb The string builder to append to.
+ * @param val The integer value to append.
+ 
  */
 void d_AppendInt(dString_t* sb, int val);
-/*
- * Append a floating-point number to the string builder
- *
- * `sb` - Pointer to string builder
- * `val` - Float value to append
- * `decimals` - Number of decimal places to show (0-10)
- *
- * -- Does nothing if sb is NULL
- * -- If decimals is negative, uses 6 decimal places (default)
- * -- If decimals > 10, caps at 10 decimal places
- * -- Uses standard printf formatting for floating-point representation
+/**
+ * @brief Add a floating-point number to the string builder.
+ * 
+ * @param sb The string builder to append to.
+ * @param val The floating-point value to append.
+ * @param decimals The number of decimal places to show (0-10).
+ * 
+ * @return: Success/failure indicator.
  */
 void d_AppendFloat(dString_t* sb, float val, int decimals);
-/*
- * Clear the string builder content
+/**
+ * @brief Clear the string builder content.
+ * 
+ * @param sb The string builder to clear.
  *
- * `sb` - Pointer to string builder
- *
- * -- Does nothing if sb is NULL
- * -- Memory is not freed, only the length is reset to 0
- * -- Buffer capacity remains unchanged for efficient reuse
+ * @return: Success/failure indicator.
  */
 void d_ClearString(dString_t* sb);
 /*
@@ -1552,96 +1519,293 @@ int d_CompareStringToCString(const dString_t* d_str, const char* c_str);
      for (dLogContext_t* _ctx = d_PushLogContext(name); _ctx; d_PopLogContext(_ctx), _ctx = NULL) \
          for (d_LogContext_EnableTiming(_ctx); _ctx; _ctx = NULL)
 
-
-dArray_t* d_InitArray( size_t capacity, size_t element_size );
-/*
- * Append an element to the end of the dynamic array
- *
- * `array` - Pointer to dynamic array
- * `data` - Pointer to element data to copy into the array
- *
- * -- Does nothing if array or data is NULL
- * -- Copies element_size bytes from data into the array
- * -- Fails silently if array is at full capacity (count == capacity)
- * -- Elements are stored contiguously in memory for cache efficiency
- * -- Use d_ResizeArray() to increase capacity before appending if needed
+/**
+ * @brief Initialize a Dynamic Array.
+ * 
+ * @param capacity The initial capacity of the array in elements.
+ * @param element_size The size of each element in bytes.
+ * 
+ * @return A pointer to the new array, or NULL on error.
+ * 
+ * -- Must be destroyed with d_DestroyArray() to free memory
+ * -- Initial count is 0 even though capacity may be larger
+ * -- Elements can be any type as long as element_size is correct
+ * -- Capacity of 0 is allowed but array cannot store elements until resized
+ * 
+ * Example: `dArray_t* array = d_InitArray(10, sizeof(int));`
+ * This creates a new array with a capacity of 10 elements, each of size 4 bytes.
  */
-void d_AppendArray( dArray_t* array, void* data );
+dArray_t* d_InitArray( size_t capacity, size_t element_size );
 
-/*
- * Get a pointer to an element at the specified index
+/**
+ * @brief Destroy a dynamic array.
+ * 
+ * @param array The array to destroy.
+ * 
+ * @return: 0 on success, 1 on failure.
+ * 
+ * -- Frees both the data buffer and the array structure itself
+ * -- Must match creation for every resize operation
+ * -- After calling this function, the pointer is invalid and should not be used
+ * 
+ * Example: `d_DestroyArray(array);`
+ * This destroys the dynamic array and frees its memory.
+ */
+int d_DestroyArray( dArray_t* array );
+
+ /**
+ * @brief Resize a dynamic array. The contract is it takes a new capacity in BYTES.
+ * 
+ * @param array The array to resize.
+ * @param new_size_in_bytes The new size in bytes.
+ * 
+ * @return 0 on success, 1 on failure.
+ * 
+ * -- The contract is it takes a new capacity in BYTES.
+ * -- If new size is 0, free the data and reset.
+ * -- If new size is larger than current capacity, data is reallocated.
+ * -- If new size is smaller than current capacity, data is truncated.
+ * -- This function data is not guaranteed to be preserved.
+ * -- Must match creation for every resize operation
+ * -- After calling this function, the pointer is invalid and should not be used
+ * 
+ * Example: `d_ResizeArray(array, 10 * sizeof(int));`
+ * This resizes the dynamic array to a capacity of 10 elements, each of size 4 bytes.
+ */
+int d_ResizeArray( dArray_t* array, size_t new_capacity );
+
+/**
+ * @brief Grow the array by a number of additional bytes.
+ * 
+ * @param array The array to grow.
+ * @param additional_bytes The number of bytes to add.
+ * 
+ * @return 0 on success, 1 on failure.
+ * 
+ * -- Convenience function that calls d_ResizeArray() internally
+ * 
+ * Example: `d_GrowArray(array, 10 * sizeof(int));`
+ * This grows the dynamic array by 10 elements, each of size 4 bytes.
+ */
+
+int d_GrowArray( dArray_t* array, size_t additional_capacity );
+/**
+ * @brief Append an element to the end of the dynamic array.
  *
- * `array` - Pointer to dynamic array
- * `index` - Zero-based index of element to retrieve
- *
- * `void*` - Pointer to element data, or NULL if index is out of bounds
- *
+ * @param array The dynamic array to append to.
+ * @param data The element data to copy into the array.
+ */
+int d_AppendDataToArray( dArray_t* array, void* data );
+
+/**
+ * @brief Get a pointer to the data at a specific index.
+ * 
+ * @param array The array to get data from.
+ * @param index The index of the element to get.
+ * 
+ * @return A pointer to the element data, or NULL if index is out of bounds.
+ * 
  * -- Returns NULL if array is NULL or index >= count
  * -- Returned pointer is valid until the array is modified or destroyed
  * -- Caller can read/write through the returned pointer safely
- * -- Use appropriate casting: int* ptr = (int*)d_GetDataFromArrayByIndex(array, 0)
+ * -- Use appropriate casting: int* ptr = (int*)d_IndexDataFromArray(array, 0)
  * -- Index must be less than count, not capacity (only counts appended elements)
+ * 
+ * Example: `void* data = d_IndexDataFromArray(array, 0);`
+ * This retrieves the first element from the dynamic array.
  */
-void* d_GetDataFromArrayByIndex( dArray_t* array, size_t index );
-/*
- * Remove and return a pointer to the last element in the array (LIFO - Last In, First Out)
- *
- * `array` - Pointer to dynamic array
- *
- * `void*` - Pointer to the last element's data, or NULL if array is empty
- *
- * -- Returns NULL if array is NULL or empty (count == 0)
+void* d_IndexDataFromArray(dArray_t* array, size_t index);
+
+/**
+ * @brief Remove and return the last element from the array.
+ * 
+ * @param array The array to pop from.
+ * 
+ * @return A pointer to the last element's data, or NULL if array is empty.
+ * 
  * -- Decrements count but does not free memory (element data remains in buffer)
  * -- Returned pointer becomes invalid after next append or array modification
  * -- Implements stack-like behavior for dynamic arrays
  * -- Memory is not reallocated, only the count is decremented for efficiency
+ * 
+ * Example: `void* data = d_PopDataFromArray(array);`
+ * This removes and returns the last element from the dynamic array.
  */
-void* d_PopDataFromArray( dArray_t* array );
-/*
- * Resize the dynamic array's data buffer to accommodate more or fewer elements
- *
- * `array` - Pointer to dynamic array
- * `new_capacity` - New capacity in bytes (not elements)
- *
- * `int` - 0 on success, 1 on failure
- *
- * -- Returns 1 (error) if array is NULL or memory allocation fails
- * -- new_capacity is in bytes, not element count
- * -- To resize to N elements: d_ResizeArray(array, N * array->element_size)
- * -- Existing data is preserved up to the smaller of old/new sizes
- * -- Count is not automatically adjusted when shrinking (may exceed new capacity)
- * -- Use realloc() internally which may move data to new memory location
- * -- Array capacity is updated to new_capacity on success
+void* d_PopDataFromArray(dArray_t* array);
+
+/**
+ * @brief Insert data at a specific index in the array
+ * 
+ * @param array The array to insert into
+ * @param data Pointer to the data to insert
+ * @param index The index where to insert the data
+ * 
+ * @return 0 on success, 1 on failure
+ * 
+ * -- Shifts existing elements to the right to make space
+ * -- Grows the array capacity if needed
+ * -- index must be <= array->count (can insert at end)
+ * -- Uses memmove for safe overlapping memory operations
+ * 
+ * Example: `d_InsertDataIntoArray(array, &value, 2);`
+ * This inserts a value at index 2, shifting existing elements to the right.
  */
-int d_ResizeArray( dArray_t* array, size_t new_capacity );
-/*
- * Grow the dynamic array by adding additional capacity to current capacity
- *
- * `array` - Pointer to dynamic array
- * `additional_capacity` - Number of bytes to add to current capacity
- *
- * `int` - 0 on success, 1 on failure
- *
- * -- Convenience function that calls d_ResizeArray() internally
- * -- New total capacity = current capacity + additional_capacity
- * -- additional_capacity is in bytes, not element count
- * -- To grow by N elements: d_GrowArray(array, N * array->element_size)
- * -- Useful for incrementally expanding arrays without calculating new total size
- * -- Returns same error codes as d_ResizeArray()
+int d_InsertDataIntoArray(dArray_t* array, void* data, size_t index);
+
+/**
+ * @brief Remove data at a specific index from the array
+ * 
+ * @param array The array to remove from
+ * @param index The index of the element to remove
+ * 
+ * @return 0 on success, 1 on failure
+ * 
+ * -- Shifts existing elements to the left to fill the gap
+ * -- Does not resize the array capacity (use d_TrimCapacityOfArray for that)
+ * -- index must be < array->count
+ * -- Uses memmove for safe overlapping memory operations
+ * 
+ * Example: `d_RemoveDataFromArray(array, 2);`
+ * This removes the element at index 2, shifting remaining elements to the left.
  */
-int d_GrowArray( dArray_t* array, size_t additional_capacity );
-/*
- * Destroy a dynamic array and free all associated memory
+int d_RemoveDataFromArray(dArray_t* array, size_t index);
+
+
+/* --- Static Arrays --- */
+
+
+/**
+ * @brief Initialize a new static array with fixed capacity
  *
- * `array` - Pointer to dynamic array to destroy
+ * @param capacity: Maximum number of elements the array can hold
+ * @param element_size: Size of each element in bytes
+ * 
+ * @return: Pointer to new static array, or NULL on allocation failure
  *
- * -- After calling this function, the pointer is invalid and should not be used
- * -- Frees both the data buffer and the array structure itself
- * -- Safe to call with NULL pointer (does nothing)
- * -- Does not call destructors for complex element types (caller responsibility)
- * -- For arrays of pointers, caller must free pointed-to objects before destroying array
+ * -- Allocates memory for both the structure and the data buffer
+ * -- Data buffer size = capacity * element_size
+ * -- count is initialized to 0
+ * -- capacity and element_size are fixed for the lifetime of the array
+ * 
+ * Example: `dStaticArray_t* array = d_InitStaticArray(10, sizeof(int));`
+ * This creates a new static array with a capacity of 10 elements, each of size 4 bytes.
  */
-void d_DestroyArray( dArray_t* array );
+dStaticArray_t* d_InitStaticArray(size_t capacity, size_t element_size);
+
+/**
+ * @brief: Destroy a static array and free all associated memory
+ *
+ * @param array: Pointer to static array to destroy
+ * @return: 0 on success, 1 on failure
+ *
+ * -- Safe to call with NULL pointer
+ * -- Frees data buffer first, then structure
+ * -- After calling, the pointer becomes invalid
+ * 
+ * Example: `d_DestroyStaticArray(array);`
+ * This destroys the static array and frees its memory.
+ */
+int d_DestroyStaticArray(dStaticArray_t* array);
+
+/** 
+ * @brief Append an element to the end of the static array.
+ * *
+ * @param array: Pointer to static array
+ * @param data: Pointer to element data to copy
+ * @return: 0 on success, 1 on failure
+ *
+ * -- Fails if array is at maximum capacity
+ * -- Fails if array or data is NULL
+ * -- Copies element_size bytes from data
+ * -- Increments count on successful append
+ * 
+ * Example: `d_AppendDataToStaticArray(array, &data);`
+ * This appends a pointer to a data element to the end of the static array.
+ */
+int d_AppendDataToStaticArray(dStaticArray_t* array, void* data);
+
+/**
+ * @brief: Get a pointer to an element at the specified index
+ *
+ * @param array: Pointer to static array
+ * @param index: Zero-based index of element to retrieve
+ * @return: Pointer to element data, or NULL if out of bounds
+ *
+ * -- Returns NULL if array is NULL or index >= count
+ * -- Performs bounds checking for safety
+ * -- Returned pointer is valid until array is modified or destroyed
+ * 
+ * Example: `void* data = d_IndexDataFromStaticArray(array, 0);`
+ * This retrieves the first element from the static array.
+ */
+void* d_IndexDataFromStaticArray(dStaticArray_t* array, size_t index);
+
+/**
+ * @brief: Remove and return a pointer to the last element (LIFO behavior)
+ *
+ * @param array: Pointer to static array
+ * @return: Pointer to last element data, or NULL if empty
+ *
+ * -- Returns NULL if array is NULL or empty
+ * -- Decrements count but doesn't free memory
+ * -- Element data remains in buffer but is no longer active
+ * -- Returned pointer becomes invalid after next append
+ * 
+ * Example: `void* data = d_PopDataFromStaticArray(array);`
+ * This removes and returns the last element from the static array.
+ */
+void* d_PopDataFromStaticArray(dStaticArray_t* array);
+
+/**
+ * @brief Get the number of free slots remaining in the static array
+ *
+ * @param array: Pointer to static array
+ * @return: Number of elements that can still be added, or 0 if array is NULL/full
+ *
+ * -- Returns 0 if array is NULL (no space available)
+ * -- Returns capacity - count for valid arrays
+ * -- Useful for checking if array can accept more elements before attempting append
+ * 
+ * Example: `size_t free_slots = d_GetFreeSpaceInStaticArray(array);`
+ * This returns how many more elements can be added to the array.
+ */
+size_t d_GetFreeSpaceInStaticArray(dStaticArray_t* array);
+
+/**
+ * @brief Fill the static array with multiple copies of a given value
+ *
+ * @param array: Pointer to static array
+ * @param value: Pointer to the value to copy into each element
+ * @param num_elements: Number of elements to fill
+ * @return: 0 on success, 1 on failure
+ *
+ * -- Fails if array or value is NULL
+ * -- Fails if num_elements exceeds array capacity
+ * -- Copies element_size bytes from value to each position
+ * -- Sets array count to num_elements after successful fill
+ * -- Overwrites existing data in the array
+ * 
+ * Example: `int value = 42; d_FillDataInStaticArray(array, &value, 5);`
+ * This fills the first 5 positions of the array with the value 42.
+ */
+int d_FillDataInStaticArray(dStaticArray_t* array, const void* value, size_t num_elements);
+
+/**
+ * @brief Get direct access to the raw memory buffer of the static array
+ *
+ * @param array: Pointer to static array
+ * @return: Pointer to the start of the raw data buffer, or NULL on error
+ *
+ * -- Returns NULL if array is NULL or data buffer is NULL
+ * -- Provides access to entire allocated buffer regardless of current count
+ * -- Returned pointer is valid until array is destroyed
+ * -- Use with caution - direct memory access bypasses safety checks
+ * -- Primarily intended for advanced operations or serialization
+ * 
+ * Example: `void* raw_buffer = d_PeekRawMemoryOfStaticArray(array);`
+ * This returns a pointer to the entire data buffer of the array.
+ */
+void* d_PeekRawMemoryOfStaticArray(dStaticArray_t* array);
 
 // Turning Strings Into Dynamic Arrays
 // src/dStrings-dArrays.c

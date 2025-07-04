@@ -57,7 +57,7 @@ void log_string_array(const char* label, dArray_t* array)
             if (i > 0) d_AppendString(log_message, ", ", 0);
             d_AppendString(log_message, "'", 0);
 
-            dString_t** str_ptr = (dString_t**)d_GetDataFromArrayByIndex(array, i);
+            dString_t** str_ptr = (dString_t**)d_IndexDataFromArray(array, i);
             if (str_ptr && *str_ptr) {
                 d_AppendString(log_message, d_PeekString(*str_ptr), 0);
             } else {
@@ -405,10 +405,10 @@ int test_rpg_command_parsing(void)
     TEST_ASSERT(parts != NULL, "Command parts should not be NULL");
     TEST_ASSERT(parts->count == 4, "Command should have 4 parts");
 
-    dString_t** action_ptr = (dString_t**)d_GetDataFromArrayByIndex(parts, 0);
-    dString_t** target_ptr = (dString_t**)d_GetDataFromArrayByIndex(parts, 1);
-    dString_t** prep_ptr = (dString_t**)d_GetDataFromArrayByIndex(parts, 2);
-    dString_t** weapon_ptr = (dString_t**)d_GetDataFromArrayByIndex(parts, 3);
+    dString_t** action_ptr = (dString_t**)d_IndexDataFromArray(parts, 0);
+    dString_t** target_ptr = (dString_t**)d_IndexDataFromArray(parts, 1);
+    dString_t** prep_ptr = (dString_t**)d_IndexDataFromArray(parts, 2);
+    dString_t** weapon_ptr = (dString_t**)d_IndexDataFromArray(parts, 3);
 
     TEST_ASSERT(action_ptr != NULL && *action_ptr != NULL, "Action element should exist");
     TEST_ASSERT(target_ptr != NULL && *target_ptr != NULL, "Target element should exist");
@@ -454,7 +454,7 @@ int test_rpg_dialogue_word_wrapping(void)
 
     dString_t* log_message = d_InitString();
     for (int i = 0; i < words->count; i++) {
-        dString_t** word_ptr = (dString_t**)d_GetDataFromArrayByIndex(words, i);
+        dString_t** word_ptr = (dString_t**)d_IndexDataFromArray(words, i);
         dString_t* word = *word_ptr;
         d_AppendString(log_message, word->str, 0);
         d_AppendChar(log_message, '\t');
@@ -465,8 +465,8 @@ int test_rpg_dialogue_word_wrapping(void)
     TEST_ASSERT(words != NULL, "Words array should not be NULL");
     TEST_ASSERT(words->count > 10, "Should have many words");
 
-    dString_t** first_word_ptr = (dString_t**)d_GetDataFromArrayByIndex(words, 0);
-    dString_t** last_word_ptr = (dString_t**)d_GetDataFromArrayByIndex(words, words->count - 1);
+    dString_t** first_word_ptr = (dString_t**)d_IndexDataFromArray(words, 0);
+    dString_t** last_word_ptr = (dString_t**)d_IndexDataFromArray(words, words->count - 1);
 
     TEST_ASSERT(first_word_ptr != NULL && *first_word_ptr != NULL, "First word should exist");
     TEST_ASSERT(last_word_ptr != NULL && *last_word_ptr != NULL, "Last word should exist");
@@ -476,7 +476,7 @@ int test_rpg_dialogue_word_wrapping(void)
     // Build array of first 5 words for joining
     const char* first_five[5];
     for (int i = 0; i < 5; i++) {
-        dString_t** word_ptr = (dString_t**)d_GetDataFromArrayByIndex(words, i);
+        dString_t** word_ptr = (dString_t**)d_IndexDataFromArray(words, i);
         first_five[i] = d_PeekString(*word_ptr);
     }
 

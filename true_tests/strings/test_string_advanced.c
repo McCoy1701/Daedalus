@@ -1190,6 +1190,129 @@ int test_string_comparison_epic_advanced(void)
     return 1;
 }
 
+
+int test_clone_string_stress_and_memory_patterns(void)
+{
+    d_LogWarning("BUG HUNT: d_CloneString stress testing with complex memory patterns and edge cases.");
+    dLogContext_t* ctx = d_PushLogContext("CloneStringStress");
+
+    // Test 1: Clone chain - clone of clone of clone
+    d_LogDebug("Testing clone chain (clone of clone of clone)...");
+    dString_t* original = create_test_builder();
+    d_AppendString(original, "Generation 0: Original content with some text", 0);
+    d_AppendFloat(original, 3.14159f, 4);
+    d_AppendString(original, " and numbers", 0);
+    
+    dString_t* gen1_clone = d_CloneString(original);
+    TEST_ASSERT(gen1_clone != NULL, "First generation clone should succeed");
+    d_AppendString(gen1_clone, " -> Gen1 addition", 0);
+    
+    dString_t* gen2_clone = d_CloneString(gen1_clone);
+    TEST_ASSERT(gen2_clone != NULL, "Second generation clone should succeed");
+    d_AppendString(gen2_clone, " -> Gen2 addition", 0);
+    
+    dString_t* gen3_clone = d_CloneString(gen2_clone);
+    TEST_ASSERT(gen3_clone != NULL, "Third generation clone should succeed");
+    d_AppendString(gen3_clone, " -> Gen3 addition", 0);
+    
+    // Verify each generation has cumulative content
+    TEST_ASSERT(strstr(d_PeekString(original), "Generation 0") != NULL, "Original should have gen0 content");
+    TEST_ASSERT(strstr(d_PeekString(original), "Gen1") == NULL, "Original should not have gen1 content");
+    
+    TEST_ASSERT(strstr(d_PeekString(gen1_clone), "Generation 0") != NULL, "Gen1 should have gen0 content");
+    TEST_ASSERT(strstr(d_PeekString(gen1_clone), "Gen1 addition") != NULL, "Gen1 should have gen1 content");
+    TEST_ASSERT(strstr(d_PeekString(gen1_clone), "Gen2") == NULL, "Gen1 should not have gen2 content");
+    
+    TEST_ASSERT(strstr(d_PeekString(gen3_clone), "Generation 0") != NULL, "Gen3 should have gen0 content");
+    TEST_ASSERT(strstr(d_PeekString(gen3_clone), "Gen1 addition") != NULL, "Gen3 should have gen1 content");
+    TEST_ASSERT(strstr(d_PeekString(gen3_clone), "Gen2 addition") != NULL, "Gen3 should have gen2 content");
+    TEST_ASSERT(strstr(d_PeekString(gen3_clone), "Gen3 addition") != NULL, "Gen3 should have gen3 content");
+
+    // Test 2: Mass cloning stress test
+    d_LogDebug("Testing mass cloning stress test (50 clones of same source)...");
+    dString_t* source = create_test_builder();
+    
+    // Create a moderately complex source string
+    d_FormatString(source, "Mass clone source #%d with data: ", 12345);
+        d_AppendProgressBar(source, 33, 100, 15, '#', '-');
+    d_AppendString(source, " and template: ", 0);
+    const char* mass_keys[] = {"count", "type"};
+    const char* mass_values[] = {"50", "stress_test"};
+    d_TemplateString(source, "({count} {type})", mass_keys, mass_values, 2);
+    
+    dString_t* mass_clones[50];
+    for (int i = 0; i < 50; i++) {
+        mass_clones[i] = d_CloneString(source);
+        TEST_ASSERT(mass_clones[i] != NULL, "Mass clone should not fail");
+        TEST_ASSERT(mass_clones[i] != source, "Mass clone should be different object");
+        
+        // Each clone gets unique modification
+        d_FormatString(mass_clones[i], " [Clone#%d]", i);
+        
+        // Rate limited logging
+        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG,
+                          1, 2.0, "Mass clone %d created and verified", i + 1);
+    }
+    
+    // Verify all clones are independent and correct
+    for (int i = 0; i < 50; i++) {
+        TEST_ASSERT(divine_string_compare(d_PeekString(mass_clones[i]), d_PeekString(mass_clones[(i+1)%50]), "clone independence") == false, 
+                   "Each mass clone should have unique content");
+        
+        char expected_suffix[20];
+        snprintf(expected_suffix, sizeof(expected_suffix), "[Clone#%d]", i);
+        TEST_ASSERT(strstr(d_PeekString(mass_clones[i]), expected_suffix) != NULL, "Each clone should have correct suffix");
+        
+        // Verify base content is preserved
+        TEST_ASSERT(strstr(d_PeekString(mass_clones[i]), "Mass clone source") != NULL, "Clone should preserve base content");
+        TEST_ASSERT(strstr(d_PeekString(mass_clones[i]), "stress_test") != NULL, "Clone should preserve template content");
+    }
+
+    // Test 3: Clone after various string operations
+    d_LogDebug("Testing clone after various string operations (truncate, drop, set)...");
+    dString_t* ops_test = create_test_builder();
+    d_AppendString(ops_test, "This is a very long string that will be modified in various ways to test cloning behavior", 0);
+    
+    // Clone after truncation
+    d_TruncateString(ops_test, 25);
+    dString_t* truncated_clone = d_CloneString(ops_test);
+    TEST_ASSERT(d_GetStringLength(truncated_clone) == 25, "Clone of truncated string should have truncated length");
+    TEST_ASSERT(divine_string_compare(d_PeekString(truncated_clone), "This is a very long strin", "truncated clone"), "Clone should match truncated content");
+    
+    // Clone after drop operation
+    d_DropString(ops_test, 10);
+    dString_t* dropped_clone = d_CloneString(ops_test);
+    TEST_ASSERT(d_GetStringLength(dropped_clone) == 15, "Clone of dropped string should have dropped length");
+    TEST_ASSERT(divine_string_compare(d_PeekString(dropped_clone), "very long strin", "dropped clone"), "Clone should match dropped content");
+    
+    // Clone after set operation
+    d_SetString(ops_test, "Completely new content after set operation", 0);
+    dString_t* set_clone = d_CloneString(ops_test);
+    TEST_ASSERT(divine_string_compare(d_PeekString(set_clone), "Completely new content after set operation", "set clone"), "Clone should match set content");
+    
+    // Verify all clones are different
+    TEST_ASSERT(d_CompareStrings(truncated_clone, dropped_clone) != 0, "Truncated and dropped clones should differ");
+    TEST_ASSERT(d_CompareStrings(dropped_clone, set_clone) != 0, "Dropped and set clones should differ");
+    TEST_ASSERT(d_CompareStrings(truncated_clone, set_clone) != 0, "Truncated and set clones should differ");
+
+    // Cleanup all resources
+    d_DestroyString(original);
+    d_DestroyString(gen1_clone);
+    d_DestroyString(gen2_clone);
+    d_DestroyString(gen3_clone);
+    d_DestroyString(source);
+    for (int i = 0; i < 50; i++) {
+        d_DestroyString(mass_clones[i]);
+    }
+    d_DestroyString(ops_test);
+    d_DestroyString(truncated_clone);
+    d_DestroyString(dropped_clone);
+    d_DestroyString(set_clone);
+    
+    d_PopLogContext(ctx);
+    return 1;
+}
+
 // =============================================================================
 // MAIN TEST RUNNER WITH DIVINE LOGGING ARCHITECTURE
 // =============================================================================
@@ -1261,6 +1384,10 @@ int main(void)
     // New comparison tests
     RUN_TEST(test_string_comparison_after_append_n);
     RUN_TEST(test_string_comparison_epic_advanced);
+
+    // d_CloneString advanced tests
+    RUN_TEST(test_clone_string_integration_with_advanced_functions);
+    RUN_TEST(test_clone_string_stress_and_memory_patterns);
 
     // =========================================================================
     // DAEDALUS LOGGER CLEANUP

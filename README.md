@@ -81,6 +81,60 @@ d_DestroyString(name);              // Automatic, safe cleanup
 
 **The Result:** Code that doesn't just work—code that serves with the wisdom of the master architect himself.
 
+### 📦 Array Choices and Utilities
+
+Daedalus provides robust and efficient array structures for various needs:
+
+`dStaticArray_t` **(Fixed-Size, High Performance)**
+
+Ideal for fixed-capacity data, like game inventories, audio buffers, or render framebuffers. Offers predictable memory use and extremely fast operations due to direct memory access.
+
+```c
+// Game Inventory Management
+dStaticArray_t* inventory = d_InitStaticArray(10, sizeof(int)); // 10 integer slots
+int sword_id = 101;
+d_AppendDataToStaticArray(inventory, &sword_id);
+
+size_t free_slots = d_GetFreeSpaceInStaticArray(inventory); // O(1) fast check!
+d_LogInfoF("Inventory free slots: %zu", free_slots);
+
+// Efficiently clear a pixel buffer
+typedef struct { uint8_t r, g, b, a; } Pixel;
+dStaticArray_t* framebuffer = d_InitStaticArray(1920 * 1080, sizeof(Pixel));
+Pixel black = {0,0,0,255};
+d_FillDataInStaticArray(framebuffer, &black, framebuffer->capacity); // Fast bulk fill
+
+// Direct memory access for graphics/serialization
+void* raw_pixel_data = d_PeekRawMemoryOfStaticArray(framebuffer);
+// Now, pass 'raw_pixel_data' directly to OpenGL/Vulkan/File I/O for max performance
+
+d_DestroyStaticArray(inventory);
+d_DestroyStaticArray(framebuffer);
+```
+
+`dDynamicArray_t` **(Resizable, Flexible)**
+
+For collections where size changes frequently, such as lists of entities, event queues, or variable-length records. Automatically handles memory reallocations, balancing flexibility with performance.
+
+```c
+// List of active enemies
+dDynamicArray_t* enemies = d_InitDynamicArray(sizeof(Enemy_t), 4); // Initial capacity 4
+Enemy_t goblin = {.health = 50, .type = GOBLIN};
+d_AppendDataToDynamicArray(enemies, &goblin);
+
+// Remove defeated enemies
+d_RemoveDataFromDynamicArray(enemies, 0); // Remove first enemy
+
+// Convenient iteration
+for (size_t i = 0; i < enemies->count; ++i) {
+    Enemy_t* current_enemy = (Enemy_t*)d_IndexDataFromDynamicArray(enemies, i);
+    // Process enemy...
+}
+d_DestroyDynamicArray(enemies);
+```
+
+These array utilities embody the Daedalus philosophy: providing powerful, performant, and reliable building blocks for your digital creations.
+
 ## 🏛️ The Philosophy: Divine Craftsmanship
 
 In the words of the master himself: *"Tools that work without their creator truly serve."* Every function in Daedalus is designed to operate with mechanical precision, requiring no intervention once deployed. These are not merely utilities—they are **architectural elements** for building digital worlds.

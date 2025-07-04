@@ -1218,6 +1218,105 @@ int test_string_comparison_edge_cases(void)
     return 1;
 }
 
+int test_clone_string_basic(void)
+{
+    d_LogInfo("VERIFICATION: Basic functionality of d_CloneString.");
+    dLogContext_t* ctx = d_PushLogContext("CloneStringBasic");
+
+    // Test cloning a string with content
+    dString_t* original = create_test_builder();
+    d_AppendString(original, "Hello, World!", 0);
+    
+    d_LogDebug("Cloning string with content...");
+    dString_t* clone = d_CloneString(original);
+    TEST_ASSERT(clone != NULL, "Clone should not be NULL");
+    TEST_ASSERT(clone != original, "Clone should be a different object than original");
+    TEST_ASSERT(d_GetStringLength(clone) == d_GetStringLength(original), "Clone should have same length as original");
+    TEST_ASSERT(safe_string_compare(d_PeekString(clone), d_PeekString(original), "clone vs original"), "Clone should have same content as original");
+    
+    // Test that modifying clone doesn't affect original
+    d_LogDebug("Testing independence of clone and original...");
+    d_AppendString(clone, " Modified", 0);
+    TEST_ASSERT(safe_string_compare(d_PeekString(original), "Hello, World!", "original unchanged"), "Original should remain unchanged after modifying clone");
+    TEST_ASSERT(safe_string_compare(d_PeekString(clone), "Hello, World! Modified", "clone modified"), "Clone should contain the modifications");
+    
+    // Test cloning an empty string
+    d_LogDebug("Testing clone of empty string...");
+    dString_t* empty_original = create_test_builder();
+    dString_t* empty_clone = d_CloneString(empty_original);
+    TEST_ASSERT(empty_clone != NULL, "Clone of empty string should not be NULL");
+    TEST_ASSERT(d_GetStringLength(empty_clone) == 0, "Clone of empty string should be empty");
+    TEST_ASSERT(safe_string_compare(d_PeekString(empty_clone), "", "empty clone"), "Clone of empty string should be empty string");
+    
+    d_DestroyString(original);
+    d_DestroyString(clone);
+    d_DestroyString(empty_original);
+    d_DestroyString(empty_clone);
+    d_PopLogContext(ctx);
+    return 1;
+}
+
+int test_clone_string_edge_cases(void)
+{
+    d_LogWarning("BUG HUNT: Edge case testing for d_CloneString.");
+    dLogContext_t* ctx = d_PushLogContext("CloneStringEdgeCases");
+
+    // Test cloning NULL source
+    d_LogDebug("Testing clone of NULL source...");
+    dString_t* null_clone = d_CloneString(NULL);
+    TEST_ASSERT(null_clone == NULL, "Clone of NULL should return NULL");
+    
+    // Test cloning a string, then modifying the original
+    d_LogDebug("Testing that clone is truly independent...");
+    dString_t* original = create_test_builder();
+    d_AppendString(original, "Original Content", 0);
+    dString_t* clone = d_CloneString(original);
+    
+    // Modify original in various ways
+    d_SetString(original, "Completely Different", 0);
+    TEST_ASSERT(safe_string_compare(d_PeekString(clone), "Original Content", "clone preserved"), "Clone should preserve original content even after original is changed");
+    
+    d_ClearString(original);
+    TEST_ASSERT(safe_string_compare(d_PeekString(clone), "Original Content", "clone still preserved"), "Clone should remain unchanged even after original is cleared");
+    
+    // Test cloning a string with special characters
+    d_LogDebug("Testing clone with special characters...");
+    dString_t* special = create_test_builder();
+    d_AppendString(special, "Special: \n\t\"quotes\" and symbols!@#$%^&*()", 0);
+    dString_t* special_clone = d_CloneString(special);
+    TEST_ASSERT(safe_string_compare(d_PeekString(special_clone), d_PeekString(special), "special chars clone"), "Clone should handle special characters correctly");
+    
+    // Test cloning a very long string
+    d_LogDebug("Testing clone of long string...");
+    dString_t* long_string = create_test_builder();
+    for (int i = 0; i < 100; i++) {
+        d_AppendString(long_string, "This is a long string segment that will be repeated many times to test buffer handling. ", 0);
+    }
+    dString_t* long_clone = d_CloneString(long_string);
+    TEST_ASSERT(d_GetStringLength(long_clone) == d_GetStringLength(long_string), "Long clone should have same length");
+    TEST_ASSERT(safe_string_compare(d_PeekString(long_clone), d_PeekString(long_string), "long string clone"), "Long clone should have identical content");
+    
+    // Test destroying original after cloning
+    d_LogDebug("Testing clone survival after original destruction...");
+    const char* expected_content = d_PeekString(clone);
+    char* saved_content = malloc(strlen(expected_content) + 1);
+    strcpy(saved_content, expected_content);
+    
+    d_DestroyString(original);
+    original = NULL; // Prevent accidental reuse
+    
+    TEST_ASSERT(safe_string_compare(d_PeekString(clone), saved_content, "clone after original destroyed"), "Clone should remain valid after original is destroyed");
+    
+    free(saved_content);
+    d_DestroyString(clone);
+    d_DestroyString(special);
+    d_DestroyString(special_clone);
+    d_DestroyString(long_string);
+    d_DestroyString(long_clone);
+    d_PopLogContext(ctx);
+    return 1;
+}
+
 
 // =============================================================================
 // MAIN TEST RUNNER WITH COMPREHENSIVE LOGGING SETUP
@@ -1280,6 +1379,10 @@ int main(void)
     // String comparison tests
     RUN_TEST(test_string_comparison_basic);
     RUN_TEST(test_string_comparison_edge_cases);
+
+    // d_CloneString tests
+    RUN_TEST(test_clone_string_basic);
+    RUN_TEST(test_clone_string_edge_cases);
     // =========================================================================
     // DAEDALUS LOGGER CLEANUP
     // =========================================================================

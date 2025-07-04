@@ -22,19 +22,19 @@ int test_dynamic_array_null_safety(void)
     // Test all functions with NULL array parameter (should not crash)
     int test_value = 42;
 
-    d_LogDebug("Testing d_AppendArray with NULL array parameter");
-    d_AppendArray(NULL, &test_value);
+    d_LogDebug("Testing d_AppendDataToArray with NULL array parameter");
+    d_AppendDataToArray(NULL, &test_value);
     TEST_ASSERT(1, "AppendArray with NULL array should not crash");
-    d_LogInfo("✅ d_AppendArray handled NULL array gracefully");
+    d_LogInfo("✅ d_AppendDataToArray handled NULL array gracefully");
 
-    d_LogDebug("Testing d_GetDataFromArrayByIndex with NULL array");
-    void* result = d_GetDataFromArrayByIndex(NULL, 0);
+    d_LogDebug("Testing d_IndexDataFromArray with NULL array");
+    void* result = d_IndexDataFromArray(NULL, 0);
     TEST_ASSERT(result == NULL, "GetDataFromArrayByIndex with NULL array should return NULL");
 
     // Structured logging for test result
     dLogStructured_t* null_test = d_LogStructured(D_LOG_LEVEL_INFO);
     d_LogStructured_Field(null_test, "test", "null_array_get");
-    d_LogStructured_Field(null_test, "function", "d_GetDataFromArrayByIndex");
+    d_LogStructured_Field(null_test, "function", "d_IndexDataFromArray");
     d_LogStructured_Field(null_test, "result", result == NULL ? "null_as_expected" : "unexpected_non_null");
     d_LogStructured_FieldBool(null_test, "passed", result == NULL);
     d_LogStructured_SetFormat(null_test, false);
@@ -73,7 +73,7 @@ int test_dynamic_array_null_data_append(void)
     size_t old_count = array->count;
     d_LogDebugF("Current array count: %zu, attempting to append NULL data", old_count);
 
-    d_AppendArray(array, NULL);
+    d_AppendDataToArray(array, NULL);
 
     // Structured logging for append result
     dLogStructured_t* append_log = d_LogStructured(D_LOG_LEVEL_DEBUG);
@@ -104,19 +104,19 @@ int test_dynamic_array_large_indices(void)
     d_LogInfoF("Created array: capacity=%zu, element_size=%zu", array->capacity, array->element_size);
 
     int value = 100;
-    d_AppendArray(array, &value);
+    d_AppendDataToArray(array, &value);
     d_LogInfoF("Added value %d to array, count is now %zu", value, array->count);
 
     // Test with very large indices
     d_LogDebug("Testing with SIZE_MAX index");
-    void* result = d_GetDataFromArrayByIndex(array, SIZE_MAX);
+    void* result = d_IndexDataFromArray(array, SIZE_MAX);
     TEST_ASSERT(result == NULL, "Should return NULL for SIZE_MAX index");
 
     // Rate-limited logging for repeated boundary tests
     d_LogRateLimited(D_LOG_LEVEL_DEBUG, 2, 1.0, "Testing large index boundary condition");
 
     d_LogDebugF("Testing with very large index (1000000)");
-    result = d_GetDataFromArrayByIndex(array, 1000000);
+    result = d_IndexDataFromArray(array, 1000000);
     TEST_ASSERT(result == NULL, "Should return NULL for very large index");
 
     // Performance and safety metrics
@@ -162,7 +162,7 @@ int test_dynamic_array_zero_element_size(void)
         // Operations with zero element size should be handled
         char dummy = 'x';
         d_LogDebug("Attempting to append to zero-element-size array");
-        d_AppendArray(array, &dummy);
+        d_AppendDataToArray(array, &dummy);
         TEST_ASSERT(1, "Append with zero element size should not crash");
         d_LogInfo("✅ Append operation completed without crash");
 
@@ -192,18 +192,18 @@ int test_dynamic_array_boundary_conditions(void)
 
     // Fill to capacity
     d_LogDebug("Filling array to capacity");
-    d_AppendArray(array, &value1);
+    d_AppendDataToArray(array, &value1);
     TEST_ASSERT(array->count == 1, "Should have 1 element");
     d_LogInfoF("✅ Array filled to capacity: count=%zu", array->count);
 
-    int* retrieved = (int*)d_GetDataFromArrayByIndex(array, 0);
+    int* retrieved = (int*)d_IndexDataFromArray(array, 0);
     TEST_ASSERT(retrieved != NULL && *retrieved == value1, "Should retrieve correct value");
     d_LogInfoF("✅ Retrieved value: %d (expected: %d)", retrieved ? *retrieved : -1, value1);
 
     // Try to exceed capacity
     d_LogDebug("Testing capacity expansion by adding second element");
     size_t old_capacity = array->capacity;
-    d_AppendArray(array, &value2);
+    d_AppendDataToArray(array, &value2);
     TEST_ASSERT(array->count > 1, "Count should increase beyond capacity");
 
     // Structured logging for capacity expansion
@@ -257,7 +257,7 @@ int test_dynamic_array_index_edge_cases(void)
     int values[] = {1, 2, 3};
     d_LogDebug("Adding test values to array");
     for (int i = 0; i < 3; i++) {
-        d_AppendArray(array, &values[i]);
+        d_AppendDataToArray(array, &values[i]);
         d_LogDebugF("Added value %d at index %d", values[i], i);
     }
 
@@ -265,18 +265,18 @@ int test_dynamic_array_index_edge_cases(void)
 
     // Test index at boundary conditions
     d_LogDebug("Testing index just beyond valid range");
-    void* result = d_GetDataFromArrayByIndex(array, 3);  // Just beyond valid range
+    void* result = d_IndexDataFromArray(array, 3);  // Just beyond valid range
     TEST_ASSERT(result == NULL, "Should return NULL for index just beyond range");
     d_LogInfo("✅ Out-of-bounds index properly rejected");
 
     d_LogDebug("Testing access to last valid index");
-    result = d_GetDataFromArrayByIndex(array, 2);  // Last valid index
+    result = d_IndexDataFromArray(array, 2);  // Last valid index
     TEST_ASSERT(result != NULL, "Should return valid result for last valid index");
     TEST_ASSERT(*(int*)result == 3, "Should return correct value for last valid index");
     d_LogInfoF("✅ Last valid index access: got %d", result ? *(int*)result : -1);
 
     d_LogDebug("Testing access to first valid index");
-    result = d_GetDataFromArrayByIndex(array, 0);  // First valid index
+    result = d_IndexDataFromArray(array, 0);  // First valid index
     TEST_ASSERT(result != NULL, "Should return valid result for first index");
     TEST_ASSERT(*(int*)result == 1, "Should return correct value for first index");
     d_LogInfoF("✅ First valid index access: got %d", result ? *(int*)result : -1);
@@ -321,7 +321,7 @@ int test_dynamic_array_pop_edge_cases(void)
     // Add one element and pop it
     int value = 42;
     d_LogInfoF("Adding single value %d to array", value);
-    d_AppendArray(array, &value);
+    d_AppendDataToArray(array, &value);
     d_LogInfoF("Array state after append: count=%zu", array->count);
 
     d_LogDebug("Attempting to pop single element");
@@ -382,14 +382,14 @@ int test_dynamic_array_memory_patterns(void)
     int values[] = {10, 20, 30};
     d_LogDebug("Filling array with contiguous test values");
     for (int i = 0; i < 3; i++) {
-        d_AppendArray(array, &values[i]);
+        d_AppendDataToArray(array, &values[i]);
         d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG, 2, 1.0, "Added value %d at logical position %d", values[i], i);
     }
 
     // Verify memory is contiguous by checking pointer arithmetic
-    int* first = (int*)d_GetDataFromArrayByIndex(array, 0);
-    int* second = (int*)d_GetDataFromArrayByIndex(array, 1);
-    int* third = (int*)d_GetDataFromArrayByIndex(array, 2);
+    int* first = (int*)d_IndexDataFromArray(array, 0);
+    int* second = (int*)d_IndexDataFromArray(array, 1);
+    int* third = (int*)d_IndexDataFromArray(array, 2);
 
     TEST_ASSERT(first != NULL && second != NULL && third != NULL, "All pointers should be valid");
 

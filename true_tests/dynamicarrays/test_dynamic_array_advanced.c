@@ -42,14 +42,14 @@ int test_dynamic_array_complex_structures(void)
 
     // Add entities to array
     for (int i = 0; i < 4; i++) {
-        d_AppendArray(entities, &test_entities[i]);
+        d_AppendDataToArray(entities, &test_entities[i]);
     }
 
     TEST_ASSERT(entities->count == 4, "Should have 4 entities");
 
     // Verify entity data integrity
     for (size_t i = 0; i < entities->count; i++) {
-        GameEntity* entity = (GameEntity*)d_GetDataFromArrayByIndex(entities, i);
+        GameEntity* entity = (GameEntity*)d_IndexDataFromArray(entities, i);
         TEST_ASSERT(entity != NULL, "Should get valid entity pointer");
         TEST_ASSERT(entity->id == test_entities[i].id, "Entity ID should match");
         TEST_ASSERT(strcmp(entity->name, test_entities[i].name) == 0, "Entity name should match");
@@ -60,7 +60,7 @@ int test_dynamic_array_complex_structures(void)
     // Test filtering active entities
     int active_count = 0;
     for (size_t i = 0; i < entities->count; i++) {
-        GameEntity* entity = (GameEntity*)d_GetDataFromArrayByIndex(entities, i);
+        GameEntity* entity = (GameEntity*)d_IndexDataFromArray(entities, i);
         if (entity && entity->active) {
             active_count++;
         }
@@ -82,21 +82,21 @@ int test_dynamic_array_nested_arrays(void)
 
     int child_values[] = {10, 20, 30};
     for (int i = 0; i < 3; i++) {
-        d_AppendArray(root.children, &child_values[i]);
+        d_AppendDataToArray(root.children, &child_values[i]);
     }
 
-    d_AppendArray(tree_nodes, &root);
+    d_AppendDataToArray(tree_nodes, &root);
 
     // Create leaf nodes
     TreeNode leaf1 = {NULL, 2, "leaf1"};
     TreeNode leaf2 = {NULL, 3, "leaf2"};
-    d_AppendArray(tree_nodes, &leaf1);
-    d_AppendArray(tree_nodes, &leaf2);
+    d_AppendDataToArray(tree_nodes, &leaf1);
+    d_AppendDataToArray(tree_nodes, &leaf2);
 
     TEST_ASSERT(tree_nodes->count == 3, "Should have 3 tree nodes");
 
     // Verify root node and its children
-    TreeNode* root_node = (TreeNode*)d_GetDataFromArrayByIndex(tree_nodes, 0);
+    TreeNode* root_node = (TreeNode*)d_IndexDataFromArray(tree_nodes, 0);
     TEST_ASSERT(root_node != NULL, "Should get valid root node");
     TEST_ASSERT(root_node->value == 1, "Root value should be 1");
     TEST_ASSERT(strcmp(root_node->tag, "root") == 0, "Root tag should match");
@@ -105,13 +105,13 @@ int test_dynamic_array_nested_arrays(void)
 
     // Verify children values
     for (int i = 0; i < 3; i++) {
-        int* child_val = (int*)d_GetDataFromArrayByIndex(root_node->children, i);
+        int* child_val = (int*)d_IndexDataFromArray(root_node->children, i);
         TEST_ASSERT(child_val != NULL, "Should get valid child value");
         TEST_ASSERT(*child_val == child_values[i], "Child value should match");
     }
 
     // Cleanup nested arrays manually
-    TreeNode* node = (TreeNode*)d_GetDataFromArrayByIndex(tree_nodes, 0);
+    TreeNode* node = (TreeNode*)d_IndexDataFromArray(tree_nodes, 0);
     if (node && node->children) {
         d_DestroyArray(node->children);
     }
@@ -126,7 +126,7 @@ int test_dynamic_array_memory_reuse_patterns(void)
     // Fill array completely
     for (int i = 0; i < 100; i++) {
         int value = i;
-        d_AppendArray(array, &value);
+        d_AppendDataToArray(array, &value);
     }
 
     TEST_ASSERT(array->count == 100, "Array should be full");
@@ -141,7 +141,7 @@ int test_dynamic_array_memory_reuse_patterns(void)
 
     // Verify remaining elements are still correct
     for (int i = 0; i < 50; i++) {
-        int* value = (int*)d_GetDataFromArrayByIndex(array, i);
+        int* value = (int*)d_IndexDataFromArray(array, i);
         TEST_ASSERT(value != NULL, "Should get valid pointer");
         TEST_ASSERT(*value == i, "Value should match original");
     }
@@ -149,14 +149,14 @@ int test_dynamic_array_memory_reuse_patterns(void)
     // Refill the array (testing memory reuse)
     for (int i = 0; i < 50; i++) {
         int value = 1000 + i;  // Different values to test overwriting
-        d_AppendArray(array, &value);
+        d_AppendDataToArray(array, &value);
     }
 
     TEST_ASSERT(array->count == 100, "Array should be full again");
 
     // Verify the new section
     for (int i = 50; i < 100; i++) {
-        int* value = (int*)d_GetDataFromArrayByIndex(array, i);
+        int* value = (int*)d_IndexDataFromArray(array, i);
         TEST_ASSERT(value != NULL, "Should get valid pointer for new values");
         TEST_ASSERT(*value == 1000 + (i - 50), "New values should be correct");
     }
@@ -186,14 +186,14 @@ int test_dynamic_array_large_element_sizes(void)
 
     // Add large structures
     for (int i = 0; i < 3; i++) {
-        d_AppendArray(large_array, &large_items[i]);
+        d_AppendDataToArray(large_array, &large_items[i]);
     }
 
     TEST_ASSERT(large_array->count == 3, "Should have 3 large items");
 
     // Verify large structure integrity
     for (int i = 0; i < 3; i++) {
-        LargeStruct* retrieved = (LargeStruct*)d_GetDataFromArrayByIndex(large_array, i);
+        LargeStruct* retrieved = (LargeStruct*)d_IndexDataFromArray(large_array, i);
         TEST_ASSERT(retrieved != NULL, "Should get valid large struct pointer");
         TEST_ASSERT(retrieved->id == large_items[i].id, "Large struct ID should match");
         TEST_ASSERT(retrieved->timestamp == large_items[i].timestamp, "Large struct timestamp should match");
@@ -214,14 +214,14 @@ int test_dynamic_array_sorting_simulation(void)
     // Add unsorted numbers
     int unsorted[] = {64, 34, 25, 12, 22, 11, 90, 88, 76, 50, 42, 30, 5, 77, 55, 28, 35, 70, 15, 8};
     for (int i = 0; i < 20; i++) {
-        d_AppendArray(numbers, &unsorted[i]);
+        d_AppendDataToArray(numbers, &unsorted[i]);
     }
 
     // Simulate bubble sort using array operations
     for (size_t i = 0; i < numbers->count - 1; i++) {
         for (size_t j = 0; j < numbers->count - i - 1; j++) {
-            int* current = (int*)d_GetDataFromArrayByIndex(numbers, j);
-            int* next = (int*)d_GetDataFromArrayByIndex(numbers, j + 1);
+            int* current = (int*)d_IndexDataFromArray(numbers, j);
+            int* next = (int*)d_IndexDataFromArray(numbers, j + 1);
 
             if (current && next && *current > *next) {
                 // Swap values
@@ -234,8 +234,8 @@ int test_dynamic_array_sorting_simulation(void)
 
     // Verify array is sorted
     for (size_t i = 0; i < numbers->count - 1; i++) {
-        int* current = (int*)d_GetDataFromArrayByIndex(numbers, i);
-        int* next = (int*)d_GetDataFromArrayByIndex(numbers, i + 1);
+        int* current = (int*)d_IndexDataFromArray(numbers, i);
+        int* next = (int*)d_IndexDataFromArray(numbers, i + 1);
         TEST_ASSERT(current != NULL && next != NULL, "Should get valid pointers");
         TEST_ASSERT(*current <= *next, "Array should be sorted in ascending order");
     }
@@ -251,7 +251,7 @@ int test_dynamic_array_capacity_management(void)
     // Fill to capacity
     for (int i = 0; i < 5; i++) {
         int value = i;
-        d_AppendArray(array, &value);
+        d_AppendDataToArray(array, &value);
     }
 
     TEST_ASSERT(array->count == 5, "Should be at capacity");
@@ -260,7 +260,7 @@ int test_dynamic_array_capacity_management(void)
     // Try to exceed capacity (should fail with current implementation)
     int extra_value = 999;
     size_t count_before = array->count;
-    d_AppendArray(array, &extra_value);
+    d_AppendDataToArray(array, &extra_value);
     TEST_ASSERT(array->count > count_before, "Count should increase when at capacity");
 
     // Test manual capacity expansion
@@ -270,16 +270,16 @@ int test_dynamic_array_capacity_management(void)
 
 
     // Now adding should work
-    d_AppendArray(array, &extra_value);
+    d_AppendDataToArray(array, &extra_value);
     TEST_ASSERT(array->count > 6, "Should be able to add after resize");
 
     // Verify data integrity after resize
     for (int i = 0; i < 5; i++) {
-        int* value = (int*)d_GetDataFromArrayByIndex(array, i);
+        int* value = (int*)d_IndexDataFromArray(array, i);
         TEST_ASSERT(value != NULL && *value == i, "Original data should be preserved");
     }
 
-    int* last_value = (int*)d_GetDataFromArrayByIndex(array, 5);
+    int* last_value = (int*)d_IndexDataFromArray(array, 5);
     TEST_ASSERT(last_value != NULL && *last_value == extra_value, "New value should be correct");
 
     d_DestroyArray(array);
@@ -293,7 +293,7 @@ int test_dynamic_array_iterator_pattern(void)
     char* test_strings[] = {"hello", "world", "test", "array", "iterator"};
 
     for (int i = 0; i < 5; i++) {
-        d_AppendArray(strings, &test_strings[i]);
+        d_AppendDataToArray(strings, &test_strings[i]);
     }
 
     // Test iterator-like access pattern
@@ -301,7 +301,7 @@ int test_dynamic_array_iterator_pattern(void)
     size_t total_length = 0;
 
     for (size_t i = 0; i < strings->count; i++) {
-        char** str_ptr = (char**)d_GetDataFromArrayByIndex(strings, i);
+        char** str_ptr = (char**)d_IndexDataFromArray(strings, i);
         if (str_ptr && *str_ptr) {
             word_count++;
             total_length += strlen(*str_ptr);
@@ -326,7 +326,7 @@ int test_dynamic_array_stack_behavior(void)
 
     // Push values
     for (int i = 0; i < 5; i++) {
-        d_AppendArray(stack, &push_values[i]);
+        d_AppendDataToArray(stack, &push_values[i]);
     }
 
     TEST_ASSERT(stack->count == 5, "Stack should have 5 elements");
@@ -359,7 +359,7 @@ int test_debug_hunter_concurrent_resize_operations(void)
     // Fill initial array
     int values[] = {100, 200};
     for (int i = 0; i < 2; i++) {
-        d_AppendArray(array, &values[i]);
+        d_AppendDataToArray(array, &values[i]);
     }
 
     LOG(); printf("Initial state: capacity=%zu, count=%zu\n", array->capacity, array->count);
@@ -387,7 +387,7 @@ int test_debug_hunter_concurrent_resize_operations(void)
         accessible_elements = (accessible_elements > 2) ? 2 : accessible_elements;  // Only check original 2 elements
 
         for (size_t j = 0; j < accessible_elements; j++) {
-            int* retrieved = (int*)d_GetDataFromArrayByIndex(array, j);
+            int* retrieved = (int*)d_IndexDataFromArray(array, j);
             if (retrieved != NULL) {
                 LOG(); printf("Element %zu after resize %d: expected=%d, actual=%d\n",
                              j, i, values[j], *retrieved);
@@ -435,7 +435,7 @@ int test_debug_hunter_extreme_size_boundaries(void)
                  tiny_array->capacity, tiny_array->element_size);
 
     char tiny_data = 'X';
-    d_AppendArray(tiny_array, &tiny_data);
+    d_AppendDataToArray(tiny_array, &tiny_data);
 
     // Test resize with tiny elements
     int tiny_resize = d_ResizeArray(tiny_array, 100);  // 100 bytes = 100 elements of 1 byte
@@ -446,7 +446,7 @@ int test_debug_hunter_extreme_size_boundaries(void)
     TEST_ASSERT(tiny_array->capacity == 100, "Tiny array should have 100 elements capacity");
 
     // Verify data integrity
-    char* retrieved = (char*)d_GetDataFromArrayByIndex(tiny_array, 0);
+    char* retrieved = (char*)d_IndexDataFromArray(tiny_array, 0);
     TEST_ASSERT(retrieved != NULL && *retrieved == 'X', "Tiny data should be preserved");
 
     d_DestroyArray(tiny_array);
@@ -476,7 +476,7 @@ int test_debug_hunter_memory_fragmentation_torture(void)
             // Fill with recognizable data
             for (size_t j = 0; j < capacity; j++) {
                 int pattern = (cycle * 10000) + (i * 1000) + j;
-                d_AppendArray(torture_arrays[i], &pattern);
+                d_AppendDataToArray(torture_arrays[i], &pattern);
             }
         }
 
@@ -497,7 +497,7 @@ int test_debug_hunter_memory_fragmentation_torture(void)
                 check_count = (check_count > 3) ? 3 : check_count;  // Only check first few elements
 
                 for (size_t j = 0; j < check_count; j++) {
-                    int* data = (int*)d_GetDataFromArrayByIndex(torture_arrays[i], j);
+                    int* data = (int*)d_IndexDataFromArray(torture_arrays[i], j);
                     if (data != NULL) {
                         int expected_pattern = (cycle * 10000) + (i * 1000) + j;
                         if (*data == expected_pattern) {
@@ -535,7 +535,7 @@ int test_debug_hunter_append_resize_race_conditions(void)
     // Fill array to capacity
     int initial_values[] = {1, 2, 3};
     for (int i = 0; i < 3; i++) {
-        d_AppendArray(array, &initial_values[i]);
+        d_AppendDataToArray(array, &initial_values[i]);
     }
 
     LOG(); printf("Initial fill: capacity=%zu, count=%zu\n", array->capacity, array->count);
@@ -555,7 +555,7 @@ int test_debug_hunter_append_resize_race_conditions(void)
             array->count = 0;  // Clear count
             // Re-add initial values
             for (int i = 0; i < 3; i++) {
-                d_AppendArray(array, &initial_values[i]);
+                d_AppendDataToArray(array, &initial_values[i]);
             }
         }
 
@@ -563,7 +563,7 @@ int test_debug_hunter_append_resize_race_conditions(void)
         int overflow_value = 1000 + iteration;
         size_t count_before_overflow = array->count;
 
-        d_AppendArray(array, &overflow_value);
+        d_AppendDataToArray(array, &overflow_value);
 
         LOG(); printf("After overflow append: count=%zu (was %zu)\n", array->count, count_before_overflow);
         TEST_ASSERT(array->count > count_before_overflow, "Count should increase when at capacity");
@@ -579,7 +579,7 @@ int test_debug_hunter_append_resize_race_conditions(void)
         TEST_ASSERT(array->capacity == new_capacity_elements, "Capacity should be updated");
 
         // Now append should succeed
-        d_AppendArray(array, &overflow_value);
+        d_AppendDataToArray(array, &overflow_value);
 
         LOG(); printf("After resize and append: capacity=%zu, count=%zu\n", array->capacity, array->count);
         TEST_ASSERT(array->count > count_before_overflow + 1, "Count should increase after resize");
@@ -587,13 +587,13 @@ int test_debug_hunter_append_resize_race_conditions(void)
         // Verify data integrity - simplified check
         // Check original 3 elements
         for (int i = 0; i < 3; i++) {
-            int* retrieved = (int*)d_GetDataFromArrayByIndex(array, i);
+            int* retrieved = (int*)d_IndexDataFromArray(array, i);
             TEST_ASSERT(retrieved != NULL, "Should get valid pointer for original data");
             TEST_ASSERT(*retrieved == initial_values[i], "Original data should be preserved");
         }
 
         // Check the newly appended element (should be at index 3)
-        int* new_element = (int*)d_GetDataFromArrayByIndex(array, 3);
+        int* new_element = (int*)d_IndexDataFromArray(array, 3);
         TEST_ASSERT(new_element != NULL, "Should get valid pointer for new element");
         TEST_ASSERT(*new_element == overflow_value, "New element should match overflow value");
 
@@ -625,7 +625,7 @@ int test_debug_hunter_data_corruption_patterns(void)
 
     // Fill array with magic pattern
     for (int i = 0; i < 10; i++) {
-        d_AppendArray(array, &magic_numbers[i]);
+        d_AppendDataToArray(array, &magic_numbers[i]);
     }
     LOG(); printf("Initial magic pattern loaded: count=%zu\n", array->count);
     // Test pattern 1: Sequential access forward and backward
@@ -633,14 +633,14 @@ int test_debug_hunter_data_corruption_patterns(void)
     for (int pass = 0; pass < 5; pass++) {
         LOG(); printf("Forward pass %d\n", pass);
         for (size_t i = 0; i < array->count; i++) {
-            int* data = (int*)d_GetDataFromArrayByIndex(array, i);
+            int* data = (int*)d_IndexDataFromArray(array, i);
             TEST_ASSERT(data != NULL, "Should get valid pointer");
             TEST_ASSERT(*data == magic_numbers[i], "Forward access: data should not be corrupted");
         }
 
         LOG(); printf("Backward pass %d\n", pass);
         for (int i = (int)array->count - 1; i >= 0; i--) {
-            int* data = (int*)d_GetDataFromArrayByIndex(array, i);
+            int* data = (int*)d_IndexDataFromArray(array, i);
             TEST_ASSERT(data != NULL, "Should get valid pointer");
             TEST_ASSERT(*data == magic_numbers[i], "Backward access: data should not be corrupted");
         }
@@ -655,7 +655,7 @@ int test_debug_hunter_data_corruption_patterns(void)
         int idx = random_indices[i];
         LOG(); printf("Random access to index %d\n", idx);
 
-        int* data = (int*)d_GetDataFromArrayByIndex(array, idx);
+        int* data = (int*)d_IndexDataFromArray(array, idx);
         TEST_ASSERT(data != NULL, "Should get valid pointer for random access");
         TEST_ASSERT(*data == magic_numbers[idx], "Random access: data should not be corrupted");
     }
@@ -667,7 +667,7 @@ int test_debug_hunter_data_corruption_patterns(void)
 
     // Verify all original data survived
     for (size_t i = 0; i < 10; i++) {
-        int* data = (int*)d_GetDataFromArrayByIndex(array, i);
+        int* data = (int*)d_IndexDataFromArray(array, i);
         TEST_ASSERT(data != NULL, "Should get valid pointer after resize");
         LOG(); printf("Post-resize check %zu: expected=0x%08X, actual=0x%08X\n",
                      i, magic_numbers[i], *data);
@@ -685,7 +685,7 @@ int test_debug_hunter_data_corruption_patterns(void)
 
         // Verify remaining data is still intact
         for (size_t j = 0; j < array->count; j++) {
-            int* remaining = (int*)d_GetDataFromArrayByIndex(array, j);
+            int* remaining = (int*)d_IndexDataFromArray(array, j);
             TEST_ASSERT(remaining != NULL, "Remaining data should be accessible");
             TEST_ASSERT(*remaining == magic_numbers[j], "Remaining data should not be corrupted");
         }

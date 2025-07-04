@@ -33,11 +33,11 @@ int test_dynamic_array_large_capacity(void)
         // Fill up to each test index
         while (array->count <= (size_t)test_indices[i]) {
             int value = (int)array->count * 10;  // Unique value based on position
-            d_AppendArray(array, &value);
+            d_AppendDataToArray(array, &value);
         }
 
         // Verify the value at the test index
-        int* retrieved = (int*)d_GetDataFromArrayByIndex(array, test_indices[i]);
+        int* retrieved = (int*)d_IndexDataFromArray(array, test_indices[i]);
         TEST_ASSERT(retrieved != NULL, "Should retrieve value from large array");
         TEST_ASSERT(*retrieved == test_indices[i] * 10, "Value should match expected pattern");
     }
@@ -54,14 +54,14 @@ int test_dynamic_array_sequential_operations(void)
     // Sequential append test
     for (size_t i = 0; i < capacity; i++) {
         int value = (int)(i * 2);  // Even numbers
-        d_AppendArray(array, &value);
+        d_AppendDataToArray(array, &value);
     }
 
     TEST_ASSERT(array->count == capacity, "Should fill array to capacity");
 
     // Sequential read test
     for (size_t i = 0; i < capacity; i++) {
-        int* retrieved = (int*)d_GetDataFromArrayByIndex(array, i);
+        int* retrieved = (int*)d_IndexDataFromArray(array, i);
         TEST_ASSERT(retrieved != NULL, "Sequential read should succeed");
         TEST_ASSERT(*retrieved == (int)(i * 2), "Sequential values should match pattern");
     }
@@ -96,7 +96,7 @@ int test_dynamic_array_mixed_operations(void)
             case 0: // Append
                 if (array->count < array->capacity) {
                     int value = i;
-                    d_AppendArray(array, &value);
+                    d_AppendDataToArray(array, &value);
                     append_count++;
                 }
                 break;
@@ -104,7 +104,7 @@ int test_dynamic_array_mixed_operations(void)
             case 1: // Get random element
                 if (array->count > 0) {
                     size_t index = i % array->count;
-                    int* retrieved = (int*)d_GetDataFromArrayByIndex(array, index);
+                    int* retrieved = (int*)d_IndexDataFromArray(array, index);
                     TEST_ASSERT(retrieved != NULL, "Random get should succeed on valid index");
                 }
                 break;
@@ -135,7 +135,7 @@ int test_dynamic_array_resize_stress(void)
     // Fill initial array
     for (int i = 0; i < 10; i++) {
         int value = i * 10;
-        d_AppendArray(array, &value);
+        d_AppendDataToArray(array, &value);
     }
     LOG(); printf("Filled array with %zu elements, capacity: %zu\n", array->count, array->capacity);
 
@@ -158,7 +158,7 @@ int test_dynamic_array_resize_stress(void)
         LOG(); printf("Checking %zu elements for data preservation\n", max_check);
         
         for (size_t j = 0; j < max_check; j++) {
-            int* retrieved = (int*)d_GetDataFromArrayByIndex(array, j);
+            int* retrieved = (int*)d_IndexDataFromArray(array, j);
             if (retrieved != NULL) {  // May be NULL due to capacity issues
                 LOG(); printf("Element %zu: expected=%d, actual=%d\n", j, (int)(j * 10), *retrieved);
                 TEST_ASSERT(*retrieved == (int)(j * 10), "Data should be preserved across resizes");
@@ -181,7 +181,7 @@ int test_dynamic_array_stress_append_pop(void)
         // Fill array
         for (int i = 0; i < 50; i++) {
             int value = cycle * 100 + i;
-            d_AppendArray(array, &value);
+            d_AppendDataToArray(array, &value);
         }
 
         TEST_ASSERT(array->count == 50, "Array should be full after filling");
@@ -207,13 +207,13 @@ int test_dynamic_array_memory_consistency(void)
     // Fill with known pattern
     for (int i = 0; i < 100; i++) {
         int value = i * i;  // Square numbers
-        d_AppendArray(array, &value);
+        d_AppendDataToArray(array, &value);
     }
 
     // Randomly access and verify pattern integrity
     for (int test = 0; test < 50; test++) {
         size_t index = test * 2;  // Every other element
-        int* retrieved = (int*)d_GetDataFromArrayByIndex(array, index);
+        int* retrieved = (int*)d_IndexDataFromArray(array, index);
         TEST_ASSERT(retrieved != NULL, "Random access should succeed");
         TEST_ASSERT(*retrieved == (int)(index * index), "Values should maintain pattern integrity");
     }
@@ -225,7 +225,7 @@ int test_dynamic_array_memory_consistency(void)
 
     // Verify remaining elements still have correct pattern
     for (size_t i = 0; i < array->count; i++) {
-        int* retrieved = (int*)d_GetDataFromArrayByIndex(array, i);
+        int* retrieved = (int*)d_IndexDataFromArray(array, i);
         TEST_ASSERT(retrieved != NULL, "Access to remaining elements should succeed");
         TEST_ASSERT(*retrieved == (int)(i * i), "Remaining elements should maintain pattern");
     }

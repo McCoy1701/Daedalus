@@ -28,6 +28,7 @@ NATIVE_OBJS = \
 							$(OBJ_DIR)/dLinkedList.o\
 							$(OBJ_DIR)/dLogs.o\
 							$(OBJ_DIR)/dMatrixMath.o\
+							$(OBJ_DIR)/dStaticArrays.o\
 							$(OBJ_DIR)/dStrings-dArrays.o\
 							$(OBJ_DIR)/dStrings.o\
 							$(OBJ_DIR)/dVectorMath.o\
@@ -48,6 +49,7 @@ SHARED_OBJS = \
 							$(SHA_DIR)/dLinkedList.o\
 							$(SHA_DIR)/dLogs.o\
 							$(SHA_DIR)/dMatrixMath.o\
+							$(SHA_DIR)/dStaticArrays.o\
 							$(SHA_DIR)/dStrings-dArrays.o\
 							$(SHA_DIR)/dStrings.o\
 							$(SHA_DIR)/dVectorMath.o\
@@ -68,6 +70,7 @@ EMS_OBJS = \
 							$(EMS_DIR)/dLinkedList.o\
 							$(EMS_DIR)/dLogs.o\
 							$(EMS_DIR)/dMatrixMath.o\
+							$(EMS_DIR)/dStaticArrays.o\
 							$(EMS_DIR)/dStrings-dArrays.o\
 							$(EMS_DIR)/dStrings.o\
 							$(EMS_DIR)/dVectorMath.o\
@@ -241,8 +244,8 @@ run-test-string-pythonic: test-string-pythonic
 	@./$(BIN_DIR)/test_string_pythonic
 
 .PHONY: test-dynamic-array-basic
-test-dynamic-array-basic: always $(OBJ_DIR)/dArrays.o
-	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_basic $(TEST_DIR)/dynamicarrays/test_dynamic_array_basic.c $(OBJ_DIR)/dArrays.o
+test-dynamic-array-basic: always $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_basic $(TEST_DIR)/dynamicarrays/test_dynamic_array_basic.c $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o
 
 .PHONY: run-test-dynamic-array-basic
 run-test-dynamic-array-basic: test-dynamic-array-basic
@@ -296,6 +299,22 @@ run-test-dynamic-array-debug-hunting: test-dynamic-array-debug-hunting
 .PHONY: test-dynamic-array-errors
 test-dynamic-array-errors: always $(OBJ_DIR)/dArrays.o
 	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_errors $(TEST_DIR)/dynamicarrays/test_dynamic_array_errors.c $(OBJ_DIR)/dArrays.o
+
+.PHONY: test-static-array-basic
+test-static-array-basic: always $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_static_array_basic $(TEST_DIR)/staticarrays/test_static_array_basic.c $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o
+
+.PHONY: run-test-static-array-basic
+run-test-static-array-basic: test-static-array-basic
+	@./$(BIN_DIR)/test_static_array_basic
+
+.PHONY: test-static-array-advanced
+test-static-array-advanced: always $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_static_array_advanced $(TEST_DIR)/staticarrays/test_static_array_advanced.c $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o
+
+.PHONY: run-test-static-array-advanced
+run-test-static-array-advanced: test-static-array-advanced
+	@./$(BIN_DIR)/test_static_array_advanced
 
 # Emscripten test targets using the static library
 .PHONY: test-logging-emscripten-web

@@ -962,7 +962,7 @@ int debug_hunter_resource_exhaustion_test() {
             d_AppendInt(hog, i * j);
         }
 
-        d_AppendArray(resource_hogs, &hog);
+        d_AppendDataToArray(resource_hogs, &hog);
 
         // Try to log during resource pressure
         if (i % 100 == 0) {
@@ -995,7 +995,7 @@ int debug_hunter_resource_exhaustion_test() {
 
     // Cleanup resources
     for (size_t i = 0; i < resource_hogs->count; i++) {
-        dString_t** hog_ptr = (dString_t**)d_GetDataFromArrayByIndex(resource_hogs, i);
+        dString_t** hog_ptr = (dString_t**)d_IndexDataFromArray(resource_hogs, i);
         if (hog_ptr && *hog_ptr) {
             d_DestroyString(*hog_ptr);
         }

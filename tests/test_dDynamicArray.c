@@ -38,13 +38,13 @@ int test_d_initArray( void )
   return 0;
 }
 
-int test_d_appendArray( void )
+int test_d_AppendDataToArray( void )
 {
 
   return 0;
 }
 
-int test_d_getDataFromArrayByIndex( void )
+int test_d_IndexDataFromArray( void )
 {
 
   return 0;

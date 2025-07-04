@@ -25,7 +25,7 @@ int test_dynamic_array_resize_expand(void)
     int values[] = {1, 2, 3};
     d_LogDebug("Filling array to original capacity");
     for (int i = 0; i < 3; i++) {
-        d_AppendArray(array, &values[i]);
+        d_AppendDataToArray(array, &values[i]);
         d_LogDebugF("Added value %d at index %d", values[i], i);
     }
 
@@ -59,7 +59,7 @@ int test_dynamic_array_resize_expand(void)
     // Verify existing data is preserved
     d_LogDebug("Verifying data integrity after resize");
     for (int i = 0; i < 3; i++) {
-        int* retrieved = (int*)d_GetDataFromArrayByIndex(array, i);
+        int* retrieved = (int*)d_IndexDataFromArray(array, i);
         TEST_ASSERT(retrieved != NULL, "Should get valid pointer after resize");
 
         if (retrieved != NULL) {
@@ -77,7 +77,7 @@ int test_dynamic_array_resize_expand(void)
     int new_values[] = {4, 5, 6};
     d_LogDebug("Testing capacity utilization - adding elements to expanded space");
     for (int i = 0; i < 3; i++) {
-        d_AppendArray(array, &new_values[i]);
+        d_AppendDataToArray(array, &new_values[i]);
         d_LogDebugF("Added new value %d, count now: %zu", new_values[i], array->count);
     }
 
@@ -102,7 +102,7 @@ int test_dynamic_array_resize_shrink(void)
     int values[] = {10, 20, 30, 40, 50, 60};
     d_LogDebug("Filling array with test data");
     for (int i = 0; i < 6; i++) {
-        d_AppendArray(array, &values[i]);
+        d_AppendDataToArray(array, &values[i]);
         d_LogDebugF("Added value %d at index %d", values[i], i);
     }
 
@@ -140,7 +140,7 @@ int test_dynamic_array_resize_shrink(void)
     // The remaining accessible data should still be valid
     d_LogDebug("Verifying accessible data integrity after shrink");
     for (int i = 0; i < 3; i++) {
-        int* retrieved = (int*)d_GetDataFromArrayByIndex(array, i);
+        int* retrieved = (int*)d_IndexDataFromArray(array, i);
         if (retrieved != NULL) {
             d_LogDebugF("Element %d still accessible: expected=%d, actual=%d", i, values[i], *retrieved);
             TEST_ASSERT(*retrieved == values[i], "Accessible data should be preserved");
@@ -152,7 +152,7 @@ int test_dynamic_array_resize_shrink(void)
     // Test accessing beyond new capacity
     d_LogDebug("Testing access beyond new capacity");
     for (int i = 3; i < 6; i++) {
-        int* retrieved = (int*)d_GetDataFromArrayByIndex(array, i);
+        int* retrieved = (int*)d_IndexDataFromArray(array, i);
         d_LogDebugF("Element %d (beyond new capacity): %s", i, retrieved ? "accessible" : "inaccessible");
     }
 
@@ -174,7 +174,7 @@ int test_dynamic_array_resize_zero(void)
     int values[] = {100, 200, 300};
     d_LogDebug("Adding initial data before zero resize");
     for (int i = 0; i < 3; i++) {
-        d_AppendArray(array, &values[i]);
+        d_AppendDataToArray(array, &values[i]);
         d_LogDebugF("Added value %d", values[i]);
     }
 
@@ -207,12 +207,12 @@ int test_dynamic_array_resize_zero(void)
     int new_value = 42;
     size_t count_before_append = array->count;
     d_LogDebugF("Attempting append to zero-capacity array (count before: %zu)", count_before_append);
-    d_AppendArray(array, &new_value);
+    d_AppendDataToArray(array, &new_value);
     d_LogDebugF("After append attempt: count=%zu (was %zu)", array->count, count_before_append);
 
     // Test get operation - the implementation allows access to previously allocated memory
     d_LogDebug("🔍 CRITICAL TEST: Getting data from zero-capacity array");
-    void* get_result = d_GetDataFromArrayByIndex(array, 0);
+    void* get_result = d_IndexDataFromArray(array, 0);
 
     // Enhanced logging for the test behavior
     d_LogInfoF("Get operation result: pointer=%p", get_result);
@@ -244,7 +244,7 @@ int test_dynamic_array_resize_zero(void)
 
     // Test multiple get operations
     for (int i = 0; i < 3; i++) {
-        void* test_get = d_GetDataFromArrayByIndex(array, i);
+        void* test_get = d_IndexDataFromArray(array, i);
         d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG, 2, 1.0,
                          "Get index %d from zero-capacity: %s", i, test_get ? "non-NULL" : "NULL");
     }
@@ -267,7 +267,7 @@ int test_dynamic_array_resize_same_size(void)
     int values[] = {100, 200, 300};
     d_LogDebug("Adding test data");
     for (int i = 0; i < 3; i++) {
-        d_AppendArray(array, &values[i]);
+        d_AppendDataToArray(array, &values[i]);
         d_LogDebugF("Added value %d", values[i]);
     }
 
@@ -301,7 +301,7 @@ int test_dynamic_array_resize_same_size(void)
     // Verify data integrity
     d_LogDebug("Verifying data integrity after identity resize");
     for (int i = 0; i < 3; i++) {
-        int* retrieved = (int*)d_GetDataFromArrayByIndex(array, i);
+        int* retrieved = (int*)d_IndexDataFromArray(array, i);
         TEST_ASSERT(retrieved != NULL, "Should get valid pointer after same-size resize");
 
         if (retrieved != NULL) {
@@ -330,7 +330,7 @@ int test_dynamic_array_resize_failure_simulation(void)
     int values[] = {1, 2};
     d_LogDebug("Adding initial data");
     for (int i = 0; i < 2; i++) {
-        d_AppendArray(array, &values[i]);
+        d_AppendDataToArray(array, &values[i]);
         d_LogDebugF("Added value %d", values[i]);
     }
 
@@ -366,7 +366,7 @@ int test_dynamic_array_resize_failure_simulation(void)
         // Verify data is still accessible
         d_LogDebug("Verifying data accessibility after failed resize");
         for (int i = 0; i < 2; i++) {
-            int* retrieved = (int*)d_GetDataFromArrayByIndex(array, i);
+            int* retrieved = (int*)d_IndexDataFromArray(array, i);
             TEST_ASSERT(retrieved != NULL, "Data should still be accessible after failed resize");
 
             if (retrieved != NULL) {
@@ -403,7 +403,7 @@ int test_debug_hunter_capacity_boundary_dance(void)
     // Test the exact boundary - should fit exactly 1 element
     int value1 = 42;
     d_LogDebug("Testing exact capacity boundary - adding 1 element to capacity-1 array");
-    d_AppendArray(array, &value1);
+    d_AppendDataToArray(array, &value1);
     d_LogInfoF("After adding 1 element: count=%zu, capacity=%zu", array->count, array->capacity);
     TEST_ASSERT(array->count == 1, "Should accept exactly 1 element at capacity boundary");
 
@@ -413,7 +413,7 @@ int test_debug_hunter_capacity_boundary_dance(void)
     size_t capacity_before = array->capacity;
     d_LogDebugF("Testing capacity expansion: current count=%zu, capacity=%zu", count_before, capacity_before);
 
-    d_AppendArray(array, &value2);
+    d_AppendDataToArray(array, &value2);
 
     // Enhanced boundary analysis
     dLogStructured_t* boundary_log = d_LogStructured(D_LOG_LEVEL_INFO);
@@ -441,8 +441,8 @@ int test_debug_hunter_capacity_boundary_dance(void)
 
     // Verify data integrity across boundary operations
     d_LogDebug("Verifying data integrity across boundary operations");
-    int* retrieved1 = (int*)d_GetDataFromArrayByIndex(array, 0);
-    int* retrieved2 = (int*)d_GetDataFromArrayByIndex(array, 1);
+    int* retrieved1 = (int*)d_IndexDataFromArray(array, 0);
+    int* retrieved2 = (int*)d_IndexDataFromArray(array, 1);
     TEST_ASSERT(retrieved1 != NULL && *retrieved1 == 42, "First element should be preserved");
     TEST_ASSERT(retrieved2 != NULL && *retrieved2 == 84, "Second element should be correct");
 
@@ -489,7 +489,7 @@ int test_debug_hunter_zero_element_size_trap(void)
     // Test operations with zero element size
     int dummy_data = 123;
     d_LogDebug("Testing append operation with zero element size");
-    d_AppendArray(array, &dummy_data);
+    d_AppendDataToArray(array, &dummy_data);
     d_LogDebugF("After append: count=%zu", array->count);
 
     // Test resize with zero element size
@@ -499,7 +499,7 @@ int test_debug_hunter_zero_element_size_trap(void)
 
     // Test get operation
     d_LogDebug("Testing get operation with zero element size");
-    void* retrieved = d_GetDataFromArrayByIndex(array, 0);
+    void* retrieved = d_IndexDataFromArray(array, 0);
     d_LogDebugF("Get operation returned: %p", retrieved);
 
     // Test pop operation
@@ -545,7 +545,7 @@ int test_debug_hunter_memory_fragmentation_stress(void)
                 case 0: // Append
                     if (arrays[i]->count < arrays[i]->capacity) {
                         int value = i * 100 + op;
-                        d_AppendArray(arrays[i], &value);
+                        d_AppendDataToArray(arrays[i], &value);
                         d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG, 5, 4.0,
                                         "Array %d: Appended %d", i, value);
                     }
@@ -600,7 +600,7 @@ int test_debug_hunter_memory_fragmentation_stress(void)
 
         // Verify we can read all elements without crashes
         for (size_t j = 0; j < arrays[i]->count; j++) {
-            int* retrieved = (int*)d_GetDataFromArrayByIndex(arrays[i], j);
+            int* retrieved = (int*)d_IndexDataFromArray(arrays[i], j);
             TEST_ASSERT(retrieved != NULL, "Should be able to retrieve all elements");
             total_elements++;
         }
@@ -629,7 +629,7 @@ int test_debug_hunter_resize_data_corruption_detector(void)
     d_LogDebug("Loading magic pattern for corruption detection");
 
     for (int i = 0; i < 5; i++) {
-        d_AppendArray(array, &magic_pattern[i]);
+        d_AppendDataToArray(array, &magic_pattern[i]);
         d_LogDebugF("Loaded magic value 0x%X at index %d", magic_pattern[i], i);
     }
 
@@ -658,7 +658,7 @@ int test_debug_hunter_resize_data_corruption_detector(void)
         d_LogDebugF("Checking %zu elements for corruption", elements_to_check);
 
         for (size_t i = 0; i < elements_to_check; i++) {
-            int* retrieved = (int*)d_GetDataFromArrayByIndex(array, i);
+            int* retrieved = (int*)d_IndexDataFromArray(array, i);
             if (retrieved != NULL) {
                 d_LogDebugF("Element %zu: expected=0x%X, actual=0x%X", i, magic_pattern[i], *retrieved);
 
@@ -712,7 +712,7 @@ int test_debug_hunter_append_pop_stack_integrity(void)
         // Push phase - add elements with cycle signature
         for (int i = 0; i < elements_per_cycle; i++) {
             int value = (cycle * 1000) + i;  // Unique value per cycle and position
-            d_AppendArray(array, &value);
+            d_AppendDataToArray(array, &value);
             d_LogDebugF("Pushed: %d, count now: %zu", value, array->count);
         }
 
@@ -795,7 +795,7 @@ int test_debug_hunter_resize_memory_alignment_chaos(void)
 
         // Add some elements
         for (int k = 0; k < 4; k++) {
-            d_AppendArray(array, pattern_data);
+            d_AppendDataToArray(array, pattern_data);
         }
 
         // Resize to different sizes and check alignment
@@ -810,7 +810,7 @@ int test_debug_hunter_resize_memory_alignment_chaos(void)
                 // Verify data integrity after resize
                 size_t elements_to_check = (array->count < new_capacity) ? array->count : new_capacity;
                 for (size_t e = 0; e < elements_to_check; e++) {
-                    char* retrieved = (char*)d_GetDataFromArrayByIndex(array, e);
+                    char* retrieved = (char*)d_IndexDataFromArray(array, e);
                     if (retrieved != NULL) {
                         // Check first few bytes for corruption
                         size_t bytes_to_check = (elem_size < 4) ? elem_size : 4;
@@ -938,7 +938,7 @@ int test_debug_hunter_resize_concurrent_access_simulation(void)
     // Fill with initial data
     int base_values[] = {1000, 2000, 3000, 4000, 5000};
     for (int i = 0; i < 5; i++) {
-        d_AppendArray(array, &base_values[i]);
+        d_AppendDataToArray(array, &base_values[i]);
     }
 
     // Simulate concurrent operations by rapidly switching between operations
@@ -955,7 +955,7 @@ int test_debug_hunter_resize_concurrent_access_simulation(void)
         if (resize_result == 0) {
             // Immediately try to access data
             for (int i = 0; i < 3; i++) {
-                int* data = (int*)d_GetDataFromArrayByIndex(array, i);
+                int* data = (int*)d_IndexDataFromArray(array, i);
                 if (data != NULL) {
                     // Verify data hasn't been corrupted by rapid resize
                     if (*data < 1000 || *data > 5000) {
@@ -966,7 +966,7 @@ int test_debug_hunter_resize_concurrent_access_simulation(void)
 
             // Try rapid append/pop cycles
             int temp_value = 9999;
-            d_AppendArray(array, &temp_value);
+            d_AppendDataToArray(array, &temp_value);
             int* popped = (int*)d_PopDataFromArray(array);
 
             if (popped != NULL && *popped != 9999) {
@@ -976,7 +976,7 @@ int test_debug_hunter_resize_concurrent_access_simulation(void)
 
         // Stress test: multiple rapid operations
         for (int micro = 0; micro < 5; micro++) {
-            void* quick_get = d_GetDataFromArrayByIndex(array, 0);
+            void* quick_get = d_IndexDataFromArray(array, 0);
             if (quick_get != NULL) {
                 // Just accessing to stress the system
             }
@@ -997,7 +997,7 @@ int test_debug_hunter_resize_concurrent_access_simulation(void)
 
     // Verify final state
     for (size_t i = 0; i < array->count && i < 5; i++) {
-        int* data = (int*)d_GetDataFromArrayByIndex(array, i);
+        int* data = (int*)d_IndexDataFromArray(array, i);
         if (data != NULL) {
             d_LogDebugF("Final verification - Element %zu: %d", i, *data);
         }
@@ -1021,7 +1021,7 @@ int test_debug_hunter_resize_extreme_boundary_dance(void)
 
     // Fill to exact capacity
     long long magic_value = 0x123456789ABCDEF0LL;
-    d_AppendArray(single_array, &magic_value);
+    d_AppendDataToArray(single_array, &magic_value);
 
     // Extreme boundary tests
     struct {
@@ -1061,7 +1061,7 @@ int test_debug_hunter_resize_extreme_boundary_dance(void)
 
             // Verify data integrity if possible
             if (single_array->capacity > 0 && single_array->count > 0) {
-                long long* retrieved = (long long*)d_GetDataFromArrayByIndex(single_array, 0);
+                long long* retrieved = (long long*)d_IndexDataFromArray(single_array, 0);
                 if (retrieved != NULL) {
                     if (*retrieved == magic_value) {
                         d_LogDebug("✅ Magic value preserved through boundary resize");
@@ -1117,7 +1117,7 @@ int test_debug_hunter_resize_memory_leak_detector(void)
             // Fill with data
             for (size_t i = 0; i < initial_capacity; i++) {
                 double value = 3.14159 * (leak_test + 1) * (i + 1);
-                d_AppendArray(leak_test_array, &value);
+                d_AppendDataToArray(leak_test_array, &value);
             }
 
             // Perform multiple resize operations to stress memory management
@@ -1135,7 +1135,7 @@ int test_debug_hunter_resize_memory_leak_detector(void)
                     elements_to_check = (elements_to_check > initial_capacity) ? initial_capacity : elements_to_check;
 
                     for (size_t check = 0; check < elements_to_check; check++) {
-                        double* data = (double*)d_GetDataFromArrayByIndex(leak_test_array, check);
+                        double* data = (double*)d_IndexDataFromArray(leak_test_array, check);
                         if (data != NULL) {
                             // Just accessing to ensure memory is valid
                             volatile double temp = *data; // Prevent optimization

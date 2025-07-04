@@ -688,7 +688,7 @@ void d_AddLogHandler(dLogger_t* logger, dLogHandler_t handler, void* user_data)
         .min_level = D_LOG_LEVEL_DEBUG  // Default to all levels
     };
 
-    d_AppendArray(logger->handlers, &reg);
+    d_AppendDataToArray(logger->handlers, &reg);
 
     if (logger->mutex) {
         MUTEX_UNLOCK((dMutex_t*)logger->mutex);
@@ -713,12 +713,12 @@ void d_RemoveLogHandler(dLogger_t* logger, dLogHandler_t handler)
 
     // Search for the handler and remove it
     for (size_t i = 0; i < logger->handlers->count; i++) {
-        dLogHandlerReg_t* reg = (dLogHandlerReg_t*)d_GetDataFromArrayByIndex(logger->handlers, i);
+        dLogHandlerReg_t* reg = (dLogHandlerReg_t*)d_IndexDataFromArray(logger->handlers, i);
         if (reg && reg->handler == handler) {
             // Found the handler - remove it by shifting remaining elements
             for (size_t j = i; j < logger->handlers->count - 1; j++) {
-                dLogHandlerReg_t* current = (dLogHandlerReg_t*)d_GetDataFromArrayByIndex(logger->handlers, j);
-                dLogHandlerReg_t* next = (dLogHandlerReg_t*)d_GetDataFromArrayByIndex(logger->handlers, j + 1);
+                dLogHandlerReg_t* current = (dLogHandlerReg_t*)d_IndexDataFromArray(logger->handlers, j);
+                dLogHandlerReg_t* next = (dLogHandlerReg_t*)d_IndexDataFromArray(logger->handlers, j + 1);
                 if (current && next) {
                     *current = *next;
                 }
@@ -757,7 +757,7 @@ static void process_log_entry(dLogger_t* logger, dLogEntry_t* entry)
 
     // Process through each handler
     for (size_t i = 0; i < logger->handlers->count; i++) {
-        dLogHandlerReg_t* reg = (dLogHandlerReg_t*)d_GetDataFromArrayByIndex(logger->handlers, i);
+        dLogHandlerReg_t* reg = (dLogHandlerReg_t*)d_IndexDataFromArray(logger->handlers, i);
         if (reg && reg->handler && entry->level >= reg->min_level) {
             reg->handler(entry, reg->user_data);
         }
@@ -1170,7 +1170,7 @@ void d_LogRateLimited_Enhanced(dLogLevel_t level, uint32_t max_count, double tim
     // Find existing rate limit entry
     dLogRateLimit_t* rate_limit = NULL;
     for (size_t i = 0; i < rate_limit_cache->count; i++) {
-        dLogRateLimit_t* entry = (dLogRateLimit_t*)d_GetDataFromArrayByIndex(rate_limit_cache, i);
+        dLogRateLimit_t* entry = (dLogRateLimit_t*)d_IndexDataFromArray(rate_limit_cache, i);
         if (entry->message_hash == msg_hash) {
             rate_limit = entry;
             break;
@@ -1187,8 +1187,8 @@ void d_LogRateLimited_Enhanced(dLogLevel_t level, uint32_t max_count, double tim
             .first_log_time = current_time,
             .last_log_time = current_time
         };
-        d_AppendArray(rate_limit_cache, &new_entry);
-        rate_limit = (dLogRateLimit_t*)d_GetDataFromArrayByIndex(rate_limit_cache,
+        d_AppendDataToArray(rate_limit_cache, &new_entry);
+        rate_limit = (dLogRateLimit_t*)d_IndexDataFromArray(rate_limit_cache,
                                                                 rate_limit_cache->count - 1);
     }
 
@@ -1256,7 +1256,7 @@ void d_FilterBuilder_AddDirectory(dLogFilterBuilder_t* builder, const char* path
         .recursive = true // Default to recursive for directory filtering
     };
 
-    d_AppendArray(builder->rules, &rule);
+    d_AppendDataToArray(builder->rules, &rule);
 }
 
 void d_FilterBuilder_AddPrefix(dLogFilterBuilder_t* builder, const char* prefix, dLogLevel_t level) {
@@ -1272,7 +1272,7 @@ void d_FilterBuilder_AddPrefix(dLogFilterBuilder_t* builder, const char* prefix,
         .recursive = false
     };
 
-    d_AppendArray(builder->rules, &rule);
+    d_AppendDataToArray(builder->rules, &rule);
 }
 
 void d_FilterBuilder_AddSuffix(dLogFilterBuilder_t* builder, const char* suffix, dLogLevel_t level) {
@@ -1288,7 +1288,7 @@ void d_FilterBuilder_AddSuffix(dLogFilterBuilder_t* builder, const char* suffix,
         .recursive = false
     };
 
-    d_AppendArray(builder->rules, &rule);
+    d_AppendDataToArray(builder->rules, &rule);
 }
 
 void d_FilterBuilder_Apply(dLogger_t* logger, dLogFilterBuilder_t* builder) {
@@ -1314,8 +1314,8 @@ void d_FilterBuilder_Apply(dLogger_t* logger, dLogFilterBuilder_t* builder) {
 
     // Copy rules to logger's filter engine
     for (size_t i = 0; i < builder->rules->count; i++) {
-        dLogFilterRule_t* rule = (dLogFilterRule_t*)d_GetDataFromArrayByIndex(builder->rules, i);
-        d_AppendArray(logger->filters->rules, rule);
+        dLogFilterRule_t* rule = (dLogFilterRule_t*)d_IndexDataFromArray(builder->rules, i);
+        d_AppendDataToArray(logger->filters->rules, rule);
     }
 }
 
@@ -1373,7 +1373,7 @@ void d_DestroyFilterBuilder(dLogFilterBuilder_t* builder) {
 
     // Free all pattern strings
     for (size_t i = 0; i < builder->rules->count; i++) {
-        dLogFilterRule_t* rule = (dLogFilterRule_t*)d_GetDataFromArrayByIndex(builder->rules, i);
+        dLogFilterRule_t* rule = (dLogFilterRule_t*)d_IndexDataFromArray(builder->rules, i);
         if (rule->pattern) {
             free((void*)rule->pattern);
         }
@@ -1421,7 +1421,7 @@ dLogStructured_t* d_LogStructured_Field(dLogStructured_t* structured, const char
         .value = strdup(value)
     };
 
-    d_AppendArray(structured->fields, &field);
+    d_AppendDataToArray(structured->fields, &field);
     return structured;
 }
 
@@ -1464,7 +1464,7 @@ void d_LogStructured_Commit(dLogStructured_t* structured) {
     if (structured->in_json_mode) {
         d_AppendString(structured->base.buffer, "{", 0);
         for (size_t i = 0; i < structured->fields->count; i++) {
-            dLogField_t* field = (dLogField_t*)d_GetDataFromArrayByIndex(structured->fields, i);
+            dLogField_t* field = (dLogField_t*)d_IndexDataFromArray(structured->fields, i);
             if (!field || !field->key || !field->value) continue;
             if (i > 0) d_AppendString(structured->base.buffer, ",", 0);
             d_AppendString(structured->base.buffer, "\"", 0);
@@ -1477,7 +1477,7 @@ void d_LogStructured_Commit(dLogStructured_t* structured) {
     } else {
         // Key-value format
         for (size_t i = 0; i < structured->fields->count; i++) {
-            dLogField_t* field = (dLogField_t*)d_GetDataFromArrayByIndex(structured->fields, i);
+            dLogField_t* field = (dLogField_t*)d_IndexDataFromArray(structured->fields, i);
             if (!field || !field->key || !field->value) continue;
             if (i > 0) d_AppendString(structured->base.buffer, " ", 0);
             d_AppendString(structured->base.buffer, field->key, 0);
@@ -1497,7 +1497,7 @@ void d_LogStructured_Commit(dLogStructured_t* structured) {
 
     // Cleanup
     for (size_t i = 0; i < structured->fields->count; i++) {
-        dLogField_t* field = (dLogField_t*)d_GetDataFromArrayByIndex(structured->fields, i);
+        dLogField_t* field = (dLogField_t*)d_IndexDataFromArray(structured->fields, i);
         free(field->key);
         free(field->value);
     }
@@ -1552,7 +1552,7 @@ dLogStructured_t* d_LogStructured_Clone(dLogStructured_t* source) {
     // Copy all fields from source
     if (source->fields && source->fields->count > 0) {
         for (size_t i = 0; i < source->fields->count; i++) {
-            dLogField_t* field = (dLogField_t*)d_GetDataFromArrayByIndex(source->fields, i);
+            dLogField_t* field = (dLogField_t*)d_IndexDataFromArray(source->fields, i);
             if (field && field->key && field->value) {
                 d_LogStructured_Field(clone, field->key, field->value);
             }
@@ -1943,7 +1943,7 @@ void d_LogRateLimitedF(dLogRateLimitFlag_t flag, dLogLevel_t level, uint32_t max
     bool should_log = false;
 
     for (size_t i = 0; i < rate_limit_cache->count; i++) {
-        dLogRateLimit_t* entry = (dLogRateLimit_t*)d_GetDataFromArrayByIndex(rate_limit_cache, i);
+        dLogRateLimit_t* entry = (dLogRateLimit_t*)d_IndexDataFromArray(rate_limit_cache, i);
         if (entry && entry->message_hash == message_hash) {
             rate_limit = entry;
             break;
@@ -1956,7 +1956,7 @@ void d_LogRateLimitedF(dLogRateLimitFlag_t flag, dLogLevel_t level, uint32_t max
         if (max_count > 0) {
             should_log = true;
             dLogRateLimit_t new_entry = { .message_hash = message_hash, .count = 1, .max_count = max_count, .time_window = time_window, .first_log_time = current_time };
-            d_AppendArray(rate_limit_cache, &new_entry);
+            d_AppendDataToArray(rate_limit_cache, &new_entry);
         }
     } else {
         // We've seen this message before.

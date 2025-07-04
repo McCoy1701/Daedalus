@@ -219,6 +219,40 @@ int d_SetString(dString_t* string, const char* content, int flags)
 
     return 0; // Success
 }
+
+/**
+ * @brief Create a new string builder with the same content as another string.
+ *
+ * @param source The string to copy content from.
+ *
+ * @return A new string builder with the same content as the source, or NULL on error.
+ */
+dString_t* d_CloneString(const dString_t* source)
+{
+    // Check input
+    if (!source) {
+        return NULL; // Error: null source pointer
+    }
+
+    // Create new string builder
+    dString_t* clone = d_InitString();
+    if (!clone) {
+        return NULL; // Error: failed to create new string
+    }
+
+    // If source has content, copy it
+    if (source->str && source->len > 0) {
+        // Set the content using existing function
+        if (d_SetString(clone, source->str, 0) != 0) {
+            // Failed to set content, cleanup and return error
+            d_DestroyString(clone);
+            return NULL;
+        }
+    }
+
+    return clone; // Success
+}
+
  /*
   * Add a limited portion of a string to the string builder
   */

@@ -152,7 +152,7 @@ int add_item_to_inventory(PlayerInventory* inv, int item_id, const char* name,
     };
     strncpy(new_item.name, name, sizeof(new_item.name) - 1);
 
-    d_AppendArray(inv->items, &new_item);
+    d_AppendDataToArray(inv->items, &new_item);
     printf("Added %d x %s to inventory\n", quantity, name);
     return 1;
 }
@@ -162,7 +162,7 @@ void print_inventory(PlayerInventory* inv) {
     printf("Items: %zu/%d\n", inv->items->count, inv->max_slots);
 
     for (size_t i = 0; i < inv->items->count; i++) {
-        InventoryItem* item = (InventoryItem*)d_GetDataFromArrayByIndex(inv->items, i);
+        InventoryItem* item = (InventoryItem*)d_IndexDataFromArray(inv->items, i);
         printf("[%zu] %s (x%d) - Weight: %.1f, Rarity: %d\n",
                i, item->name, item->quantity, item->weight, item->rarity);
     }
@@ -212,7 +212,7 @@ int spawn_entity(EntityManager* mgr, float x, float y, float z, int type) {
         .active = 1
     };
 
-    d_AppendArray(mgr->entities, &new_entity);
+    d_AppendDataToArray(mgr->entities, &new_entity);
     printf("Spawned entity ID %d at (%.1f, %.1f, %.1f)\n",
            new_entity.entity_id, x, y, z);
     return new_entity.entity_id;
@@ -220,7 +220,7 @@ int spawn_entity(EntityManager* mgr, float x, float y, float z, int type) {
 
 void update_entities(EntityManager* mgr, float delta_time) {
     for (size_t i = 0; i < mgr->entities->count; i++) {
-        GameEntity* entity = (GameEntity*)d_GetDataFromArrayByIndex(mgr->entities, i);
+        GameEntity* entity = (GameEntity*)d_IndexDataFromArray(mgr->entities, i);
 
         if (!entity->active) continue;
 
@@ -239,10 +239,10 @@ void update_entities(EntityManager* mgr, float delta_time) {
 void cleanup_inactive_entities(EntityManager* mgr) {
     // Remove inactive entities using the stack-like pop operation
     for (int i = mgr->entities->count - 1; i >= 0; i--) {
-        GameEntity* entity = (GameEntity*)d_GetDataFromArrayByIndex(mgr->entities, i);
+        GameEntity* entity = (GameEntity*)d_IndexDataFromArray(mgr->entities, i);
         if (!entity->active) {
             // Move to inactive pool for reuse
-            d_AppendArray(mgr->inactive_entities, entity);
+            d_AppendDataToArray(mgr->inactive_entities, entity);
 
             // Remove from active entities (this is simplified - normally you'd use a swap-remove)
             // For demonstration, we'll just mark as handled
@@ -287,7 +287,7 @@ ParticleSystem* create_particle_system(int max_particles) {
     // Pre-populate particle pool
     for (int i = 0; i < max_particles; i++) {
         Particle p = {0};
-        d_AppendArray(system->particle_pool, &p);
+        d_AppendDataToArray(system->particle_pool, &p);
     }
 
     return system;
@@ -303,8 +303,8 @@ void emit_particle(ParticleSystem* system, float x, float y, float z,
     } else if (system->active_particles->count < system->max_particles) {
         // Pool is empty, create new if under limit
         Particle new_particle = {0};
-        d_AppendArray(system->active_particles, &new_particle);
-        particle = (Particle*)d_GetDataFromArrayByIndex(system->active_particles,
+        d_AppendDataToArray(system->active_particles, &new_particle);
+        particle = (Particle*)d_IndexDataFromArray(system->active_particles,
                                                         system->active_particles->count - 1);
     }
 
@@ -328,7 +328,7 @@ void emit_particle(ParticleSystem* system, float x, float y, float z,
 void update_particle_system(ParticleSystem* system, float delta_time) {
     // Update all active particles
     for (int i = system->active_particles->count - 1; i >= 0; i--) {
-        Particle* p = (Particle*)d_GetDataFromArrayByIndex(system->active_particles, i);
+        Particle* p = (Particle*)d_IndexDataFromArray(system->active_particles, i);
 
         // Update physics
         p->x += p->velocity_x * delta_time;
@@ -347,7 +347,7 @@ void update_particle_system(ParticleSystem* system, float delta_time) {
 
         // Remove dead particles and return to pool
         if (p->life_remaining <= 0) {
-            d_AppendArray(system->particle_pool, p);
+            d_AppendDataToArray(system->particle_pool, p);
             // Note: This simplified example doesn't actually remove from active array
             // In a real implementation, you'd use swap-remove or similar
         }
