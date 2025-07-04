@@ -112,25 +112,25 @@ d_DestroyStaticArray(inventory);
 d_DestroyStaticArray(framebuffer);
 ```
 
-`dDynamicArray_t` **(Resizable, Flexible)**
+`dArray_t` **(Resizable, Flexible)**
 
 For collections where size changes frequently, such as lists of entities, event queues, or variable-length records. Automatically handles memory reallocations, balancing flexibility with performance.
 
 ```c
 // List of active enemies
-dDynamicArray_t* enemies = d_InitDynamicArray(sizeof(Enemy_t), 4); // Initial capacity 4
+dArray_t* enemies = d_InitArray(sizeof(Enemy_t), 4); // Initial capacity 4
 Enemy_t goblin = {.health = 50, .type = GOBLIN};
-d_AppendDataToDynamicArray(enemies, &goblin);
+d_AppendDataToArray(enemies, &goblin);
 
 // Remove defeated enemies
-d_RemoveDataFromDynamicArray(enemies, 0); // Remove first enemy
+d_RemoveDataFromArray(enemies, 0); // Remove first enemy
 
 // Convenient iteration
 for (size_t i = 0; i < enemies->count; ++i) {
-    Enemy_t* current_enemy = (Enemy_t*)d_IndexDataFromDynamicArray(enemies, i);
+    Enemy_t* current_enemy = (Enemy_t*)d_IndexDataFromArray(enemies, i);
     // Process enemy...
 }
-d_DestroyDynamicArray(enemies);
+d_DestroyArray(enemies);
 ```
 
 These array utilities embody the Daedalus philosophy: providing powerful, performant, and reliable building blocks for your digital creations.
