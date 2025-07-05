@@ -62,7 +62,6 @@ dArray_t* d_InitArray(size_t capacity, size_t element_size) {
  * @return: 0 on success, 1 on failure.
  * 
  * -- Frees both the data buffer and the array structure itself
- * -- Must match creation for every resize operation
  * -- After calling this function, the pointer is invalid and should not be used
  * 
  * Example: `d_DestroyArray(array);`
@@ -80,23 +79,33 @@ int d_DestroyArray(dArray_t* array) {
 // =============================================================================
 
 /**
- * @brief Resize a dynamic array. The contract is it takes a new capacity in BYTES.
- * 
- * @param array The array to resize.
- * @param new_size_in_bytes The new size in bytes.
- * 
+ * @brief Resize the internal data buffer of a dynamic array.
+ *
+ * This function adjusts the allocated memory for the array's elements.
+ *
+ * @param array A pointer to the dynamic array whose internal buffer is to be resized.
+ * @param new_size_in_bytes The desired new total size of the internal data buffer in bytes.
+ * This will determine the new capacity in elements.
+ *
  * @return 0 on success, 1 on failure.
- * 
- * -- The contract is it takes a new capacity in BYTES.
- * -- If new size is 0, free the data and reset.
- * -- If new size is larger than current capacity, data is reallocated.
- * -- If new size is smaller than current capacity, data is truncated.
- * -- This function data is not guaranteed to be preserved.
- * -- Must match creation for every resize operation
- * -- After calling this function, the pointer is invalid and should not be used
- * 
- * Example: `d_ResizeArray(array, 10 * sizeof(int));`
- * This resizes the dynamic array to a capacity of 10 elements, each of size 4 bytes.
+ *
+ * @note If `new_size_in_bytes` is 0, the internal data buffer will be freed, and the array's
+ * capacity and count will be reset to 0.
+ * @note If `new_size_in_bytes` is larger than the current allocated size, the data buffer
+ * is reallocated, potentially moving to a new memory location. Existing data (up to
+ * the old capacity) is preserved.
+ * @note If `new_size_in_bytes` is smaller than the current allocated size, the data buffer
+ * is truncated. If the current `count` of elements exceeds the new capacity, `count`
+ * will be adjusted down to match the new capacity, effectively truncating the array's
+ * contents.
+ * @warning This function only affects the internal data buffer (`array->data`). The `dArray_t* array`
+ * pointer itself remains valid and points to the same `dArray_t` structure.
+ * Pointers obtained previously via `d_IndexDataFromArray` (or similar direct access)
+ * will become invalid if the underlying `array->data` buffer is reallocated and moved.
+ *
+ * Example: `d_ResizeArray(myArray, 10 * sizeof(int));`
+ * This resizes the internal buffer of `myArray` to accommodate 10 integer elements.
+ * If `myArray` previously held more than 10 elements, its `count` will be truncated.
  */
 int d_ResizeArray(dArray_t* array, size_t new_size_in_bytes) {
     if (!array) return 1;
@@ -148,21 +157,26 @@ int d_GrowArray(dArray_t* array, size_t additional_bytes) {
 // =============================================================================
 
 /**
- * @brief Append an element to the array.
- * 
- * @param array The array to append to.
- * @param data The element data to copy into the array.
- * 
+ * @brief Append an element to the end of the dynamic array.
+ *
+ * This function adds a new element to the array. If the array's current capacity
+ * is insufficient, it will automatically grow to accommodate the new element,
+ * typically by doubling its capacity.
+ *
+ * @param array A pointer to the dynamic array to append to.
+ * @param data A pointer to the element data to copy into the array.
+ * The data pointed to will be copied by `element_size` bytes.
+ *
  * @return 0 on success, 1 on failure.
- * 
- * -- Fails if array is at maximum capacity
- * -- Fails if array or data is NULL
- * -- Copies element_size bytes from data
- * -- Increments count on successful append
- * -- No dynamic resizing - array has fixed capacity
- * 
- * Example: `int result = d_AppendDataToArray(array, &data);`
- * This appends a pointer to a data element to the end of the dynamic array.
+ *
+ * @note Fails if `array` or `data` is NULL.
+ * @note If the array's capacity is reached, it will attempt to grow its
+ * internal buffer. If reallocation fails, the append operation will fail.
+ * @note Copies `element_size` bytes from the `data` pointer into the array.
+ * @note Increments the array's `count` on successful append.
+ *
+ * Example: `int my_value = 123; int result = d_AppendDataToArray(myArray, &my_value);`
+ * This appends an integer value to the end of `myArray`.
  */
  int d_AppendDataToArray( dArray_t* array, void* data )
  {

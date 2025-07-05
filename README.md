@@ -135,6 +135,60 @@ d_DestroyDynamicArray(enemies);
 
 These array utilities embody the Daedalus philosophy: providing powerful, performant, and reliable building blocks for your digital creations.
 
+### 🔗 Linked List Chains and Hash Table Support
+
+Daedalus provides powerful linked list structures optimized for hash table implementations and dynamic data management:
+
+`dLinkedList_t` **(Named Node Chains, Hash Table Ready)**
+
+Perfect for implementing hash table buckets, configuration systems, or any scenario requiring named data lookup with collision handling. Each node carries both data and a name identifier for efficient retrieval.
+
+```c
+// Hash Table Bucket Implementation
+dLinkedList_t* user_bucket = NULL;
+
+// Store user data with collision handling
+typedef struct { int score; float rating; char status[16]; } UserRecord;
+UserRecord player = {1500, 4.5f, "active"};
+d_UpdateDataByNameLinkedList(&user_bucket, &player, "user:123", sizeof(UserRecord));
+
+// Fast existence checking (O(n) but optimized)
+if (d_CheckForNameInLinkedList(user_bucket, "user:123") == 0) {
+    d_LogInfo("User found in hash bucket!");
+}
+
+// Retrieve user data
+UserRecord* found_user = (UserRecord*)d_FindDataFromLinkedList(user_bucket, "user:123");
+
+// Update existing user or insert new one (upsert operation)
+UserRecord updated_player = {1750, 4.7f, "premium"};
+d_UpdateDataByNameLinkedList(&user_bucket, &updated_player, "user:123", sizeof(UserRecord));
+
+// Direct node access for advanced operations
+dLinkedList_t* user_node = d_GetNodeByNameLinkedList(user_bucket, "user:123");
+if (user_node) {
+    // Access node->data, node->buffer, node->next directly
+    d_LogInfoF("User node name: %s", user_node->buffer);
+}
+
+d_DestroyLinkedList(&user_bucket);
+```
+
+**Hash Table Utility Functions:**
+
+- `d_CheckForNameInLinkedList()` - Fast existence checking for hash table lookups
+- `d_UpdateDataByNameLinkedList()` - Upsert operation (update existing or insert new)
+- `d_GetNodeByNameLinkedList()` - Direct node pointer access for advanced manipulation
+
+**Traditional Operations:**
+
+- `d_PushBackToLinkedList()` / `d_PushFrontToLinkedList()` - Standard insertion
+- `d_PopBackFromLinkedList()` / `d_PopFrontFromLinkedList()` - Stack/queue operations  
+- `d_RemoveIndexFromLinkedList()` / `d_RemoveDataFromLinkedList()` - Flexible removal
+- `d_FindDataFromLinkedList()` / `d_IndexDataFromLinkedList()` - Data retrieval
+
+These linked list utilities provide the perfect foundation for hash tables, configuration systems, and any application requiring efficient named data storage with collision resolution.
+
 ## 🏛️ The Philosophy: Divine Craftsmanship
 
 In the words of the master himself: *"Tools that work without their creator truly serve."* Every function in Daedalus is designed to operate with mechanical precision, requiring no intervention once deployed. These are not merely utilities—they are **architectural elements** for building digital worlds.

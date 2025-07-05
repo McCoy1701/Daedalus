@@ -29,8 +29,10 @@ NATIVE_OBJS = \
 							$(OBJ_DIR)/dLogs.o\
 							$(OBJ_DIR)/dMatrixMath.o\
 							$(OBJ_DIR)/dStaticArrays.o\
+							$(OBJ_DIR)/dStaticTables.o\
 							$(OBJ_DIR)/dStrings-dArrays.o\
 							$(OBJ_DIR)/dStrings.o\
+							$(OBJ_DIR)/dTables.o\
 							$(OBJ_DIR)/dVectorMath.o\
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
@@ -50,8 +52,10 @@ SHARED_OBJS = \
 							$(SHA_DIR)/dLogs.o\
 							$(SHA_DIR)/dMatrixMath.o\
 							$(SHA_DIR)/dStaticArrays.o\
+							$(SHA_DIR)/dStaticTables.o\
 							$(SHA_DIR)/dStrings-dArrays.o\
 							$(SHA_DIR)/dStrings.o\
+							$(SHA_DIR)/dTables.o\
 							$(SHA_DIR)/dVectorMath.o\
 
 $(SHA_DIR)/%.o: $(SRC_DIR)/%.c | $(SHA_DIR)
@@ -71,8 +75,10 @@ EMS_OBJS = \
 							$(EMS_DIR)/dLogs.o\
 							$(EMS_DIR)/dMatrixMath.o\
 							$(EMS_DIR)/dStaticArrays.o\
+							$(EMS_DIR)/dStaticTables.o\
 							$(EMS_DIR)/dStrings-dArrays.o\
 							$(EMS_DIR)/dStrings.o\
+							$(EMS_DIR)/dTables.o\
 							$(EMS_DIR)/dVectorMath.o\
 
 $(EMS_DIR)/%.o: $(SRC_DIR)/%.c | $(EMS_DIR)
@@ -315,6 +321,94 @@ test-static-array-advanced: always $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStaticArrays
 .PHONY: run-test-static-array-advanced
 run-test-static-array-advanced: test-static-array-advanced
 	@./$(BIN_DIR)/test_static_array_advanced
+
+.PHONY: test-static-array-save-load
+test-static-array-save-load: always $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_static_array_save_load $(TEST_DIR)/staticarrays/test_static_array_save_load.c $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dArocrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o
+
+.PHONY: run-test-static-array-save-load
+run-test-static-array-save-load: test-static-array-save-load
+	@./$(BIN_DIR)/test_static_array_save_load
+
+.PHONY: test-static-array-iterators
+test-static-array-iterators: always $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dVectorMath.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_static_array_iterators $(TEST_DIR)/staticarrays/test_static_array_iterators.c $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dVectorMath.o -lm
+
+.PHONY: run-test-static-array-iterators
+run-test-static-array-iterators: test-static-array-iterators
+	@./$(BIN_DIR)/test_static_array_iterators
+
+.PHONY: test-linked-list-basic
+test-linked-list-basic: always $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_linked_list_basic $(TEST_DIR)/linkedlists/test_linked_list_basic.c $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
+
+.PHONY: run-test-linked-list-basic
+run-test-linked-list-basic: test-linked-list-basic
+	@./$(BIN_DIR)/test_linked_list_basic
+
+.PHONE: test-linked-list-advanced
+test-linked-list-advanced: always $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_linked_list_advanced $(TEST_DIR)/linkedlists/test_linked_list_advanced.c $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
+
+.PHONY: run-test-linked-list-advanced
+run-test-linked-list-advanced: test-linked-list-advanced
+	@./$(BIN_DIR)/test_linked_list_advanced
+
+.PHONY: test-tables-basic
+test-tables-basic: always $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_tables_basic $(TEST_DIR)/tables/test_tables_basic.c $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
+
+.PHONY: run-test-tables-basic
+run-test-tables-basic: test-tables-basic
+	@./$(BIN_DIR)/test_tables_basic
+
+.PHONY: test-tables-advanced
+test-tables-advanced: always $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_tables_advanced $(TEST_DIR)/tables/test_tables_advanced.c $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
+
+.PHONY: run-test-tables-advanced
+run-test-tables-advanced: test-tables-advanced
+	@./$(BIN_DIR)/test_tables_advanced
+
+.PHONY: test-static-tables-basic
+test-static-tables-basic: always $(OBJ_DIR)/dStaticTables.o $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_static_tables_basic $(TEST_DIR)/statictables/test_static_tables_basic.c $(OBJ_DIR)/dStaticTables.o $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
+
+.PHONY: run-test-static-tables-basic
+run-test-static-tables-basic: test-static-tables-basic
+	@./$(BIN_DIR)/test_static_tables_basic
+
+.PHONY: test-static-tables-advanced
+test-static-tables-advanced: always $(OBJ_DIR)/dStaticTables.o $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_static_tables_advanced $(TEST_DIR)/statictables/test_static_tables_advanced.c $(OBJ_DIR)/dStaticTables.o $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
+
+.PHONY: run-test-static-tables-advanced
+run-test-static-tables-advanced: test-static-tables-advanced
+	@./$(BIN_DIR)/test_static_tables_advanced
+
+.PHONY: test-static-tables-save-load
+test-static-tables-save-load: always $(OBJ_DIR)/dStaticTables.o $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_static_tables_save_load $(TEST_DIR)/statictables/test_static_tables_save_load.c $(OBJ_DIR)/dStaticTables.o $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
+
+.PHONY: run-test-static-tables-save-load
+run-test-static-tables-save-load: test-static-tables-save-load
+	@./$(BIN_DIR)/test_static_tables_save_load
+
+.PHONY: test-static-tables-hashing
+test-static-tables-hashing: always $(OBJ_DIR)/dStaticTables.o $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_static_tables_hashing $(TEST_DIR)/statictables/test_static_tables_hashing.c $(OBJ_DIR)/dStaticTables.o $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
+
+.PHONY: run-test-static-tables-hashing
+run-test-static-tables-hashing: test-static-tables-hashing
+	@./$(BIN_DIR)/test_static_tables_hashing
+
+.PHONY: test-static-tables-iterators
+test-static-tables-iterators: always $(OBJ_DIR)/dStaticTables.o $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_static_tables_iterators $(TEST_DIR)/statictables/test_static_tables_iterators.c $(OBJ_DIR)/dStaticTables.o $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dArrays.o
+
+.PHONY: run-test-static-tables-iterators
+run-test-static-tables-iterators: test-static-tables-iterators
+	@./$(BIN_DIR)/test_static_tables_iterators
 
 # Emscripten test targets using the static library
 .PHONY: test-logging-emscripten-web
