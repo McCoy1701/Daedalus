@@ -27,15 +27,15 @@ void test_capture_handler(const dLogEntry_t* entry, void* user_data)
     }
 
     // Format: [LEVEL] message
-    d_AppendString(captured_logs, "[", 0);
-    d_AppendString(captured_logs, d_LogLevel_ToString(entry->level), 0);
-    d_AppendString(captured_logs, "] ", 0);
+    d_AppendToString(captured_logs, "[", 0);
+    d_AppendToString(captured_logs, d_LogLevel_ToString(entry->level), 0);
+    d_AppendToString(captured_logs, "] ", 0);
 
     if (entry->message) {
-        d_AppendString(captured_logs, d_PeekString(entry->message), 0);
+        d_AppendToString(captured_logs, d_PeekString(entry->message), 0);
     }
 
-    d_AppendString(captured_logs, "\n", 0);
+    d_AppendToString(captured_logs, "\n", 0);
 }
 
 void setup_test_logging()
@@ -401,10 +401,10 @@ int test_game_state_logging(void)
 
     // Instead of the old verbose way:
     // dString_t* log_message = d_InitString();
-    // d_AppendString(log_message, "Player level: ", 0);
-    // d_AppendInt(log_message, level);
-    // d_AppendString(log_message, ", XP: ", 0);
-    // d_AppendInt(log_message, xp);
+    // d_AppendToString(log_message, "Player level: ", 0);
+    // d_AppendIntToString(log_message, level);
+    // d_AppendToString(log_message, ", XP: ", 0);
+    // d_AppendIntToString(log_message, xp);
     // LOG(log_message->str);
     // d_DestroyString(log_message);
 

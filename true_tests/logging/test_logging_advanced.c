@@ -28,15 +28,15 @@ void advanced_test_capture_handler(const dLogEntry_t* entry, void* user_data) {
         test_capture_buffer = d_InitString();
     }
 
-    d_AppendString(test_capture_buffer, "[", 0);
-    d_AppendString(test_capture_buffer, d_LogLevel_ToString(entry->level), 0);
-    d_AppendString(test_capture_buffer, "] ", 0);
+    d_AppendToString(test_capture_buffer, "[", 0);
+    d_AppendToString(test_capture_buffer, d_LogLevel_ToString(entry->level), 0);
+    d_AppendToString(test_capture_buffer, "] ", 0);
 
     if (entry->message) {
-        d_AppendString(test_capture_buffer, d_PeekString(entry->message), 0);
+        d_AppendToString(test_capture_buffer, d_PeekString(entry->message), 0);
     }
 
-    d_AppendString(test_capture_buffer, "\n", 0);
+    d_AppendToString(test_capture_buffer, "\n", 0);
 }
 
 void setup_advanced_test_logging() {
@@ -1219,13 +1219,13 @@ int debug_hunter_buffer_overflow_test() {
                    buffer_stress);
 
         if (buffer_stress % 100 == 0) {
-            size_t buffer_size = d_GetStringLength(stress_buffer);
+            size_t buffer_size = d_GetLengthOfString(stress_buffer);
             d_LogInfoF("String buffer now contains %zu bytes", buffer_size);
         }
     }
 
     // Check final buffer size
-    size_t final_size = d_GetStringLength(stress_buffer);
+    size_t final_size = d_GetLengthOfString(stress_buffer);
     d_LogInfoF("Final string buffer size: %zu bytes", final_size);
 
     d_DestroyLogger(buffer_logger);
@@ -1548,7 +1548,7 @@ int debug_hunter_performance_degradation_test() {
             double growth_time = growth_after.total_log_time - growth_before.total_log_time;
 
             if (growth_test % 20 == 0) {
-                size_t buffer_size = d_GetStringLength(growth_buffer);
+                size_t buffer_size = d_GetLengthOfString(growth_buffer);
                 d_LogInfoF("Buffer growth: Size=%zu bytes, Last log time=%.6fs",
                           buffer_size, growth_time);
             }

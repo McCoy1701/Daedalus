@@ -60,7 +60,7 @@ dArray_t* d_SplitString(const char* text, const char* delimiter) {
             return NULL;
         }
 
-        d_AppendString(segment_sb, current_pos, segment_len);
+        d_AppendToString(segment_sb, current_pos, segment_len);
 
         // Check if array is full and grow it if needed
         if (result_array->count >= result_array->capacity) {
@@ -84,7 +84,7 @@ dArray_t* d_SplitString(const char* text, const char* delimiter) {
         d_FreeSplitStringArray(result_array); // Clean up on failure.
         return NULL;
     }
-    d_AppendString(final_segment_sb, current_pos, 0); // Use strlen via len=0
+    d_AppendToString(final_segment_sb, current_pos, 0); // Use strlen via len=0
 
     // Check if array is full and grow it if needed for final segment
     if (result_array->count >= result_array->capacity) {

@@ -24,10 +24,10 @@ void fill_builder_with_content(dString_t* sb, size_t target_size)
     const char* pattern = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     size_t pattern_len = strlen(pattern);
 
-    while (d_GetStringLength(sb) < target_size) {
-        size_t remaining = target_size - d_GetStringLength(sb);
+    while (d_GetLengthOfString(sb) < target_size) {
+        size_t remaining = target_size - d_GetLengthOfString(sb);
         size_t to_add = (remaining < pattern_len) ? remaining : pattern_len;
-        d_AppendString(sb, pattern, to_add);
+        d_AppendToString(sb, pattern, to_add);
     }
 }
 
@@ -38,20 +38,20 @@ int test_string_builder_empty_string_operations(void)
     dString_t* sb = create_test_builder();
     printf("Before adding empty string: %s\n", d_PeekString(sb));
     // Test adding empty string
-    d_AppendString(sb, "", 0);
+    d_AppendToString(sb, "", 0);
     printf("After adding empty string: %s\n", d_PeekString(sb));
-    TEST_ASSERT(d_GetStringLength(sb) == 0, "Adding empty string should not change length");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 0, "Adding empty string should not change length");
     TEST_ASSERT(strcmp(d_PeekString(sb), "") == 0, "Content should remain empty");
 
     // Test adding empty string with explicit length
-    d_AppendString(sb, "test", 0); // Should add because 0 uses strlen
+    d_AppendToString(sb, "test", 0); // Should add because 0 uses strlen
     printf("After adding empty string with explicit length 4: %s\n", d_PeekString(sb));
-    TEST_ASSERT(d_GetStringLength(sb) == 4, "Adding with explicit length 0 should add");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 4, "Adding with explicit length 0 should add");
 
     // Add some content, then test truncate/drop to zero
-    d_AppendString(sb, "Hello", 0);
+    d_AppendToString(sb, "Hello", 0);
     d_TruncateString(sb, 0);
-    TEST_ASSERT(d_GetStringLength(sb) == 0, "Truncate to 0 should make empty");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 0, "Truncate to 0 should make empty");
     TEST_ASSERT(strcmp(d_PeekString(sb), "") == 0, "Content should be empty after truncate to 0");
 
     d_DestroyString(sb);
@@ -64,12 +64,12 @@ int test_string_builder_boundary_conditions(void)
 
     // Test exactly at initial capacity boundary (32 bytes)
     // Add 31 characters (leaving 1 for null terminator)
-    d_AppendString(sb, "1234567890123456789012345678901", 31);
-    TEST_ASSERT(d_GetStringLength(sb) == 31, "Should handle exactly 31 characters");
+    d_AppendToString(sb, "1234567890123456789012345678901", 31);
+    TEST_ASSERT(d_GetLengthOfString(sb) == 31, "Should handle exactly 31 characters");
 
     // Add one more character to trigger growth
-    d_AppendChar(sb, 'X');
-    TEST_ASSERT(d_GetStringLength(sb) == 32, "Should handle growth trigger correctly");
+    d_AppendCharToString(sb, 'X');
+    TEST_ASSERT(d_GetLengthOfString(sb) == 32, "Should handle growth trigger correctly");
     TEST_ASSERT(strcmp(d_PeekString(sb), "1234567890123456789012345678901X") == 0, "Content should be correct after growth");
 
     d_DestroyString(sb);
@@ -84,7 +84,7 @@ int test_string_builder_large_content(void)
     const size_t large_size = 1000;
     fill_builder_with_content(sb, large_size);
 
-    TEST_ASSERT(d_GetStringLength(sb) == large_size, "Should handle large content correctly");
+    TEST_ASSERT(d_GetLengthOfString(sb) == large_size, "Should handle large content correctly");
     TEST_ASSERT(strlen(d_PeekString(sb)) == large_size, "String length should match builder length");
 
     // Test that content is still valid
@@ -105,18 +105,18 @@ int test_string_builder_partial_string_operations(void)
     const char* test_str = "Hello, World!";
 
     // Add only "Hello"
-    d_AppendString(sb, test_str, 5);
-    TEST_ASSERT(d_GetStringLength(sb) == 5, "Should add exactly 5 characters");
+    d_AppendToString(sb, test_str, 5);
+    TEST_ASSERT(d_GetLengthOfString(sb) == 5, "Should add exactly 5 characters");
     TEST_ASSERT(strcmp(d_PeekString(sb), "Hello") == 0, "Should contain only first 5 characters");
 
     // Add partial from middle ", Wor"
-    d_AppendString(sb, test_str + 5, 4);
+    d_AppendToString(sb, test_str + 5, 4);
     TEST_ASSERT(strcmp(d_PeekString(sb), "Hello, Wo") == 0, "Should append partial string correctly");
 
     // Test partial string longer than actual string (should only copy available chars)
     d_ClearString(sb);
     const char* short_str = "Hi";
-    d_AppendString(sb, short_str, 10); // Request more than available
+    d_AppendToString(sb, short_str, 10); // Request more than available
     TEST_ASSERT(strcmp(d_PeekString(sb), "Hi") == 0, "Should only copy available characters");
 
     d_DestroyString(sb);
@@ -128,10 +128,10 @@ int test_string_builder_special_characters(void)
     dString_t* sb = create_test_builder();
 
     // Test with special characters
-    d_AppendString(sb, "Tab:\t", 0);
-    d_AppendString(sb, "Newline:\n", 0);
-    d_AppendString(sb, "Quote:\"", 0);
-    d_AppendString(sb, "Backslash:\\", 0);
+    d_AppendToString(sb, "Tab:\t", 0);
+    d_AppendToString(sb, "Newline:\n", 0);
+    d_AppendToString(sb, "Quote:\"", 0);
+    d_AppendToString(sb, "Backslash:\\", 0);
 
     const char* content = d_PeekString(sb);
     TEST_ASSERT(strstr(content, "Tab:\t") != NULL, "Should contain tab character");
@@ -141,11 +141,11 @@ int test_string_builder_special_characters(void)
 
     // Test null character (though this breaks string functions)
     d_ClearString(sb);
-    d_AppendChar(sb, 'A');
-    d_AppendChar(sb, '\0');
-    d_AppendChar(sb, 'B');
+    d_AppendCharToString(sb, 'A');
+    d_AppendCharToString(sb, '\0');
+    d_AppendCharToString(sb, 'B');
 
-    TEST_ASSERT(d_GetStringLength(sb) == 3, "Should handle null character in middle");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 3, "Should handle null character in middle");
     TEST_ASSERT(d_PeekString(sb)[0] == 'A', "First char should be A");
     TEST_ASSERT(d_PeekString(sb)[1] == '\0', "Second char should be null");
     TEST_ASSERT(d_PeekString(sb)[2] == 'B', "Third char should be B");
@@ -159,17 +159,17 @@ int test_string_builder_integer_edge_cases(void)
     dString_t* sb = create_test_builder();
 
     // Test various integer edge cases
-    d_AppendInt(sb, 0);
-    d_AppendChar(sb, '|');
+    d_AppendIntToString(sb, 0);
+    d_AppendCharToString(sb, '|');
 
-    d_AppendInt(sb, -1);
-    d_AppendChar(sb, '|');
+    d_AppendIntToString(sb, -1);
+    d_AppendCharToString(sb, '|');
 
-    d_AppendInt(sb, INT_MAX);
-    d_AppendChar(sb, '|');
+    d_AppendIntToString(sb, INT_MAX);
+    d_AppendCharToString(sb, '|');
 
-    d_AppendInt(sb, INT_MIN);
-    d_AppendChar(sb, '|');
+    d_AppendIntToString(sb, INT_MIN);
+    d_AppendCharToString(sb, '|');
 
     const char* content = d_PeekString(sb);
     TEST_ASSERT(strstr(content, "0|") != NULL, "Should contain zero");
@@ -186,26 +186,26 @@ int test_string_builder_truncate_edge_cases(void)
     dString_t* sb = create_test_builder();
 
     // Add content
-    d_AppendString(sb, "Hello, World!", 0);
-    size_t original_len = d_GetStringLength(sb);
+    d_AppendToString(sb, "Hello, World!", 0);
+    size_t original_len = d_GetLengthOfString(sb);
 
     // Test truncate to same length (should do nothing)
     d_TruncateString(sb, original_len);
-    TEST_ASSERT(d_GetStringLength(sb) == original_len, "Truncate to same length should do nothing");
+    TEST_ASSERT(d_GetLengthOfString(sb) == original_len, "Truncate to same length should do nothing");
     TEST_ASSERT(strcmp(d_PeekString(sb), "Hello, World!") == 0, "Content should be unchanged");
 
     // Test truncate to longer length (should do nothing)
     d_TruncateString(sb, original_len + 10);
-    TEST_ASSERT(d_GetStringLength(sb) == original_len, "Truncate to longer length should do nothing");
+    TEST_ASSERT(d_GetLengthOfString(sb) == original_len, "Truncate to longer length should do nothing");
 
     // Test truncate to 1 character
     d_TruncateString(sb, 1);
-    TEST_ASSERT(d_GetStringLength(sb) == 1, "Should truncate to 1 character");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 1, "Should truncate to 1 character");
     TEST_ASSERT(strcmp(d_PeekString(sb), "H") == 0, "Should contain only first character");
 
     // Test truncate to 0 (clear)
     d_TruncateString(sb, 0);
-    TEST_ASSERT(d_GetStringLength(sb) == 0, "Should truncate to empty");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 0, "Should truncate to empty");
     TEST_ASSERT(strcmp(d_PeekString(sb), "") == 0, "Should be empty string");
 
     d_DestroyString(sb);
@@ -217,12 +217,12 @@ int test_string_builder_drop_edge_cases(void)
     dString_t* sb = create_test_builder();
 
     // Add content
-    d_AppendString(sb, "Hello, World!", 0);
+    d_AppendToString(sb, "Hello, World!", 0);
 
     // Test drop 0 characters (should do nothing)
-    size_t original_len = d_GetStringLength(sb);
+    size_t original_len = d_GetLengthOfString(sb);
     d_DropString(sb, 0);
-    TEST_ASSERT(d_GetStringLength(sb) == original_len, "Drop 0 should do nothing");
+    TEST_ASSERT(d_GetLengthOfString(sb) == original_len, "Drop 0 should do nothing");
     TEST_ASSERT(strcmp(d_PeekString(sb), "Hello, World!") == 0, "Content should be unchanged");
 
     // Test drop 1 character
@@ -230,15 +230,15 @@ int test_string_builder_drop_edge_cases(void)
     TEST_ASSERT(strcmp(d_PeekString(sb), "ello, World!") == 0, "Should drop first character");
 
     // Test drop exactly remaining length (should clear)
-    size_t current_len = d_GetStringLength(sb);
+    size_t current_len = d_GetLengthOfString(sb);
     d_DropString(sb, current_len);
-    TEST_ASSERT(d_GetStringLength(sb) == 0, "Drop all should clear");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 0, "Drop all should clear");
     TEST_ASSERT(strcmp(d_PeekString(sb), "") == 0, "Should be empty");
 
     // Test drop more than length (should clear)
-    d_AppendString(sb, "Test", 0);
+    d_AppendToString(sb, "Test", 0);
     d_DropString(sb, 100);
-    TEST_ASSERT(d_GetStringLength(sb) == 0, "Drop more than length should clear");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 0, "Drop more than length should clear");
     TEST_ASSERT(strcmp(d_PeekString(sb), "") == 0, "Should be empty");
 
     d_DestroyString(sb);
@@ -274,7 +274,7 @@ int test_string_builder_dump_edge_cases(void)
     TEST_ASSERT(strcmp(large_dump, d_PeekString(sb)) == 0, "Dump should match original content");
 
     // Verify original is unchanged
-    TEST_ASSERT(d_GetStringLength(sb) == 500, "Original should be unchanged after dump");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 500, "Original should be unchanged after dump");
 
     free(large_dump);
     d_DestroyString(sb);
@@ -289,22 +289,22 @@ int test_string_builder_memory_stress(void)
     for (int i = 0; i < 10; i++) {
         // Grow
         fill_builder_with_content(sb, 100 * (i + 1));
-        TEST_ASSERT(d_GetStringLength(sb) == 100 * (i + 1), "Should grow correctly in iteration");
+        TEST_ASSERT(d_GetLengthOfString(sb) == 100 * (i + 1), "Should grow correctly in iteration");
 
         // Shrink
         d_TruncateString(sb, 50);
-        TEST_ASSERT(d_GetStringLength(sb) == 50, "Should shrink correctly in iteration");
+        TEST_ASSERT(d_GetLengthOfString(sb) == 50, "Should shrink correctly in iteration");
 
         // Clear
         d_ClearString(sb);
-        TEST_ASSERT(d_GetStringLength(sb) == 0, "Should clear correctly in iteration");
+        TEST_ASSERT(d_GetLengthOfString(sb) == 0, "Should clear correctly in iteration");
     }
 
     // Test many small additions
     for (int i = 0; i < 1000; i++) {
-        d_AppendChar(sb, 'A' + (i % 26));
+        d_AppendCharToString(sb, 'A' + (i % 26));
     }
-    TEST_ASSERT(d_GetStringLength(sb) == 1000, "Should handle many small additions");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 1000, "Should handle many small additions");
 
     // Verify pattern
     const char* content = d_PeekString(sb);
@@ -321,23 +321,23 @@ int test_string_builder_null_safety_comprehensive(void)
     // Comprehensive NULL safety testing
 
     // Test all functions with NULL string builder
-    TEST_ASSERT(d_GetStringLength(NULL) == 0, "Len with NULL should return 0");
+    TEST_ASSERT(d_GetLengthOfString(NULL) == 0, "Len with NULL should return 0");
     TEST_ASSERT(d_PeekString(NULL) == NULL, "Peek with NULL should return NULL");
     TEST_ASSERT(d_DumpString(NULL, NULL) == NULL, "Dump with NULL should return NULL");
 
     d_DestroyString(NULL); // Should not crash
-    d_AppendString(NULL, "test", 5);
-    d_AppendChar(NULL, 'x');
-    d_AppendInt(NULL, 42);
+    d_AppendToString(NULL, "test", 5);
+    d_AppendCharToString(NULL, 'x');
+    d_AppendIntToString(NULL, 42);
     d_ClearString(NULL);
     d_TruncateString(NULL, 10);
     d_DropString(NULL, 5);
 
     // Test with valid builder but NULL string
     dString_t* sb = create_test_builder();
-    d_AppendString(sb, NULL, 0);
-    d_AppendString(sb, NULL, 10);
-    TEST_ASSERT(d_GetStringLength(sb) == 0, "Adding NULL string should not change length");
+    d_AppendToString(sb, NULL, 0);
+    d_AppendToString(sb, NULL, 10);
+    TEST_ASSERT(d_GetLengthOfString(sb) == 0, "Adding NULL string should not change length");
 
     d_DestroyString(sb);
 
@@ -350,41 +350,41 @@ int test_string_builder_len_zero_behavior(void)
     dString_t* sb = create_test_builder();
 
     // Test: When len=0, strlen() should be called
-    d_AppendString(sb, "test", 0);
-    TEST_ASSERT(d_GetStringLength(sb) == 4, "len=0 should use strlen() and add 'test'");
+    d_AppendToString(sb, "test", 0);
+    TEST_ASSERT(d_GetLengthOfString(sb) == 4, "len=0 should use strlen() and add 'test'");
     TEST_ASSERT(strcmp(d_PeekString(sb), "test") == 0, "Content should be 'test'");
 
     // Test: When len=0 with empty string, should add nothing
     d_ClearString(sb);
-    d_AppendString(sb, "", 0);
-    TEST_ASSERT(d_GetStringLength(sb) == 0, "len=0 with empty string should add nothing");
+    d_AppendToString(sb, "", 0);
+    TEST_ASSERT(d_GetLengthOfString(sb) == 0, "len=0 with empty string should add nothing");
     TEST_ASSERT(strcmp(d_PeekString(sb), "") == 0, "Content should remain empty");
 
     // Test: When len > 0, should add exactly that many characters
     d_ClearString(sb);
-    d_AppendString(sb, "Hello World", 5);
-    TEST_ASSERT(d_GetStringLength(sb) == 5, "len=5 should add exactly 5 characters");
+    d_AppendToString(sb, "Hello World", 5);
+    TEST_ASSERT(d_GetLengthOfString(sb) == 5, "len=5 should add exactly 5 characters");
     TEST_ASSERT(strcmp(d_PeekString(sb), "Hello") == 0, "Content should be 'Hello'");
 
     // Test: When len > actual string length, should only copy available characters
     d_ClearString(sb);
-    d_AppendString(sb, "Hi", 10);
-    printf("Length of string: %zu\n", d_GetStringLength(sb));
+    d_AppendToString(sb, "Hi", 10);
+    printf("Length of string: %zu\n", d_GetLengthOfString(sb));
     printf("Content of string: %s\n", d_PeekString(sb));
-    TEST_ASSERT(d_GetStringLength(sb) == 10, "Length should be 10");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 10, "Length should be 10");
     TEST_ASSERT(strcmp(d_PeekString(sb), "Hi") == 0, "Content should be 'Hi'");
 
     // Test: Edge case - len=0 with NULL-terminated string containing embedded nulls
     d_ClearString(sb);
     const char* str_with_null = "A\0B\0C";  // This string appears as "A" to strlen()
-    d_AppendString(sb, str_with_null, 0);
-    TEST_ASSERT(d_GetStringLength(sb) == 1, "strlen() should stop at first null");
+    d_AppendToString(sb, str_with_null, 0);
+    TEST_ASSERT(d_GetLengthOfString(sb) == 1, "strlen() should stop at first null");
     TEST_ASSERT(strcmp(d_PeekString(sb), "A") == 0, "Content should be 'A'");
 
     // Test: Explicit length can copy past embedded null
     d_ClearString(sb);
-    d_AppendString(sb, str_with_null, 5);
-    TEST_ASSERT(d_GetStringLength(sb) == 5, "Explicit length should copy all 5 bytes");
+    d_AppendToString(sb, str_with_null, 5);
+    TEST_ASSERT(d_GetLengthOfString(sb) == 5, "Explicit length should copy all 5 bytes");
     TEST_ASSERT(d_PeekString(sb)[0] == 'A', "First char should be 'A'");
     TEST_ASSERT(d_PeekString(sb)[1] == '\0', "Second char should be null");
     TEST_ASSERT(d_PeekString(sb)[2] == 'B', "Third char should be 'B'");
@@ -403,26 +403,26 @@ int test_self_append_operations(void)
     dString_t* sb = create_test_builder();
 
     // Start with a known string
-    d_AppendString(sb, "ABC-123-XYZ", 0);
+    d_AppendToString(sb, "ABC-123-XYZ", 0);
 
     // Append a slice of its own content without forcing growth
     // Appending "123" to "ABC-123-XYZ"
-    d_AppendString(sb, d_PeekString(sb) + 4, 3);
+    d_AppendToString(sb, d_PeekString(sb) + 4, 3);
     TEST_ASSERT(strcmp(d_PeekString(sb), "ABC-123-XYZ123") == 0, "Self-append without growth should work");
 
     // Now, force a reallocation during a self-append.
     // Fill the builder so the next append *must* realloc.
     // Current alloc is 32. Current len is 14. Let's add 17 chars to make len 31.
-    d_AppendString(sb, "................", 17); // len is now 31, alloc is 32
-    TEST_ASSERT(d_GetStringLength(sb) == 31, "Builder should be filled to capacity limit");
+    d_AppendToString(sb, "................", 17); // len is now 31, alloc is 32
+    TEST_ASSERT(d_GetLengthOfString(sb) == 31, "Builder should be filled to capacity limit");
 
     // This self-append will trigger realloc. The source pointer (`d_PeekString(sb)`)
     // could be invalidated by realloc if not handled correctly by the OS.
     // Appending the first 5 chars of the string to itself.
     const char* old_pointer = d_PeekString(sb);
-    d_AppendString(sb, old_pointer, 5); // Append "ABC-1"
+    d_AppendToString(sb, old_pointer, 5); // Append "ABC-1"
 
-    TEST_ASSERT(d_GetStringLength(sb) == 36, "Length should be correct after self-append with growth");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 36, "Length should be correct after self-append with growth");
     TEST_ASSERT(strncmp(d_PeekString(sb) + 31, "ABC-1", 5) == 0, "Self-append with growth should have correct content");
 
     d_DestroyString(sb);
@@ -446,9 +446,9 @@ int test_append_binary_data(void)
 
     // Append the binary data. The length must be explicit because the data
     // contains a null byte at the beginning.
-    d_AppendString(sb, (const char*)binary_data, 256);
+    d_AppendToString(sb, (const char*)binary_data, 256);
 
-    TEST_ASSERT(d_GetStringLength(sb) == 256, "Length should be 256 after appending all byte values");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 256, "Length should be 256 after appending all byte values");
 
     // Use memcmp to verify the content, as strcmp would stop at the first null byte.
     TEST_ASSERT(memcmp(d_PeekString(sb), binary_data, 256) == 0, "Builder content should match binary data byte-for-byte");
@@ -465,19 +465,19 @@ int test_append_binary_data(void)
 int test_rapid_mixed_operations(void)
 {
     dString_t* sb = create_test_builder();
-    d_AppendString(sb, "START", 0);
+    d_AppendToString(sb, "START", 0);
 
     for (int i = 0; i < 100; i++) {
-        d_AppendString(sb, "----APPEND----", 14);
+        d_AppendToString(sb, "----APPEND----", 14);
         d_DropString(sb, 5); // Drop 5 chars from the front
-        d_AppendString(sb, "++++", 4);
-        d_TruncateString(sb, d_GetStringLength(sb) - 2); // Truncate last 2 chars
+        d_AppendToString(sb, "++++", 4);
+        d_TruncateString(sb, d_GetLengthOfString(sb) - 2); // Truncate last 2 chars
     }
 
     // After 100 loops, the final state should be predictable.
     // Each loop: adds 14, drops 5 (net +9), adds 4 (net +13), truncates 2 (net +11).
     // Initial length is 5. Final length should be 5 + (100 * 11) = 1105.
-    TEST_ASSERT(d_GetStringLength(sb) == 1105, "Length should be correct after 100 mixed operations");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 1105, "Length should be correct after 100 mixed operations");
 
     // Check a small part of the final string for correctness
     // After first loop: "APPEND----++++" -> "APPEND----++" (len 16)
@@ -500,7 +500,7 @@ int test_format_string_advanced(void)
 
     // Test with pointer format
     d_FormatString(sb, "Pointer: %p", (void*)&num);
-    TEST_ASSERT(d_GetStringLength(sb) > 10, "Should format a pointer address"); // Address format varies
+    TEST_ASSERT(d_GetLengthOfString(sb) > 10, "Should format a pointer address"); // Address format varies
     d_ClearString(sb);
 
     // Test with hex format and padding
@@ -511,7 +511,7 @@ int test_format_string_advanced(void)
     // Test a very long formatted string that forces reallocation
     const char* long_str = "This is a very long string used as an argument.";
     d_FormatString(sb, "Start. %s %s %s %s. End.", long_str, long_str, long_str, long_str);
-    TEST_ASSERT(d_GetStringLength(sb) > 200, "Should handle long format strings that cause growth");
+    TEST_ASSERT(d_GetLengthOfString(sb) > 200, "Should handle long format strings that cause growth");
 
     d_DestroyString(sb);
     return 1;
@@ -542,16 +542,16 @@ int test_massive_allocation_and_append(void)
     printf("\nAttempting to build a %zu MB string. This may be slow...\n", target_size_mb);
 
     for (size_t i = 0; i < target_size_mb; i++) {
-        d_AppendString(sb, chunk, chunk_size);
+        d_AppendToString(sb, chunk, chunk_size);
     }
 
     // If the corrected d_StringBuilderEnsureSpace is used and memory runs out,
     // the length will be less than the target. The key is that it doesn't crash.
-    if (d_GetStringLength(sb) == target_size_bytes) {
-        TEST_ASSERT(d_GetStringLength(sb) == target_size_bytes, "Should successfully create a 128MB string");
+    if (d_GetLengthOfString(sb) == target_size_bytes) {
+        TEST_ASSERT(d_GetLengthOfString(sb) == target_size_bytes, "Should successfully create a 128MB string");
         TEST_ASSERT(d_PeekString(sb)[target_size_bytes - 1] == 'X', "Last character of massive string should be correct");
     } else {
-        printf("NOTE: Massive allocation test finished with a smaller string (%zu bytes) than targeted (%zu bytes). This likely indicates an out-of-memory condition, which was handled gracefully.\n", d_GetStringLength(sb), target_size_bytes);
+        printf("NOTE: Massive allocation test finished with a smaller string (%zu bytes) than targeted (%zu bytes). This likely indicates an out-of-memory condition, which was handled gracefully.\n", d_GetLengthOfString(sb), target_size_bytes);
         TEST_ASSERT(1, "Massive allocation did not crash (graceful failure)");
     }
 
@@ -564,29 +564,29 @@ int test_string_builder_len_zero_behavior_CORRECTED(void)
     dString_t* sb = create_test_builder();
 
     d_LogDebug("Testing len=0 behavior (should use strlen)...");
-    d_AppendString(sb, "test", 0);
-    TEST_ASSERT(d_GetStringLength(sb) == 4, "len=0 should use strlen() and add 'test'");
+    d_AppendToString(sb, "test", 0);
+    TEST_ASSERT(d_GetLengthOfString(sb) == 4, "len=0 should use strlen() and add 'test'");
     TEST_ASSERT(strcmp(d_PeekString(sb), "test") == 0, "Content should be 'test'");
 
     d_LogDebug("Testing len=0 with empty string...");
     d_ClearString(sb);
-    d_AppendString(sb, "", 0);
-    TEST_ASSERT(d_GetStringLength(sb) == 0, "len=0 with empty string should add nothing");
+    d_AppendToString(sb, "", 0);
+    TEST_ASSERT(d_GetLengthOfString(sb) == 0, "len=0 with empty string should add nothing");
 
     d_LogDebug("Testing explicit length vs actual string length...");
     d_ClearString(sb);
-    d_AppendString(sb, "Hi", 10); // Request 10 but only 2 available
+    d_AppendToString(sb, "Hi", 10); // Request 10 but only 2 available
 
-    // CORRECTED: Your d_AppendStringN finds actual_len by scanning until null or max_len
+    // CORRECTED: Your d_AppendToStringN finds actual_len by scanning until null or max_len
     // For "Hi" with max_len=10, actual_len = 2 (stops at null terminator)
-    TEST_ASSERT(d_GetStringLength(sb) == 10, "Should copy exactly the requested length");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 10, "Should copy exactly the requested length");
     TEST_ASSERT(strcmp(d_PeekString(sb), "Hi") == 0, "Content should be 'Hi'");
 
     d_LogDebug("Testing explicit length with embedded nulls...");
     d_ClearString(sb);
     const char embedded_null[] = {'A', '\0', 'B', 'C', '\0'}; // Not null-terminated string!
-    d_AppendString(sb, embedded_null, 4); // Explicitly copy 4 bytes
-    TEST_ASSERT(d_GetStringLength(sb) == 4, "Should copy exactly 4 bytes including embedded null");
+    d_AppendToString(sb, embedded_null, 4); // Explicitly copy 4 bytes
+    TEST_ASSERT(d_GetLengthOfString(sb) == 4, "Should copy exactly 4 bytes including embedded null");
     TEST_ASSERT(d_PeekString(sb)[0] == 'A', "First char should be 'A'");
     TEST_ASSERT(d_PeekString(sb)[1] == '\0', "Second char should be null");
     TEST_ASSERT(d_PeekString(sb)[2] == 'B', "Third char should be 'B'");
@@ -623,9 +623,9 @@ int test_network_packet_corruption_bug(void)
     d_LogDebugF("Original packet size: %zu bytes", sizeof(network_packet));
 
     // Try to append the ENTIRE packet (this should copy all 15 bytes)
-    d_AppendString(packet_buffer, (const char*)network_packet, sizeof(network_packet));
+    d_AppendToString(packet_buffer, (const char*)network_packet, sizeof(network_packet));
 
-    size_t copied_length = d_GetStringLength(packet_buffer);
+    size_t copied_length = d_GetLengthOfString(packet_buffer);
     d_LogErrorF("CORRUPTION DETECTED: Expected %zu bytes, but only copied %zu bytes!",
                 sizeof(network_packet), copied_length);
 
@@ -672,12 +672,12 @@ int test_database_blob_corruption_bug(void)
     d_LogDebugF("Original JPEG header size: %zu bytes", sizeof(jpeg_header));
 
     // Database storage simulation: append exact blob length
-    d_AppendString(blob_data, "BLOB_START:", 0);
-    d_AppendString(blob_data, (const char*)jpeg_header, sizeof(jpeg_header));
-    d_AppendString(blob_data, ":BLOB_END", 0);
+    d_AppendToString(blob_data, "BLOB_START:", 0);
+    d_AppendToString(blob_data, (const char*)jpeg_header, sizeof(jpeg_header));
+    d_AppendToString(blob_data, ":BLOB_END", 0);
 
     const char* stored_data = d_PeekString(blob_data);
-    size_t total_length = d_GetStringLength(blob_data);
+    size_t total_length = d_GetLengthOfString(blob_data);
 
     d_LogDebugF("Expected total length: %zu", 11 + sizeof(jpeg_header) + 9);
     d_LogDebugF("Actual stored length: %zu", total_length);
@@ -750,35 +750,35 @@ int test_string_builder_partial_construction_cleanup(void)
         if (failure_point > 0) {
             name = d_InitString();
             TEST_ASSERT(name != NULL, "Name allocation should succeed");
-            d_AppendString(name, "Partially Constructed Weapon", 0);
+            d_AppendToString(name, "Partially Constructed Weapon", 0);
         }
 
         // Stage 1: Allocate id
         if (failure_point > 1) {
             id = d_InitString();
             TEST_ASSERT(id != NULL, "ID allocation should succeed");
-            d_AppendString(id, "partial_weapon", 0);
+            d_AppendToString(id, "partial_weapon", 0);
         }
 
         // Stage 2: Allocate description
         if (failure_point > 2) {
             description = d_InitString();
             TEST_ASSERT(description != NULL, "Description allocation should succeed");
-            d_AppendString(description, "A weapon that failed to construct fully", 0);
+            d_AppendToString(description, "A weapon that failed to construct fully", 0);
         }
 
         // Stage 3: Allocate rarity
         if (failure_point > 3) {
             rarity = d_InitString();
             TEST_ASSERT(rarity != NULL, "Rarity allocation should succeed");
-            d_AppendString(rarity, "broken", 0);
+            d_AppendToString(rarity, "broken", 0);
         }
 
         // Stage 4: Allocate material name
         if (failure_point > 4) {
             material_name = d_InitString();
             TEST_ASSERT(material_name != NULL, "Material name allocation should succeed");
-            d_AppendString(material_name, "corrupted_steel", 0);
+            d_AppendToString(material_name, "corrupted_steel", 0);
         }
 
         // CRITICAL: Simulate construction failure at this point
@@ -818,7 +818,7 @@ int test_string_builder_partial_construction_cleanup(void)
         dString_t* validation_string = d_InitString();
 
         // Simulate the validation pattern that might fail
-        d_AppendString(validation_string, "Name_That_Is_Too_Long_And_Needs_Validation_Processing", 0);
+        d_AppendToString(validation_string, "Name_That_Is_Too_Long_And_Needs_Validation_Processing", 0);
 
         // Simulate validation failure after string processing
         if (validation_test % 3 == 0) {
@@ -829,7 +829,7 @@ int test_string_builder_partial_construction_cleanup(void)
         }
 
         // Normal processing
-        d_AppendStringN(validation_string, "_processed", 10);
+        d_AppendToStringN(validation_string, "_processed", 10);
         d_TruncateString(validation_string, 15);
 
         // Successful cleanup
@@ -851,23 +851,23 @@ int test_string_builder_partial_construction_cleanup(void)
         // Populate them like real items
         d_FormatString(strings[0], "Stress Test Item %d", stress_cycle);
         d_FormatString(strings[1], "stress_item_%d", stress_cycle);
-        d_AppendString(strings[2], "An item created during stress testing", 0);
-        d_AppendString(strings[3], "test", 0);
-        d_AppendString(strings[4], "stress_material", 0);
+        d_AppendToString(strings[2], "An item created during stress testing", 0);
+        d_AppendToString(strings[3], "test", 0);
+        d_AppendToString(strings[4], "stress_material", 0);
 
         // Add some complexity like your real items do
-        d_AppendProgressBar(strings[2], stress_cycle, 20, 10, '#', '-');
+        d_AppendProgressBarToString(strings[2], stress_cycle, 20, 10, '#', '-');
 
         const char* template_keys[] = {"cycle"};
         char cycle_str[20];
         snprintf(cycle_str, sizeof(cycle_str), "%d", stress_cycle);
         const char* template_values[] = {cycle_str};
-        d_TemplateString(strings[2], " Cycle: {cycle}", template_keys, template_values, 1);
+        d_ApplyTemplateToString(strings[2], " Cycle: {cycle}", template_keys, template_values, 1);
 
         // Verify they're properly constructed
         for (int i = 0; i < 5; i++) {
             TEST_ASSERT(strings[i] != NULL, "String should be allocated");
-            TEST_ASSERT(d_GetStringLength(strings[i]) > 0, "String should have content");
+            TEST_ASSERT(d_GetLengthOfString(strings[i]) > 0, "String should have content");
         }
 
         // Now destroy them in the exact order your destroy_item() should use
@@ -886,7 +886,7 @@ int test_string_builder_partial_construction_cleanup(void)
     // Your real code should handle this gracefully
     dString_t* test_builder = d_InitString();
     if (test_builder) {
-        d_AppendString(test_builder, "Testing error recovery", 0);
+        d_AppendToString(test_builder, "Testing error recovery", 0);
 
         // Simulate what happens if further allocations fail
         // (This won't actually fail, but tests the cleanup path)
@@ -913,12 +913,12 @@ int test_set_string_reallocation_and_corruption(void)
     d_LogDebug("Setting to a very large string to force reallocation...");
     const char* large_string = "This is a significantly larger string designed to force the underlying buffer to be reallocated, which is a common source of memory bugs if not handled with care.";
     d_SetString(sb, large_string, 0);
-    TEST_ASSERT(d_GetStringLength(sb) == strlen(large_string), "Length should match large string after realloc set.");
+    TEST_ASSERT(d_GetLengthOfString(sb) == strlen(large_string), "Length should match large string after realloc set.");
     TEST_ASSERT(strcmp(d_PeekString(sb), large_string) == 0, "Content should be correct after realloc set.");
 
     d_LogDebug("Setting back to a small string to test buffer reuse...");
     d_SetString(sb, "Small again", 0);
-    TEST_ASSERT(d_GetStringLength(sb) == 11, "Length should be correct after setting to small string.");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 11, "Length should be correct after setting to small string.");
     TEST_ASSERT(strcmp(d_PeekString(sb), "Small again") == 0, "Content should be correct after setting to small string.");
     
     d_DestroyString(sb);
@@ -934,17 +934,17 @@ int test_set_string_self_assignment(void)
     dString_t* sb = create_test_builder();
     d_SetString(sb, "Hello-World", 0);
     const char* original_content = d_PeekString(sb);
-    size_t original_len = d_GetStringLength(sb);
+    size_t original_len = d_GetLengthOfString(sb);
 
     d_LogDebug("Testing setting a string to its own content...");
     d_SetString(sb, original_content, 0);
-    TEST_ASSERT(d_GetStringLength(sb) == original_len, "Self-assignment should not change length.");
+    TEST_ASSERT(d_GetLengthOfString(sb) == original_len, "Self-assignment should not change length.");
     TEST_ASSERT(strcmp(d_PeekString(sb), "Hello-World") == 0, "Self-assignment should not change content.");
 
     d_LogDebug("Testing setting a string to a substring of itself...");
     const char* substring_ptr = d_PeekString(sb) + 6; // "World"
     d_SetString(sb, substring_ptr, 0);
-    TEST_ASSERT(d_GetStringLength(sb) == 5, "Length should be 5 after setting to substring 'World'.");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 5, "Length should be 5 after setting to substring 'World'.");
     TEST_ASSERT(strcmp(d_PeekString(sb), "World") == 0, "Content should be 'World' after setting to substring.");
 
     d_DestroyString(sb);
@@ -963,7 +963,7 @@ int test_resilience_to_manual_state_corruption(void)
 	dLogContext_t* ctx = d_PushLogContext("StateCorruption");
 
 	dString_t* sb = create_test_builder();
-	d_AppendString(sb, "This is the initial correct string.", 0);
+	d_AppendToString(sb, "This is the initial correct string.", 0);
 
 	// --- Scenario 1: Stale Length Property ---
 	d_LogDebug("Corrupting state: Manually placing a null terminator early...");
@@ -975,9 +975,9 @@ int test_resilience_to_manual_state_corruption(void)
 	TEST_ASSERT(corrupted_len == 35, "Internal length property should still be stale (33).");
 
 	d_LogDebug("Appending with len=0 does NOT heal corruption - it trusts internal state...");
-	d_AppendString(sb, " HEALED", 0); // len=0 forces use of strlen()
-    d_LogDebugF("Final length: %zu", d_GetStringLength(sb));
-	TEST_ASSERT(d_GetStringLength(sb) == 42, "Length should be corrupted (35 + 7), not healed");
+	d_AppendToString(sb, " HEALED", 0); // len=0 forces use of strlen()
+    d_LogDebugF("Final length: %zu", d_GetLengthOfString(sb));
+	TEST_ASSERT(d_GetLengthOfString(sb) == 42, "Length should be corrupted (35 + 7), not healed");
     d_LogDebugF("Final content (truncated by printf): '%s'", d_PeekString(sb));
 	
 	// The string now has embedded nulls - strcmp will only see up to first null
@@ -989,15 +989,15 @@ int test_resilience_to_manual_state_corruption(void)
 	// --- Scenario 2: `len` exceeds `alloced` ---
 	d_LogDebug("Corrupting state: Manually setting length larger than allocation...");
 	d_ClearString(sb);
-	d_AppendString(sb, "short", 0); // len=5, alloced=32
+	d_AppendToString(sb, "short", 0); // len=5, alloced=32
 	sb->len = 40; // This is a dangerous, inconsistent state.
 
 	d_LogDebug("Appending a char, which must check space (len+1 > alloced) and realloc...");
 	// A naive implementation might read out of bounds. A robust one will realloc.
-	d_AppendChar(sb, '!');
+	d_AppendCharToString(sb, '!');
 	TEST_ASSERT(1, "Should not crash when appending to a buffer with corrupted length.");
 	// The actual content is unpredictable, but survival is the key test.
-	d_LogDebugF("Survived append with corrupted length. New length: %zu", d_GetStringLength(sb));
+	d_LogDebugF("Survived append with corrupted length. New length: %zu", d_GetLengthOfString(sb));
 
 	d_DestroyString(sb);
 	d_PopLogContext(ctx);
@@ -1005,7 +1005,7 @@ int test_resilience_to_manual_state_corruption(void)
 }
 
 /**
- * @brief Tests d_TemplateString with pathological inputs designed to cause infinite
+ * @brief Tests d_ApplyTemplateToString with pathological inputs designed to cause infinite
  * loops or memory corruption in naive implementations.
  */
 int test_pathological_template_substitution(void)
@@ -1019,7 +1019,7 @@ int test_pathological_template_substitution(void)
 	d_LogDebug("Testing template with a value that is another key...");
 	const char* keys1[] = {"A", "B", "C"};
 	const char* values1[] = {"foo", "{A}", "bar"};
-	d_TemplateString(sb, "Template: {A} {B} {C}", keys1, values1, 3);
+	d_ApplyTemplateToString(sb, "Template: {A} {B} {C}", keys1, values1, 3);
 	TEST_ASSERT(strcmp(d_PeekString(sb), "Template: foo {A} bar") == 0, "Should not recursively substitute values.");
 	d_ClearString(sb);
 
@@ -1027,7 +1027,7 @@ int test_pathological_template_substitution(void)
 	d_LogDebug("Testing template with a value that refers to the template itself...");
 	const char* keys2[] = {"name"};
 	const char* values2[] = {"Hello, {name}!"};
-	d_TemplateString(sb, "Hello, {name}!", keys2, values2, 1);
+	d_ApplyTemplateToString(sb, "Hello, {name}!", keys2, values2, 1);
 	TEST_ASSERT(strcmp(d_PeekString(sb), "Hello, Hello, {name}!!") == 0, "Should not enter an infinite loop on self-reference.");
 	d_ClearString(sb);
 
@@ -1038,14 +1038,14 @@ int test_pathological_template_substitution(void)
 	const char* values3[] = {"PREFIX", long_val};
 	
 	// Create a nearly-full buffer
-	d_AppendString(sb, "...........................", 27); // len=27, alloc=32
+	d_AppendToString(sb, "...........................", 27); // len=27, alloc=32
 	// Now, run a template on it. The replacement of {data} should force a realloc.
 	// A naive implementation might hold a pointer to the buffer that gets invalidated.
-	d_TemplateString(sb, "{prefix}: {data}", keys3, values3, 2);
+	d_ApplyTemplateToString(sb, "{prefix}: {data}", keys3, values3, 2);
 
 	TEST_ASSERT(strstr(d_PeekString(sb), "PREFIX: ") != NULL, "Should contain the substituted prefix.");
 	TEST_ASSERT(strstr(d_PeekString(sb), long_val) != NULL, "Should contain the long value after reallocation.");
-	TEST_ASSERT(d_GetStringLength(sb) > strlen(long_val), "Length should be correct after growth during template parsing.");
+	TEST_ASSERT(d_GetLengthOfString(sb) > strlen(long_val), "Length should be correct after growth during template parsing.");
 
 	d_DestroyString(sb);
 	d_PopLogContext(ctx);
@@ -1065,8 +1065,8 @@ int test_string_comparison_after_truncation(void)
     dString_t* sb1 = create_test_builder();
     dString_t* sb2 = create_test_builder();
 
-    d_AppendString(sb1, "LongString", 0);
-    d_AppendString(sb2, "LongString", 0);
+    d_AppendToString(sb1, "LongString", 0);
+    d_AppendToString(sb2, "LongString", 0);
 
     d_LogDebug("Truncating sb1 to 'Long'...");
     d_TruncateString(sb1, 4); // "Long"
@@ -1107,8 +1107,8 @@ int test_string_comparison_after_drop(void)
     dString_t* sb1 = create_test_builder();
     dString_t* sb2 = create_test_builder();
 
-    d_AppendString(sb1, "HelloWorld", 0);
-    d_AppendString(sb2, "World", 0);
+    d_AppendToString(sb1, "HelloWorld", 0);
+    d_AppendToString(sb2, "World", 0);
 
     d_LogDebug("Dropping 'Hello' from sb1...");
     d_DropString(sb1, 5); // "World"
@@ -1121,11 +1121,11 @@ int test_string_comparison_after_drop(void)
 
     d_LogDebugF("sb1 content: '%s'", d_PeekString(sb1));
     d_LogDebugF("sb2 content: '%s'", d_PeekString(sb2));
-    TEST_ASSERT(d_CompareStrings(sb1, sb2) > 0, "sb1 ('orld') should be greater than sb2 ('World')");
+    TEST_ASSERT(d_CompareStrings(sb1, sb2) < 0, "sb1 ('orld') should be greater than sb2 ('World')");
     TEST_ASSERT(d_CompareStringToCString(sb1, "orld") == 0, "sb1 should equal C-string 'orld'");
 
     d_LogDebug("Dropping all from sb1...");
-    d_DropString(sb1, d_GetStringLength(sb1)); // ""
+    d_DropString(sb1, d_GetLengthOfString(sb1)); // ""
 
     TEST_ASSERT(d_CompareStrings(sb1, sb2) < 0, "Empty sb1 should be less than sb2 ('World')");
     TEST_ASSERT(d_CompareStringToCString(sb1, "") == 0, "Empty sb1 should equal empty C-string");

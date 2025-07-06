@@ -1520,6 +1520,23 @@ run_test "Dynamic Array Error Handling" "run-test-dynamic-array-errors"
 run_test "Static Array Basic Operations" "run-test-static-array-basic"
 run_test "Static Array Advanced Operations" "run-test-static-array-advanced"
 
+run_test "Linked List Basic Operations" "run-test-linked-list-basic"
+run_test "Linked List Advanced Operations" "run-test-linked-list-advanced"
+
+run_test "Hash Table Basic Operations" "run-test-tables-basic"
+run_test "Hash Table Advanced Operations" "run-test-tables-advanced"
+
+run_test "Static Table Basic Operations" "run-test-static-tables-basic"
+run_test "Static Table Advanced Operations" "run-test-static-tables-advanced"
+run_test "Static Table Save/Load" "run-test-static-tables-save-load"
+run_test "Static Table Hashing" "run-test-static-tables-hashing"
+run_test "Static Table Iterators" "run-test-static-tables-iterators"
+
+run_test "Functions Hashing" "run-test-functions-hashing"
+run_test "Functions Debug Hunting" "run-test-functions-debug-hunting"
+run_test "Functions Static Table Save/Load" "run-test-functions-static-table-save-load"
+run_test "Functions Daedalus Compare" "run-test-functions-daedalus-compare"
+
 run_test "Logging Basic Operations" "run-test-logging-basic"
 run_test "Logging Advanced Operations" "run-test-logging-advanced"
 run_test "Logging Extreme Operations" "run-test-logging-extreme"
