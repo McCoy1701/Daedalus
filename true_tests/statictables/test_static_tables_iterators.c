@@ -627,7 +627,7 @@ int test_entity_stat_boost_iterator(void)
     TEST_ASSERT(str_boost.total_boost_applied == 40, "Should apply 40 total boost points");
     
     // Verify boosts were applied
-    EntityStats_t* player_stats = (EntityStats_t*)d_GetValueInStaticTable(entity_table, &entity_ids[0]);
+    EntityStats_t* player_stats = (EntityStats_t*)d_GetDataFromStaticTable(entity_table, &entity_ids[0]);
     TEST_ASSERT(player_stats->strength == 25, "Player strength should be boosted to 25");
     
     printf("\n=== 🧠 INTELLIGENCE BOOST EVENT ===\n");
@@ -673,7 +673,7 @@ int test_level_up_iterator(void)
     TEST_ASSERT(level_up.stat_points_distributed > 0, "Should distribute stat points");
     
     // Verify level ups
-    EntityStats_t* warrior = (EntityStats_t*)d_GetValueInStaticTable(party_table, &party_ids[0]);
+    EntityStats_t* warrior = (EntityStats_t*)d_GetDataFromStaticTable(party_table, &party_ids[0]);
     TEST_ASSERT(warrior->hp == 130, "Warrior HP should increase by 10 (2 levels × 5)");
     TEST_ASSERT(warrior->strength == 24, "Warrior strength should increase by 4 (2 levels × 2)");
     

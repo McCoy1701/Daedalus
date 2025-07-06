@@ -171,7 +171,7 @@ int test_terrible_hash_demonstrates_clustering(void)
     
     // All entries should still be accessible (correctness not affected)
     for (int i = 0; i < 5; i++) {
-        int* value = (int*)d_GetValueInStaticTable(table, &keys[i]);
+        int* value = (int*)d_GetDataFromStaticTable(table, &keys[i]);
         TEST_ASSERT(value != NULL && *value == values[i], "Should find all values despite terrible hash");
     }
     
@@ -218,8 +218,8 @@ int test_hash_function_comparison_sequential_keys(void)
     // Both should be functionally correct
     LOOP_TEST_START();
     for (size_t i = 0; i < num_keys; i++) {
-        int* simple_val = (int*)d_GetValueInStaticTable(simple_table, &keys[i]);
-        int* knuth_val = (int*)d_GetValueInStaticTable(knuth_table, &keys[i]);
+        int* simple_val = (int*)d_GetDataFromStaticTable(simple_table, &keys[i]);
+        int* knuth_val = (int*)d_GetDataFromStaticTable(knuth_table, &keys[i]);
         
         TEST_ASSERT(simple_val != NULL && *simple_val == values[i], "Simple hash should find all values");
         TEST_ASSERT(knuth_val != NULL && *knuth_val == values[i], "Knuth hash should find all values");
@@ -268,8 +268,8 @@ int test_fnv1a_hash_with_binary_data(void)
     
     // Verify correctness for both
     for (int i = 0; i < 5; i++) {
-        int* fnv_val = (int*)d_GetValueInStaticTable(fnv_table, &keys[i]);
-        int* knuth_val = (int*)d_GetValueInStaticTable(knuth_table, &keys[i]);
+        int* fnv_val = (int*)d_GetDataFromStaticTable(fnv_table, &keys[i]);
+        int* knuth_val = (int*)d_GetDataFromStaticTable(knuth_table, &keys[i]);
         
         TEST_ASSERT(fnv_val != NULL && *fnv_val == values[i], "FNV hash should find all values");
         TEST_ASSERT(knuth_val != NULL && *knuth_val == values[i], "Knuth hash should find all values");
@@ -332,8 +332,8 @@ int test_game_entity_hash_demonstrates_domain_knowledge(void)
     LOOP_TEST_START();
     // Verify all lookups work correctly
     for (int i = 0; i < 12; i++) {
-        int* game_val = (int*)d_GetValueInStaticTable(game_table, &all_keys[i]);
-        int* generic_val = (int*)d_GetValueInStaticTable(generic_table, &all_keys[i]);
+        int* game_val = (int*)d_GetDataFromStaticTable(game_table, &all_keys[i]);
+        int* generic_val = (int*)d_GetDataFromStaticTable(generic_table, &all_keys[i]);
         
         TEST_ASSERT(game_val != NULL && *game_val == all_values[i], "Game hash should find all entity values");
         TEST_ASSERT(generic_val != NULL && *generic_val == all_values[i], "Generic hash should find all entity values");
@@ -377,8 +377,8 @@ int test_crypto_inspired_hash_avalanche_effect(void)
     
     // Both should work correctly
     for (int i = 0; i < 5; i++) {
-        int* crypto_val = (int*)d_GetValueInStaticTable(crypto_table, &similar_keys[i]);
-        int* simple_val = (int*)d_GetValueInStaticTable(simple_table, &similar_keys[i]);
+        int* crypto_val = (int*)d_GetDataFromStaticTable(crypto_table, &similar_keys[i]);
+        int* simple_val = (int*)d_GetDataFromStaticTable(simple_table, &similar_keys[i]);
         
         TEST_ASSERT(crypto_val != NULL && *crypto_val == values[i], "Crypto hash should find all similar key values");
         TEST_ASSERT(simple_val != NULL && *simple_val == values[i], "Simple hash should find all similar key values");
@@ -434,10 +434,10 @@ int test_hash_function_performance_comparison(void)
     // Verify all work correctly
     LOOP_TEST_START();
     for (size_t i = 0; i < num_keys; i++) {
-        TEST_ASSERT(d_GetValueInStaticTable(terrible_table, &keys[i]) != NULL, "Terrible hash should work correctly");
-        TEST_ASSERT(d_GetValueInStaticTable(simple_table, &keys[i]) != NULL, "Simple hash should work correctly");
-        TEST_ASSERT(d_GetValueInStaticTable(knuth_table, &keys[i]) != NULL, "Knuth hash should work correctly");
-        TEST_ASSERT(d_GetValueInStaticTable(fnv_table, &keys[i]) != NULL, "FNV hash should work correctly");
+        TEST_ASSERT(d_GetDataFromStaticTable(terrible_table, &keys[i]) != NULL, "Terrible hash should work correctly");
+        TEST_ASSERT(d_GetDataFromStaticTable(simple_table, &keys[i]) != NULL, "Simple hash should work correctly");
+        TEST_ASSERT(d_GetDataFromStaticTable(knuth_table, &keys[i]) != NULL, "Knuth hash should work correctly");
+        TEST_ASSERT(d_GetDataFromStaticTable(fnv_table, &keys[i]) != NULL, "FNV hash should work correctly");
     }
     LOOP_TEST_END();
     

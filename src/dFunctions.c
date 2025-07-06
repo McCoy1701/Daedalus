@@ -751,7 +751,7 @@ int d_CompareStaticTable(const void* key1, const void* key2, size_t key_size)
     for (size_t i = 0; i < table1->num_keys; i++) {
         void* key_data = d_IndexDataFromArray(keys1, i);
         void* value_data = d_IndexDataFromArray(values1, i);
-        void* corresponding_value = d_GetValueInStaticTable(table2, key_data);
+        void* corresponding_value = d_GetDataFromStaticTable(table2, key_data);
         if (!corresponding_value) {
             // Key not found in table2
             d_DestroyArray(keys1);

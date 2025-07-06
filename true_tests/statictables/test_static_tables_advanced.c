@@ -182,13 +182,13 @@ int test_static_table_rebucket_basic(void)
     for (int i = 0; i < 5; i++) {
         TEST_ASSERT(d_CheckForKeyInStaticTable(rebucketed, &keys[i]) == 0, "All keys should exist in rebucketed table");
         
-        int* value = (int*)d_GetValueInStaticTable(rebucketed, &keys[i]);
+        int* value = (int*)d_GetDataFromStaticTable(rebucketed, &keys[i]);
         TEST_ASSERT(value != NULL && *value == values[i], "All values should be preserved in rebucketed table");
     }
 
     // Verify original table is unchanged
     for (int i = 0; i < 5; i++) {
-        int* value = (int*)d_GetValueInStaticTable(original, &keys[i]);
+        int* value = (int*)d_GetDataFromStaticTable(original, &keys[i]);
         TEST_ASSERT(value != NULL && *value == values[i], "Original table should be unchanged");
     }
 
@@ -246,7 +246,7 @@ int test_static_table_string_keys_advanced_operations(void)
 
     // Verify string keys still work after rebucketing
     for (int i = 0; i < 5; i++) {
-        int* value = (int*)d_GetValueInStaticTable(rebucketed, &keys[i]);
+        int* value = (int*)d_GetDataFromStaticTable(rebucketed, &keys[i]);
         TEST_ASSERT(value != NULL && *value == values[i], "Should retrieve string-keyed values after rebucketing");
     }
 
@@ -322,7 +322,7 @@ int test_static_table_large_dataset_advanced_operations(void)
     // Verify data integrity after rebucketing
     for (size_t i = 0; i < num_entries; i++) {
         int key = (int)i;
-        int* value = (int*)d_GetValueInStaticTable(rebucketed, &key);
+        int* value = (int*)d_GetDataFromStaticTable(rebucketed, &key);
         TEST_ASSERT(value != NULL && *value == (int)i * 2, "Should maintain data integrity in large rebucketed dataset");
     }
 
@@ -389,7 +389,7 @@ int test_static_table_mixed_operations_stress_test(void)
 
     // Phase 6: Verify updated values are correct
     for (int i = 0; i < 10; i++) {
-        int* value = (int*)d_GetValueInStaticTable(rebucketed, &keys[i]);
+        int* value = (int*)d_GetDataFromStaticTable(rebucketed, &keys[i]);
         if (i % 2 == 0) {
             // Even indices were updated
             TEST_ASSERT(value != NULL && *value == values[i] * 10, "Should have updated values for even keys");
@@ -454,8 +454,8 @@ int test_static_table_performance_comparison(void)
 
     // Both tables should contain the same data
     for (size_t i = 0; i < num_keys; i++) {
-        int* val_crowded = (int*)d_GetValueInStaticTable(crowded, &keys[i]);
-        int* val_spacious = (int*)d_GetValueInStaticTable(spacious, &keys[i]);
+        int* val_crowded = (int*)d_GetDataFromStaticTable(crowded, &keys[i]);
+        int* val_spacious = (int*)d_GetDataFromStaticTable(spacious, &keys[i]);
         
         TEST_ASSERT(val_crowded != NULL && *val_crowded == values[i], "Crowded table should have correct values");
         TEST_ASSERT(val_spacious != NULL && *val_spacious == values[i], "Spacious table should have correct values");

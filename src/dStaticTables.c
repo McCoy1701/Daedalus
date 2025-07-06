@@ -390,9 +390,9 @@ int d_SetValueInStaticTable(dStaticTable_t* table, const void* key, const void* 
  * @return A void* pointer to the internally stored value data if found, or NULL if not found
  *
  * Example:
- * `int key = 42; char** value = (char**)d_GetValueInStaticTable(table, &key);`
+ * `int key = 42; char** value = (char**)d_GetDataFromStaticTable(table, &key);`
  */
-void* d_GetValueInStaticTable(const dStaticTable_t* table, const void* key)
+void* d_GetDataFromStaticTable(const dStaticTable_t* table, const void* key)
 {
     if (!table || !key) {
         d_LogError("Invalid parameters for getting static table value.");

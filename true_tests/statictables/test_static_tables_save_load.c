@@ -128,7 +128,7 @@ int test_save_load_basic_success(void)
     for (int i = 0; i < 5; i++) {
         TEST_ASSERT(d_CheckForKeyInStaticTable(loaded, &keys[i]) == 0, "All original keys should exist in loaded table");
         
-        int* value = (int*)d_GetValueInStaticTable(loaded, &keys[i]);
+        int* value = (int*)d_GetDataFromStaticTable(loaded, &keys[i]);
         TEST_ASSERT(value != NULL && *value == values[i], "All original values should be preserved in loaded table");
     }
     
@@ -173,7 +173,7 @@ int test_save_load_string_keys_success(void)
     for (int i = 0; i < 4; i++) {
         TEST_ASSERT(d_CheckForKeyInStaticTable(loaded, &keys[i]) == 0, "All original string keys should exist in loaded table");
         
-        int* value = (int*)d_GetValueInStaticTable(loaded, &keys[i]);
+        int* value = (int*)d_GetDataFromStaticTable(loaded, &keys[i]);
         TEST_ASSERT(value != NULL && *value == values[i], "All original string values should be preserved in loaded table");
     }
     
@@ -310,7 +310,7 @@ int test_save_load_multiple_cycles_with_updates(void)
     
     // Verify cycle 1 updates are preserved
     for (int i = 0; i < 5; i++) {
-        int* value = (int*)d_GetValueInStaticTable(loaded2, &keys[i]);
+        int* value = (int*)d_GetDataFromStaticTable(loaded2, &keys[i]);
         TEST_ASSERT(value != NULL && *value == updated_values_cycle1[i], "Should preserve cycle 1 updates");
     }
     
@@ -328,7 +328,7 @@ int test_save_load_multiple_cycles_with_updates(void)
     
     // Verify final updates are preserved
     for (int i = 0; i < 5; i++) {
-        int* value = (int*)d_GetValueInStaticTable(loaded3, &keys[i]);
+        int* value = (int*)d_GetDataFromStaticTable(loaded3, &keys[i]);
         TEST_ASSERT(value != NULL && *value == updated_values_cycle2[i], "Should preserve cycle 2 updates");
     }
     
@@ -379,7 +379,7 @@ int test_save_load_large_dataset_consistency(void)
     
     // Verify all original data
     for (size_t i = 0; i < num_entries; i++) {
-        int* value = (int*)d_GetValueInStaticTable(loaded_large, &keys[i]);
+        int* value = (int*)d_GetDataFromStaticTable(loaded_large, &keys[i]);
         TEST_ASSERT(value != NULL && *value == original_values[i], "Should preserve all original values in large dataset");
     }
     
@@ -402,7 +402,7 @@ int test_save_load_large_dataset_consistency(void)
     
     // Verify selective updates
     for (size_t i = 0; i < num_entries; i++) {
-        int* value = (int*)d_GetValueInStaticTable(final_large, &keys[i]);
+        int* value = (int*)d_GetDataFromStaticTable(final_large, &keys[i]);
         TEST_ASSERT(value != NULL && *value == updated_values[i], "Should preserve selective updates in large dataset");
     }
     

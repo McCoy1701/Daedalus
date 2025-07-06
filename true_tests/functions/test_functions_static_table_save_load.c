@@ -69,7 +69,7 @@ int test_builtin_int_functions_save_load()
     
     // Test hash functions still work by checking lookups
     for (int i = 0; i < 5; i++) {
-        char** value = (char**)d_GetValueInStaticTable(loaded_int_table, &keys[i]);
+        char** value = (char**)d_GetDataFromStaticTable(loaded_int_table, &keys[i]);
         TEST_ASSERT(value != NULL && strcmp(*value, values[i]) == 0, 
                     "Built-in hash function should work after load");
     }
@@ -105,7 +105,7 @@ int test_builtin_string_functions_save_load()
     
     // Test string functions work before save
     char* test_key = "gamma";
-    int* found_value = (int*)d_GetValueInStaticTable(string_table, &test_key);
+    int* found_value = (int*)d_GetDataFromStaticTable(string_table, &test_key);
     TEST_ASSERT(found_value != NULL && *found_value == 3, 
                 "Built-in string hash should find correct value");
     
@@ -118,7 +118,7 @@ int test_builtin_string_functions_save_load()
     
     // Test 2.3: Verify string functions after load
     for (int i = 0; i < 5; i++) {
-        int* value = (int*)d_GetValueInStaticTable(loaded_string_table, &keys[i]);
+        int* value = (int*)d_GetDataFromStaticTable(loaded_string_table, &keys[i]);
         TEST_ASSERT(value != NULL && *value == values[i], 
                     "Built-in string functions should work after load");
     }
@@ -169,7 +169,7 @@ int test_builtin_binary_functions_save_load()
     
     // Test 3.2: Verify binary comparison works before save
     ComplexKey test_key = {1002, 87.2f, 'B'};
-    char** found_value = (char**)d_GetValueInStaticTable(binary_table, &test_key);
+    char** found_value = (char**)d_GetDataFromStaticTable(binary_table, &test_key);
     TEST_ASSERT(found_value != NULL && strcmp(*found_value, "good") == 0, 
                 "Built-in binary hash should find correct value");
     
@@ -182,7 +182,7 @@ int test_builtin_binary_functions_save_load()
     
     // Test 3.4: Verify binary functions work after load
     for (int i = 0; i < 4; i++) {
-        char** value = (char**)d_GetValueInStaticTable(loaded_binary_table, &keys[i]);
+        char** value = (char**)d_GetDataFromStaticTable(loaded_binary_table, &keys[i]);
         TEST_ASSERT(value != NULL && strcmp(*value, values[i]) == 0, 
                     "Built-in binary functions should work after load");
     }
@@ -247,12 +247,12 @@ int test_nested_tables_with_functions_save_load()
     
     // Test 4.4: Verify nested access works
     char* lookup_key = "table1";
-    dStaticTable_t** found_table = (dStaticTable_t**)d_GetValueInStaticTable(outer_table, &lookup_key);
+    dStaticTable_t** found_table = (dStaticTable_t**)d_GetDataFromStaticTable(outer_table, &lookup_key);
     TEST_ASSERT(found_table != NULL && *found_table == inner_table1, 
                 "Should find correct inner table");
     
     int inner_lookup_key = 20;
-    char** inner_value = (char**)d_GetValueInStaticTable(*found_table, &inner_lookup_key);
+    char** inner_value = (char**)d_GetDataFromStaticTable(*found_table, &inner_lookup_key);
     TEST_ASSERT(inner_value != NULL && strcmp(*inner_value, "twenty") == 0, 
                 "Should access nested table value");
     
@@ -326,7 +326,7 @@ int test_multiple_save_load_cycles_function_integrity()
         
         // Test that hash functions still work for lookups
         for (int i = 0; i < 4; i++) {
-            MixedValue* found_value = (MixedValue*)d_GetValueInStaticTable(loaded_cycle, &keys[i]);
+            MixedValue* found_value = (MixedValue*)d_GetDataFromStaticTable(loaded_cycle, &keys[i]);
             TEST_ASSERT(found_value != NULL && 
                        found_value->int_val == values[i].int_val &&
                        found_value->float_val == values[i].float_val &&
@@ -336,7 +336,7 @@ int test_multiple_save_load_cycles_function_integrity()
         
         // Update values for next cycle
         for (int i = 0; i < 4; i++) {
-            MixedValue* value_ptr = (MixedValue*)d_GetValueInStaticTable(loaded_cycle, &keys[i]);
+            MixedValue* value_ptr = (MixedValue*)d_GetDataFromStaticTable(loaded_cycle, &keys[i]);
             if (value_ptr) {
                 value_ptr->int_val += (cycle + 1) * 100;
                 value_ptr->float_val += (cycle + 1) * 1.0f;
@@ -379,12 +379,12 @@ int test_case_insensitive_functions_save_load()
     
     // Test 6.2: Verify case-insensitive lookup works before save
     char* test_key_lower = "apple";
-    int* found_value = (int*)d_GetValueInStaticTable(case_table, &test_key_lower);
+    int* found_value = (int*)d_GetDataFromStaticTable(case_table, &test_key_lower);
     TEST_ASSERT(found_value != NULL && *found_value == 1, 
                 "Case-insensitive hash should find 'Apple' with 'apple'");
     
     char* test_key_upper = "CHERRY";
-    found_value = (int*)d_GetValueInStaticTable(case_table, &test_key_upper);
+    found_value = (int*)d_GetDataFromStaticTable(case_table, &test_key_upper);
     TEST_ASSERT(found_value != NULL && *found_value == 3, 
                 "Case-insensitive hash should find 'CheRRy' with 'CHERRY'");
     
@@ -400,7 +400,7 @@ int test_case_insensitive_functions_save_load()
     // Test 6.4: Verify case-insensitive functions work after load
     char* mixed_case_keys[] = {"aPPle", "banana", "CHERRY", "DaTe"};
     for (int i = 0; i < 4; i++) {
-        int* value = (int*)d_GetValueInStaticTable(loaded_case_table, &mixed_case_keys[i]);
+        int* value = (int*)d_GetDataFromStaticTable(loaded_case_table, &mixed_case_keys[i]);
         TEST_ASSERT(value != NULL && *value == values[i], 
                     "Case-insensitive functions should work after load");
     }

@@ -141,9 +141,9 @@ int test_static_table_get_values_basic(void)
     TEST_ASSERT(table != NULL, "Table should be created successfully");
 
     // Test getting existing values
-    int* retrieved1 = (int*)d_GetValueInStaticTable(table, &keys[0]);
-    int* retrieved2 = (int*)d_GetValueInStaticTable(table, &keys[1]);
-    int* retrieved3 = (int*)d_GetValueInStaticTable(table, &keys[2]);
+    int* retrieved1 = (int*)d_GetDataFromStaticTable(table, &keys[0]);
+    int* retrieved2 = (int*)d_GetDataFromStaticTable(table, &keys[1]);
+    int* retrieved3 = (int*)d_GetDataFromStaticTable(table, &keys[2]);
 
     TEST_ASSERT(retrieved1 != NULL && *retrieved1 == values[0], "Should retrieve correct value for key 42");
     TEST_ASSERT(retrieved2 != NULL && *retrieved2 == values[1], "Should retrieve correct value for key 84");
@@ -151,7 +151,7 @@ int test_static_table_get_values_basic(void)
 
     // Test getting non-existent key
     int nonexistent_key = 999;
-    void* result = d_GetValueInStaticTable(table, &nonexistent_key);
+    void* result = d_GetDataFromStaticTable(table, &nonexistent_key);
     TEST_ASSERT(result == NULL, "Should return NULL for non-existent key");
 
     d_DestroyStaticTable(&table);
@@ -178,9 +178,9 @@ int test_static_table_set_values_existing_keys(void)
     TEST_ASSERT(d_SetValueInStaticTable(table, &keys[2], &new_values[2]) == 0, "Should update existing key 3");
 
     // Verify updated values
-    int* retrieved1 = (int*)d_GetValueInStaticTable(table, &keys[0]);
-    int* retrieved2 = (int*)d_GetValueInStaticTable(table, &keys[1]);
-    int* retrieved3 = (int*)d_GetValueInStaticTable(table, &keys[2]);
+    int* retrieved1 = (int*)d_GetDataFromStaticTable(table, &keys[0]);
+    int* retrieved2 = (int*)d_GetDataFromStaticTable(table, &keys[1]);
+    int* retrieved3 = (int*)d_GetDataFromStaticTable(table, &keys[2]);
 
     TEST_ASSERT(retrieved1 != NULL && *retrieved1 == new_values[0], "Should have updated value for key 1");
     TEST_ASSERT(retrieved2 != NULL && *retrieved2 == new_values[1], "Should have updated value for key 2");
@@ -331,9 +331,9 @@ int test_static_table_string_keys(void)
     TEST_ASSERT(table != NULL, "Table should be created successfully with string keys");
 
     // Test getting values with string keys
-    int* retrieved1 = (int*)d_GetValueInStaticTable(table, &keys[0]);
-    int* retrieved2 = (int*)d_GetValueInStaticTable(table, &keys[1]);
-    int* retrieved3 = (int*)d_GetValueInStaticTable(table, &keys[2]);
+    int* retrieved1 = (int*)d_GetDataFromStaticTable(table, &keys[0]);
+    int* retrieved2 = (int*)d_GetDataFromStaticTable(table, &keys[1]);
+    int* retrieved3 = (int*)d_GetDataFromStaticTable(table, &keys[2]);
 
     TEST_ASSERT(retrieved1 != NULL && *retrieved1 == values[0], "Should retrieve correct value for 'apple'");
     TEST_ASSERT(retrieved2 != NULL && *retrieved2 == values[1], "Should retrieve correct value for 'banana'");
@@ -372,7 +372,7 @@ int test_static_table_collision_handling(void)
 
     // Verify all values can be retrieved despite collisions
     for (int i = 0; i < 8; i++) {
-        int* retrieved = (int*)d_GetValueInStaticTable(table, &keys[i]);
+        int* retrieved = (int*)d_GetDataFromStaticTable(table, &keys[i]);
         TEST_ASSERT(retrieved != NULL && *retrieved == values[i], "Should retrieve correct value despite collisions");
     }
 
@@ -400,7 +400,7 @@ int test_static_table_error_handling(void)
 
     // Test operations with NULL table
     TEST_ASSERT(d_SetValueInStaticTable(NULL, &key, &value) == 1, "Set with NULL table should fail");
-    TEST_ASSERT(d_GetValueInStaticTable(NULL, &key) == NULL, "Get with NULL table should return NULL");
+    TEST_ASSERT(d_GetDataFromStaticTable(NULL, &key) == NULL, "Get with NULL table should return NULL");
     TEST_ASSERT(d_CheckForKeyInStaticTable(NULL, &key) == 1, "Check with NULL table should return not found");
     TEST_ASSERT(d_GetKeyCountOfStaticTable(NULL) == 0, "Count with NULL table should return 0");
     TEST_ASSERT(d_GetAllKeysFromStaticTable(NULL) == NULL, "Get keys with NULL table should return NULL");
@@ -409,7 +409,7 @@ int test_static_table_error_handling(void)
     // Test operations with NULL key/value
     TEST_ASSERT(d_SetValueInStaticTable(table, NULL, &value) == 1, "Set with NULL key should fail");
     TEST_ASSERT(d_SetValueInStaticTable(table, &key, NULL) == 1, "Set with NULL value should fail");
-    TEST_ASSERT(d_GetValueInStaticTable(table, NULL) == NULL, "Get with NULL key should return NULL");
+    TEST_ASSERT(d_GetDataFromStaticTable(table, NULL) == NULL, "Get with NULL key should return NULL");
     TEST_ASSERT(d_CheckForKeyInStaticTable(table, NULL) == 1, "Check with NULL key should return not found");
 
     // Test destroy with NULL pointer

@@ -168,7 +168,7 @@ dStaticTable_t* entity_lookup = d_InitStaticTable(
 
 // Lightning-fast O(1) lookups
 int player_id = 101;
-EntityStats_t* player_stats = (EntityStats_t*)d_GetValueInStaticTable(entity_lookup, &player_id);
+EntityStats_t* player_stats = (EntityStats_t*)d_GetDataFromStaticTable(entity_lookup, &player_id);
 d_LogInfoF("Player HP: %d, MP: %d", player_stats->hp, player_stats->mp);
 
 // Iterate over all entities for game updates
