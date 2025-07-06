@@ -279,7 +279,7 @@ typedef struct
  * @note This structure is designed to be initialized via `d_InitTable()`, which sets
  * up its internal buckets and function pointers.
  * @note Keys and values are copied internally. The user is responsible for managing
- * the memory of the original data passed to `d_SetDataToTable()`.
+ * the memory of the original data passed to `d_SetDataInTable()`.
  * @warning The performance of the hash table heavily depends on the quality of
  * the hash function and key comparison function provided. Bad functions can
  * degrade performance to O(n) worst-case.
@@ -972,16 +972,15 @@ dLinkedList_t* d_GetNodeByNameLinkedList(dLinkedList_t *head, char *target_name)
  * @param hash_func A pointer to the user-provided hashing function
  * @param compare_func A pointer to the user-provided key comparison function
  * @param initial_num_buckets The initial number of buckets for the table
- * @param load_factor_threshold The threshold at which the table will rehash
  *
  * @return A pointer to the newly initialized dTable_t instance, or NULL on failure
  *
  * Example:
- * `dTable_t* table = d_InitTable(sizeof(int), sizeof(char*), my_hash, my_compare, 16, 0.75f);`
+ * `dTable_t* table = d_InitTable(sizeof(int), sizeof(char*), my_hash, my_compare, 16);`
  */
 dTable_t* d_InitTable(size_t key_size, size_t value_size, dTableHashFunc hash_func,
-                      dTableCompareFunc compare_func, size_t initial_num_buckets,
-                      float load_factor_threshold);
+                      dTableCompareFunc compare_func, size_t initial_num_buckets
+                      );
 
 /**
  * @brief Destroy a hash table and free all associated memory.
@@ -1015,9 +1014,9 @@ int d_DestroyTable(dTable_t** table);
  * @return 0 on success, 1 on failure
  *
  * Example:
- * `int key = 42; char* value = "hello"; d_SetDataToTable(table, &key, &value);`
+ * `int key = 42; char* value = "hello"; d_SetDataInTable(table, &key, &value);`
  */
-int d_SetDataToTable(dTable_t* table, const void* key, const void* value);
+int d_SetDataInTable(dTable_t* table, const void* key, const void* value);
 
 /**
  * @brief Retrieve a pointer to the value associated with a given key.
@@ -1238,6 +1237,7 @@ int d_DestroyStaticTable(dStaticTable_t** table);
  */
 int d_SetValueInStaticTable(dStaticTable_t* table, const void* key, const void* new_value);
 
+
 /**
  * @brief Retrieve a pointer to the value associated with a given key.
  *
@@ -1289,10 +1289,10 @@ size_t d_GetKeyCountOfStaticTable(const dStaticTable_t* table);
  * @note The keys are copied into the array, not referenced
  *
  * Example:
- * `dArray_t* keys = d_GetAllStaticTableKeys(table);`
+ * `dArray_t* keys = d_GetAllKeysFromStaticTable(table);`
  * `d_DestroyArray(keys);`
  */
-dArray_t* d_GetAllStaticTableKeys(const dStaticTable_t* table);
+dArray_t* d_GetAllKeysFromStaticTable(const dStaticTable_t* table);
 
 /**
  * @brief Get an array containing all values from the static hash table.
@@ -1305,10 +1305,10 @@ dArray_t* d_GetAllStaticTableKeys(const dStaticTable_t* table);
  * @note The values are copied into the array, not referenced
  *
  * Example:
- * `dArray_t* values = d_GetAllStaticTableValues(table);`
+ * `dArray_t* values = d_GetAllValuesFromStaticTable(table);`
  * `d_DestroyArray(values);`
  */
-dArray_t* d_GetAllStaticTableValues(const dStaticTable_t* table);
+dArray_t* d_GetAllValuesFromStaticTable(const dStaticTable_t* table);
 
 /**
  * @brief Clear all entries from the static hash table but keep the structure intact.
@@ -1435,6 +1435,339 @@ int d_IterateStaticTable(const dStaticTable_t* table, dTableIteratorFunc callbac
  */
 dStaticTable_t* d_CloneStaticTable(const dStaticTable_t* source_table);
 
+// =============================================================================
+// BUILT-IN HASH FUNCTIONS
+// =============================================================================
+
+/**
+ * @brief Hash function for 32-bit integers using Knuth's multiplicative method.
+ *
+ * Uses Knuth's magic constant for excellent distribution with integer keys.
+ * Suitable for most general-purpose integer hashing needs.
+ *
+ * @param key Pointer to integer key
+ * @param key_size Size of the key (should be sizeof(int))
+ * @return Hash value
+ *
+ * Example:
+ * ```c
+ * dTable_t* table = d_InitTable(sizeof(int), sizeof(char*), 
+ *                               d_HashInt, d_CompareInt, 16, 0.75f);
+ * ```
+ */
+size_t d_HashInt(const void* key, size_t key_size);
+
+/**
+ * @brief Hash function for null-terminated strings using FNV-1a algorithm.
+ *
+ * FNV-1a provides excellent distribution for string data with good performance.
+ * Works with any null-terminated string regardless of the key_size parameter.
+ *
+ * @param key Pointer to null-terminated string
+ * @param key_size Size parameter (can be 0 for null-terminated strings)
+ * @return Hash value
+ *
+ * Example:
+ * ```c
+ * dTable_t* table = d_InitTable(sizeof(char*), sizeof(int), 
+ *                               d_HashString, d_CompareString, 16, 0.75f);
+ * ```
+ */
+size_t d_HashString(const void* key, size_t key_size);
+
+/**
+ * @brief Hash function for string literals (const char*).
+ *
+ * Similar to d_HashString but expects the key to be a char* directly,
+ * not a pointer to a char*. Useful for string literal keys.
+ *
+ * @param key Pointer to string (char*)
+ * @param key_size Length of the string (can be 0 for null-terminated)
+ * @return Hash value
+ */
+size_t d_HashStringLiteral(const void* key, size_t key_size);
+
+/**
+ * @brief Hash function for floating-point numbers.
+ *
+ * Converts float to integer representation for hashing.
+ * Note: Be careful with floating-point precision when using as keys.
+ *
+ * @param key Pointer to float value
+ * @param key_size Size of the key (should be sizeof(float))
+ * @return Hash value
+ *
+ * Example:
+ * ```c
+ * dTable_t* table = d_InitTable(sizeof(float), sizeof(int), 
+ *                               d_HashFloat, d_CompareFloat, 16, 0.75f);
+ * ```
+ */
+size_t d_HashFloat(const void* key, size_t key_size);
+
+/**
+ * @brief Hash function for double-precision floating-point numbers.
+ *
+ * Converts double to integer representation for hashing.
+ * Note: Be careful with floating-point precision when using as keys.
+ *
+ * @param key Pointer to double value
+ * @param key_size Size of the key (should be sizeof(double))
+ * @return Hash value
+ */
+size_t d_HashDouble(const void* key, size_t key_size);
+
+/**
+ * @brief General-purpose hash function for binary data using FNV-1a.
+ *
+ * Can hash any binary data of specified length. Useful for structs,
+ * arrays, or any fixed-size binary data.
+ *
+ * @param key Pointer to binary data
+ * @param key_size Size of the data in bytes
+ * @return Hash value
+ *
+ * Example:
+ * ```c
+ * typedef struct { int x, y; } Point;
+ * dTable_t* table = d_InitTable(sizeof(Point), sizeof(int), 
+ *                               d_HashBinary, d_CompareBinary, 16, 0.75f);
+ * ```
+ */
+size_t d_HashBinary(const void* key, size_t key_size);
+
+/**
+ * @brief Hash function for pointers (memory addresses).
+ *
+ * Hashes the pointer value itself, not the data it points to.
+ * Useful when you want to use memory addresses as keys.
+ *
+ * @param key Pointer to pointer value
+ * @param key_size Size of pointer (should be sizeof(void*))
+ * @return Hash value
+ */
+size_t d_HashPointer(const void* key, size_t key_size);
+
+// =============================================================================
+// BUILT-IN COMPARISON FUNCTIONS
+// =============================================================================
+
+/**
+ * @brief Comparison function for 32-bit integers.
+ *
+ * @param key1 Pointer to first integer
+ * @param key2 Pointer to second integer
+ * @param key_size Size of keys (should be sizeof(int))
+ * @return 0 if equal, non-zero if different
+ */
+int d_CompareInt(const void* key1, const void* key2, size_t key_size);
+
+/**
+ * @brief Comparison function for null-terminated strings.
+ *
+ * Compares strings pointed to by char** keys using strcmp.
+ *
+ * @param key1 Pointer to first string pointer (char**)
+ * @param key2 Pointer to second string pointer (char**)
+ * @param key_size Size parameter (unused for null-terminated strings)
+ * @return 0 if equal, non-zero if different
+ */
+int d_CompareString(const void* key1, const void* key2, size_t key_size);
+
+/**
+ * @brief Comparison function for string literals (const char*).
+ *
+ * Compares strings directly, expecting keys to be char* not char**.
+ *
+ * @param key1 Pointer to first string (char*)
+ * @param key2 Pointer to second string (char*)
+ * @param key_size Length to compare (0 for full null-terminated comparison)
+ * @return 0 if equal, non-zero if different
+ */
+int d_CompareStringLiteral(const void* key1, const void* key2, size_t key_size);
+
+/**
+ * @brief Comparison function for floating-point numbers.
+ *
+ * Compares floats with exact equality. Be aware that floating-point
+ * precision issues may cause problems with hash table lookups.
+ *
+ * @param key1 Pointer to first float
+ * @param key2 Pointer to second float
+ * @param key_size Size of keys (should be sizeof(float))
+ * @return 0 if equal, non-zero if different
+ */
+int d_CompareFloat(const void* key1, const void* key2, size_t key_size);
+
+/**
+ * @brief Comparison function for double-precision floating-point numbers.
+ *
+ * Compares doubles with exact equality. Be aware that floating-point
+ * precision issues may cause problems with hash table lookups.
+ *
+ * @param key1 Pointer to first double
+ * @param key2 Pointer to second double
+ * @param key_size Size of keys (should be sizeof(double))
+ * @return 0 if equal, non-zero if different
+ */
+int d_CompareDouble(const void* key1, const void* key2, size_t key_size);
+
+/**
+ * @brief Comparison function for binary data using memcmp.
+ *
+ * Performs byte-by-byte comparison of binary data.
+ *
+ * @param key1 Pointer to first data block
+ * @param key2 Pointer to second data block
+ * @param key_size Size of data blocks in bytes
+ * @return 0 if equal, non-zero if different
+ */
+int d_CompareBinary(const void* key1, const void* key2, size_t key_size);
+
+/**
+ * @brief Comparison function for pointers (memory addresses).
+ *
+ * Compares pointer values, not the data they point to.
+ *
+ * @param key1 Pointer to first pointer value
+ * @param key2 Pointer to second pointer value
+ * @param key_size Size of pointer (should be sizeof(void*))
+ * @return 0 if equal, non-zero if different
+ */
+int d_ComparePointer(const void* key1, const void* key2, size_t key_size);
+
+// =============================================================================
+// SPECIALIZED HASH FUNCTIONS FOR COMMON PATTERNS
+// =============================================================================
+
+/**
+ * @brief Hash function optimized for small positive integers (0-999).
+ *
+ * Uses simple multiplication with good distribution for small integer ranges.
+ * More efficient than general-purpose hashing for known small ranges.
+ *
+ * @param key Pointer to integer key
+ * @param key_size Size of the key (should be sizeof(int))
+ * @return Hash value
+ */
+size_t d_HashSmallInt(const void* key, size_t key_size);
+
+/**
+ * @brief Hash function for case-insensitive strings.
+ *
+ * Converts characters to lowercase before hashing for case-insensitive keys.
+ *
+ * @param key Pointer to string pointer (char**)
+ * @param key_size Size parameter (unused for null-terminated strings)
+ * @return Hash value
+ */
+size_t d_HashStringCaseInsensitive(const void* key, size_t key_size);
+
+/**
+ * @brief Comparison function for case-insensitive strings.
+ *
+ * Performs case-insensitive string comparison.
+ *
+ * @param key1 Pointer to first string pointer (char**)
+ * @param key2 Pointer to second string pointer (char**)
+ * @param key_size Size parameter (unused for null-terminated strings)
+ * @return 0 if equal, non-zero if different
+ */
+int d_CompareStringCaseInsensitive(const void* key1, const void* key2, size_t key_size);
+
+/**
+ * @brief Comparison function for dStaticArray_t objects.
+ *
+ * Compares two static arrays element by element using binary comparison.
+ * Arrays must have the same element_size to be comparable.
+ *
+ * @param array1 Pointer to first dStaticArray_t* (pointer to dStaticArray_t pointer)
+ * @param array2 Pointer to second dStaticArray_t* (pointer to dStaticArray_t pointer)
+ * @param unused Size parameter (unused for arrays)
+ * @return 0 if equal, non-zero if different
+ *
+ * Example:
+ * ```c
+ * dStaticArray_t *arr1, *arr2;
+ * if (d_CompareStaticArray(&arr1, &arr2, 0) == 0) {
+ *     // Arrays are identical
+ * }
+ * ```
+ */
+int d_CompareStaticArray(const void* array1, const void* array2, size_t unused);
+
+/**
+ * @brief Comparison function for dArray_t objects.
+ *
+ * Compares two dynamic arrays element by element using binary comparison.
+ * Arrays must have the same element_size to be comparable.
+ *
+ * @param array1 Pointer to first dArray_t* (pointer to dArray_t pointer)
+ * @param array2 Pointer to second dArray_t* (pointer to dArray_t pointer)
+ * @param unused Size parameter (unused for arrays)
+ * @return 0 if equal, non-zero if different
+ *
+ * Example:
+ * ```c
+ * dArray_t *arr1, *arr2;
+ * if (d_CompareDArray(&arr1, &arr2, 0) == 0) {
+ *     // Arrays are identical
+ * }
+ * ```
+ */
+int d_CompareDArray(const void* array1, const void* array2, size_t unused);
+
+/**
+ * @brief Comparison function for dTable_t objects.
+ *
+ * Compares two dynamic hash tables by comparing their structure and all key-value pairs.
+ * Tables must have matching key_size, value_size, and identical contents to be equal.
+ *
+ * @param table1 Pointer to first dTable_t* (pointer to dTable_t pointer)
+ * @param table2 Pointer to second dTable_t* (pointer to dTable_t pointer)
+ * @param unused Size parameter (unused for tables)
+ * @return 0 if equal, non-zero if different
+ *
+ * Example:
+ * ```c
+ * dTable_t *table1, *table2;
+ * if (d_CompareTable(&table1, &table2, 0) == 0) {
+ *     // Tables have identical structure and contents
+ * }
+ * ```
+ */
+int d_CompareTable(const void* table1, const void* table2, size_t unused);
+
+/**
+ * @brief Comparison function for dStaticTable_t objects.
+ *
+ * Compares two static hash tables by comparing their structure and all key-value pairs.
+ * Tables must have matching key_size, value_size, num_keys, and identical contents to be equal.
+ *
+ * @param table1 Pointer to first dStaticTable_t* (pointer to dStaticTable_t pointer)
+ * @param table2 Pointer to second dStaticTable_t* (pointer to dStaticTable_t pointer)
+ * @param unused Size parameter (unused for tables)
+ * @return 0 if equal, non-zero if different
+ *
+ * Example:
+ * ```c
+ * dStaticTable_t *table1, *table2;
+ * if (d_CompareStaticTable(&table1, &table2, 0) == 0) {
+ *     // Tables have identical structure and contents
+ * }
+ * ```
+ */
+int d_CompareStaticTable(const void* table1, const void* table2, size_t unused);
+
+/**
+ * @brief Comparison function for dString_t objects.
+ *
+ * @param key1 Pointer to first dString_t* (pointer to dString_t pointer)
+ * @param key2 Pointer to second dString_t* (pointer to dString_t pointer)
+ * @param key_size Size parameter (unused for dString_t)
+ * @return 0 if equal, non-zero if different
+ */
+int d_CompareDString(const void* key1, const void* key2, size_t key_size);
 
 /* Quad Tree */
 dQuadTree_t *d_CreateQuadtree( float *rect, int capacity );
@@ -1484,7 +1817,7 @@ void d_DestroyString(dString_t* sb);
  * 
  * @return: Success/failure indicator.
  */
-void d_AppendString(dString_t* sb, const char* str, size_t len);
+void d_AppendToString(dString_t* sb, const char* str, size_t len);
 
 /**
  * @brief Set the content of an existing dString_t to a new value.
@@ -1512,7 +1845,7 @@ dString_t* d_CloneString(const dString_t* source);
  * @param sb The string builder to remove from.
  * @param count The number of characters to remove.
  */
-void d_AppendStringN(dString_t* sb, const char* str, size_t max_len);
+void d_AppendToStringN(dString_t* sb, const char* str, size_t max_len);
 
 /**
  * @brief Add a single character to the string builder.
@@ -1520,7 +1853,7 @@ void d_AppendStringN(dString_t* sb, const char* str, size_t max_len);
  * @param sb The string builder to append to.
  * @param c The character to append.
  */
-void d_AppendChar(dString_t* sb, char c);
+void d_AppendCharToString(dString_t* sb, char c);
 /**
  * @brief Add an integer to the string builder as a decimal string.
  * 
@@ -1528,7 +1861,7 @@ void d_AppendChar(dString_t* sb, char c);
  * @param val The integer value to append.
  
  */
-void d_AppendInt(dString_t* sb, int val);
+void d_AppendIntToString(dString_t* sb, int val);
 /**
  * @brief Add a floating-point number to the string builder.
  * 
@@ -1538,7 +1871,7 @@ void d_AppendInt(dString_t* sb, int val);
  * 
  * @return: Success/failure indicator.
  */
-void d_AppendFloat(dString_t* sb, float val, int decimals);
+void d_AppendFloatToString(dString_t* sb, float val, int decimals);
 /**
  * @brief Clear the string builder content.
  * 
@@ -1579,7 +1912,7 @@ void d_DropString(dString_t* sb, size_t len);
  * -- Return value does not include the null terminator
  * -- Safe to call with NULL pointer (returns 0)
  */
-size_t d_GetStringLength(const dString_t* sb);
+size_t d_GetLengthOfString(const dString_t* sb);
 /*
  * Get a read-only pointer to the string builder's content
  *
@@ -1637,7 +1970,7 @@ void d_FormatString(dString_t* sb, const char* format, ...);
  * -- Keys longer than 255 characters are treated as literal text
  * -- Supports nested braces by treating unmatched { as literal characters
  */
-void d_TemplateString(dString_t* sb, const char* tmplt, const char** keys, const char** values, int count);
+void d_ApplyTemplateToString(dString_t* sb, const char* tmplt, const char** keys, const char** values, int count);
 /*
  * Add an ASCII progress bar to the string builder
  *
@@ -1654,7 +1987,7 @@ void d_TemplateString(dString_t* sb, const char* tmplt, const char** keys, const
  * -- If current < 0, the bar is empty
  * -- Total visual width is width + 2 (for brackets)
  */
-void d_AppendProgressBar(dString_t* sb, int current, int max, int width, char fill_char, char empty_char);
+void d_AppendProgressBarToString(dString_t* sb, int current, int max, int width, char fill_char, char empty_char);
 /*
   * Add text padded to the center with specified character to reach target width
   *

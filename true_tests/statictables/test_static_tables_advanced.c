@@ -78,8 +78,8 @@ int test_static_table_clear_functionality(void)
     }
 
     // Test getting arrays from cleared table
-    dArray_t* keys_array = d_GetAllStaticTableKeys(table);
-    dArray_t* values_array = d_GetAllStaticTableValues(table);
+    dArray_t* keys_array = d_GetAllKeysFromStaticTable(table);
+    dArray_t* values_array = d_GetAllValuesFromStaticTable(table);
     TEST_ASSERT(keys_array == NULL, "Should return NULL for keys from uninitialized table");
     TEST_ASSERT(values_array == NULL, "Should return NULL for values from uninitialized table");
 
@@ -251,7 +251,7 @@ int test_static_table_string_keys_advanced_operations(void)
     }
 
     // Test getting all string keys from rebucketed table
-    dArray_t* all_keys = d_GetAllStaticTableKeys(rebucketed);
+    dArray_t* all_keys = d_GetAllKeysFromStaticTable(rebucketed);
     TEST_ASSERT(all_keys != NULL && all_keys->count == 5, "Should get all string keys from rebucketed table");
 
     // Verify we can find all original keys
@@ -311,8 +311,8 @@ int test_static_table_large_dataset_advanced_operations(void)
     TEST_ASSERT(d_GetKeyCountOfStaticTable(rebucketed) == num_entries, "Should maintain key count after rebucketing");
 
     // Get all keys and values to verify integrity
-    dArray_t* all_keys = d_GetAllStaticTableKeys(rebucketed);
-    dArray_t* all_values = d_GetAllStaticTableValues(rebucketed);
+    dArray_t* all_keys = d_GetAllKeysFromStaticTable(rebucketed);
+    dArray_t* all_values = d_GetAllValuesFromStaticTable(rebucketed);
     
     TEST_ASSERT(all_keys != NULL, "Should get keys array from large rebucketed dataset");
     TEST_ASSERT(all_keys->count == num_entries, "Should have correct number of keys");
@@ -381,8 +381,8 @@ int test_static_table_mixed_operations_stress_test(void)
                 "Should get rebucketed stats");
 
     // Phase 5: Verify all keys and updated values
-    dArray_t* final_keys = d_GetAllStaticTableKeys(rebucketed);
-    dArray_t* final_values = d_GetAllStaticTableValues(rebucketed);
+    dArray_t* final_keys = d_GetAllKeysFromStaticTable(rebucketed);
+    dArray_t* final_values = d_GetAllValuesFromStaticTable(rebucketed);
     
     TEST_ASSERT(final_keys != NULL && final_keys->count == 10, "Should get all keys in stress test");
     TEST_ASSERT(final_values != NULL && final_values->count == 10, "Should get all values in stress test");

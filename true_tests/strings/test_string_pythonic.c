@@ -21,7 +21,7 @@ dString_t* create_test_string(const char* initial_content)
 {
     dString_t* str = d_InitString();
     if (initial_content) {
-        d_AppendString(str, initial_content, 0);
+        d_AppendToString(str, initial_content, 0);
     }
     return str;
 }
@@ -30,14 +30,14 @@ dString_t* create_test_string(const char* initial_content)
 void log_string_content(const char* label, const dString_t* str)
 {
     dString_t* log_message = d_InitString();
-    d_AppendString(log_message, label, 0);
-    d_AppendString(log_message, ": ", 0);
+    d_AppendToString(log_message, label, 0);
+    d_AppendToString(log_message, ": ", 0);
     if (str && d_PeekString(str)) {
-        d_AppendString(log_message, "'", 0);
-        d_AppendString(log_message, d_PeekString(str), 0);
-        d_AppendString(log_message, "'", 0);
+        d_AppendToString(log_message, "'", 0);
+        d_AppendToString(log_message, d_PeekString(str), 0);
+        d_AppendToString(log_message, "'", 0);
     } else {
-        d_AppendString(log_message, "[NULL or EMPTY]", 0);
+        d_AppendToString(log_message, "[NULL or EMPTY]", 0);
     }
     LOG(log_message->str);
     d_DestroyString(log_message);
@@ -47,27 +47,27 @@ void log_string_content(const char* label, const dString_t* str)
 void log_string_array(const char* label, dArray_t* array)
 {
     dString_t* log_message = d_InitString();
-    d_AppendString(log_message, label, 0);
+    d_AppendToString(log_message, label, 0);
     if (array) {
-        d_AppendString(log_message, " (count: ", 0);
-        d_AppendInt(log_message, (int)array->count);
-        d_AppendString(log_message, "): [", 0);
+        d_AppendToString(log_message, " (count: ", 0);
+        d_AppendIntToString(log_message, (int)array->count);
+        d_AppendToString(log_message, "): [", 0);
 
         for (size_t i = 0; i < array->count; i++) {
-            if (i > 0) d_AppendString(log_message, ", ", 0);
-            d_AppendString(log_message, "'", 0);
+            if (i > 0) d_AppendToString(log_message, ", ", 0);
+            d_AppendToString(log_message, "'", 0);
 
             dString_t** str_ptr = (dString_t**)d_IndexDataFromArray(array, i);
             if (str_ptr && *str_ptr) {
-                d_AppendString(log_message, d_PeekString(*str_ptr), 0);
+                d_AppendToString(log_message, d_PeekString(*str_ptr), 0);
             } else {
-                d_AppendString(log_message, "NULL", 0);
+                d_AppendToString(log_message, "NULL", 0);
             }
-            d_AppendString(log_message, "'", 0);
+            d_AppendToString(log_message, "'", 0);
         }
-        d_AppendString(log_message, "]", 0);
+        d_AppendToString(log_message, "]", 0);
     } else {
-        d_AppendString(log_message, ": [NULL]", 0);
+        d_AppendToString(log_message, ": [NULL]", 0);
     }
     LOG(log_message->str);
     d_DestroyString(log_message);
@@ -87,7 +87,7 @@ int test_join_basic(void)
 
     TEST_ASSERT(sb != NULL, "String builder should not be NULL");
     TEST_ASSERT(strcmp(d_PeekString(sb), "apple, banana, cherry") == 0, "Basic join failed");
-    TEST_ASSERT(d_GetStringLength(sb) > 0, "Joined string should have content");
+    TEST_ASSERT(d_GetLengthOfString(sb) > 0, "Joined string should have content");
 
     d_DestroyString(sb);
     return 1;
@@ -103,7 +103,7 @@ int test_join_single_item(void)
 
     TEST_ASSERT(sb != NULL, "String builder should not be NULL");
     TEST_ASSERT(strcmp(d_PeekString(sb), "lonely") == 0, "Single item join failed");
-    TEST_ASSERT(d_GetStringLength(sb) == 6, "Single item should have correct length");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 6, "Single item should have correct length");
 
     d_DestroyString(sb);
     return 1;
@@ -119,7 +119,7 @@ int test_join_empty_separator(void)
 
     TEST_ASSERT(sb != NULL, "String builder should not be NULL");
     TEST_ASSERT(strcmp(d_PeekString(sb), "abc") == 0, "Empty separator join failed");
-    TEST_ASSERT(d_GetStringLength(sb) == 3, "Result should have correct length");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 3, "Result should have correct length");
 
     d_DestroyString(sb);
     return 1;
@@ -135,7 +135,7 @@ int test_join_null_separator(void)
 
     TEST_ASSERT(sb != NULL, "String builder should not be NULL");
     TEST_ASSERT(strcmp(d_PeekString(sb), "helloworld") == 0, "NULL separator join failed");
-    TEST_ASSERT(d_GetStringLength(sb) == 10, "Result should have correct length");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 10, "Result should have correct length");
 
     d_DestroyString(sb);
     return 1;
@@ -151,7 +151,7 @@ int test_join_with_nulls(void)
 
     TEST_ASSERT(sb != NULL, "String builder should not be NULL");
     TEST_ASSERT(strcmp(d_PeekString(sb), "start--end") == 0, "Join with NULL strings failed");
-    TEST_ASSERT(d_GetStringLength(sb) == 10, "Result should handle NULL items correctly");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 10, "Result should handle NULL items correctly");
 
     d_DestroyString(sb);
     return 1;
@@ -183,7 +183,7 @@ int test_join_null_safety(void)
     d_JoinStrings(sb, NULL, 3, ",");
     log_string_content("Join with NULL array result", sb);
 
-    TEST_ASSERT(d_GetStringLength(sb) == 0, "NULL array should not modify string");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 0, "NULL array should not modify string");
     TEST_ASSERT(strcmp(d_PeekString(sb), "") == 0, "String should remain empty with NULL array");
 
     d_DestroyString(sb);
@@ -203,7 +203,7 @@ int test_slice_basic(void)
 
     TEST_ASSERT(sb != NULL, "String builder should not be NULL");
     TEST_ASSERT(strcmp(d_PeekString(sb), "World") == 0, "Basic slice failed");
-    TEST_ASSERT(d_GetStringLength(sb) == 5, "Sliced string should have correct length");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 5, "Sliced string should have correct length");
 
     d_DestroyString(sb);
     return 1;
@@ -218,7 +218,7 @@ int test_slice_beginning(void)
 
     TEST_ASSERT(sb != NULL, "String builder should not be NULL");
     TEST_ASSERT(strcmp(d_PeekString(sb), "Hello") == 0, "Beginning slice failed");
-    TEST_ASSERT(d_GetStringLength(sb) == 5, "Sliced string should have correct length");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 5, "Sliced string should have correct length");
 
     d_DestroyString(sb);
     return 1;
@@ -233,7 +233,7 @@ int test_slice_middle(void)
 
     TEST_ASSERT(sb != NULL, "String builder should not be NULL");
     TEST_ASSERT(strcmp(d_PeekString(sb), "llo Wor") == 0, "Middle slice failed");
-    TEST_ASSERT(d_GetStringLength(sb) == 7, "Sliced string should have correct length");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 7, "Sliced string should have correct length");
 
     d_DestroyString(sb);
     return 1;
@@ -248,7 +248,7 @@ int test_slice_negative_indices(void)
 
     TEST_ASSERT(sb != NULL, "String builder should not be NULL");
     TEST_ASSERT(strcmp(d_PeekString(sb), "llo") == 0, "Negative indices slice failed");
-    TEST_ASSERT(d_GetStringLength(sb) == 3, "Sliced string should have correct length");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 3, "Sliced string should have correct length");
 
     d_DestroyString(sb);
     return 1;
@@ -263,7 +263,7 @@ int test_slice_negative_to_end(void)
 
     TEST_ASSERT(sb != NULL, "String builder should not be NULL");
     TEST_ASSERT(strcmp(d_PeekString(sb), "World") == 0, "Negative start to end slice failed");
-    TEST_ASSERT(d_GetStringLength(sb) == 5, "Sliced string should have correct length");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 5, "Sliced string should have correct length");
 
     d_DestroyString(sb);
     return 1;
@@ -278,7 +278,7 @@ int test_slice_whole_string(void)
 
     TEST_ASSERT(sb != NULL, "String builder should not be NULL");
     TEST_ASSERT(strcmp(d_PeekString(sb), "Hello") == 0, "Whole string slice failed");
-    TEST_ASSERT(d_GetStringLength(sb) == 5, "Sliced string should have correct length");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 5, "Sliced string should have correct length");
 
     d_DestroyString(sb);
     return 1;
@@ -293,7 +293,7 @@ int test_slice_empty_result(void)
 
     TEST_ASSERT(sb != NULL, "String builder should not be NULL");
     TEST_ASSERT(strcmp(d_PeekString(sb), "") == 0, "Empty slice failed");
-    TEST_ASSERT(d_GetStringLength(sb) == 0, "Empty slice should have zero length");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 0, "Empty slice should have zero length");
 
     d_DestroyString(sb);
     return 1;
@@ -308,7 +308,7 @@ int test_slice_reverse_indices(void)
 
     TEST_ASSERT(sb != NULL, "String builder should not be NULL");
     TEST_ASSERT(strcmp(d_PeekString(sb), "") == 0, "Reverse indices should produce empty string");
-    TEST_ASSERT(d_GetStringLength(sb) == 0, "Reverse indices should have zero length");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 0, "Reverse indices should have zero length");
 
     d_DestroyString(sb);
     return 1;
@@ -323,7 +323,7 @@ int test_slice_out_of_bounds(void)
 
     TEST_ASSERT(sb != NULL, "String builder should not be NULL");
     TEST_ASSERT(strcmp(d_PeekString(sb), "") == 0, "Out of bounds slice should be empty");
-    TEST_ASSERT(d_GetStringLength(sb) == 0, "Out of bounds slice should have zero length");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 0, "Out of bounds slice should have zero length");
 
     d_DestroyString(sb);
     return 1;
@@ -338,7 +338,7 @@ int test_slice_negative_extreme(void)
 
     TEST_ASSERT(sb != NULL, "String builder should not be NULL");
     TEST_ASSERT(strcmp(d_PeekString(sb), "Hello") == 0, "Extreme negative start should be clamped");
-    TEST_ASSERT(d_GetStringLength(sb) == 5, "Clamped slice should have correct length");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 5, "Clamped slice should have correct length");
 
     d_DestroyString(sb);
     return 1;
@@ -353,7 +353,7 @@ int test_slice_append_to_existing(void)
 
     TEST_ASSERT(sb != NULL, "String builder should not be NULL");
     TEST_ASSERT(strcmp(d_PeekString(sb), "Start: World") == 0, "Slice append failed");
-    TEST_ASSERT(d_GetStringLength(sb) == 12, "Appended slice should have correct length");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 12, "Appended slice should have correct length");
 
     d_DestroyString(sb);
     return 1;
@@ -369,7 +369,7 @@ int test_slice_null_safety(void)
     d_SliceString(sb, NULL, 0, 4);
     log_string_content("Slice with NULL text result", sb);
 
-    TEST_ASSERT(d_GetStringLength(sb) == 0, "NULL text should not modify string");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 0, "NULL text should not modify string");
     TEST_ASSERT(strcmp(d_PeekString(sb), "") == 0, "String should remain empty with NULL text");
 
     d_DestroyString(sb);
@@ -430,9 +430,9 @@ int test_rpg_name_generation(void)
 
     // Create a character name by slicing and joining parts
     d_SliceString(name, "Alexander", 0, 4);  // "Alex"
-    d_AppendString(name, " ", 0);
+    d_AppendToString(name, " ", 0);
     d_SliceString(name, "Thunderstrike", 0, 7);  // "Thunder"
-    d_AppendString(name, "born", 0);
+    d_AppendToString(name, "born", 0);
 
     log_string_content("Generated name", name);
 
@@ -456,8 +456,8 @@ int test_rpg_dialogue_word_wrapping(void)
     for (int i = 0; i < words->count; i++) {
         dString_t** word_ptr = (dString_t**)d_IndexDataFromArray(words, i);
         dString_t* word = *word_ptr;
-        d_AppendString(log_message, word->str, 0);
-        d_AppendChar(log_message, '\t');
+        d_AppendToString(log_message, word->str, 0);
+        d_AppendCharToString(log_message, '\t');
     }
     LOG(log_message->str);
     d_DestroyString(log_message);

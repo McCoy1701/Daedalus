@@ -28,15 +28,15 @@ void extreme_test_capture_handler(const dLogEntry_t* entry, void* user_data) {
         test_capture_buffer = d_InitString();
     }
 
-    d_AppendString(test_capture_buffer, "[", 0);
-    d_AppendString(test_capture_buffer, d_LogLevel_ToString(entry->level), 0);
-    d_AppendString(test_capture_buffer, "] ", 0);
+    d_AppendToString(test_capture_buffer, "[", 0);
+    d_AppendToString(test_capture_buffer, d_LogLevel_ToString(entry->level), 0);
+    d_AppendToString(test_capture_buffer, "] ", 0);
 
     if (entry->message) {
-        d_AppendString(test_capture_buffer, d_PeekString(entry->message), 0);
+        d_AppendToString(test_capture_buffer, d_PeekString(entry->message), 0);
     }
 
-    d_AppendString(test_capture_buffer, "\n", 0);
+    d_AppendToString(test_capture_buffer, "\n", 0);
 }
 
 void setup_extreme_test_logging() {
@@ -772,8 +772,8 @@ int test_epic_ultimate_chaos_final_boss() {
             dString_t* temp_strings[10];
             for (int j = 0; j < 10; j++) {
                 temp_strings[j] = d_InitString();
-                d_AppendString(temp_strings[j], "Memory pressure test string", 0);
-                d_AppendInt(temp_strings[j], i * j);
+                d_AppendToString(temp_strings[j], "Memory pressure test string", 0);
+                d_AppendIntToString(temp_strings[j], i * j);
             }
 
             for (int j = 0; j < 10; j++) {
@@ -800,7 +800,7 @@ int test_epic_ultimate_chaos_final_boss() {
     // Test with extremely long messages
     dString_t* long_message = d_InitString();
     for (int i = 0; i < 1000; i++) {
-        d_AppendString(long_message, "This is a very long message designed to test buffer handling. ", 0);
+        d_AppendToString(long_message, "This is a very long message designed to test buffer handling. ", 0);
     }
     d_LogInfo(d_PeekString(long_message));
     d_DestroyString(long_message);
@@ -958,8 +958,8 @@ int debug_hunter_resource_exhaustion_test() {
 
         // Create massive strings to exhaust memory
         for (int j = 0; j < 100; j++) {
-            d_AppendString(hog, "RESOURCE_EXHAUSTION_TEST_STRING_PADDING_", 0);
-            d_AppendInt(hog, i * j);
+            d_AppendToString(hog, "RESOURCE_EXHAUSTION_TEST_STRING_PADDING_", 0);
+            d_AppendIntToString(hog, i * j);
         }
 
         d_AppendDataToArray(resource_hogs, &hog);
@@ -1032,7 +1032,7 @@ int debug_hunter_malformed_input_injection_test() {
     d_LogDebug("Testing extremely long string inputs");
     dString_t* malformed_long = d_InitString();
     for (int i = 0; i < 10000; i++) {
-        d_AppendString(malformed_long, "A", 0);
+        d_AppendToString(malformed_long, "A", 0);
     }
     d_Log(D_LOG_LEVEL_INFO, d_PeekString(malformed_long));
     d_DestroyString(malformed_long);
@@ -1140,7 +1140,7 @@ int debug_hunter_cascading_failure_test() {
     d_LogDebug("Phase 3: Memory corruption simulation");
 
     dString_t* corruption_test = d_InitString();
-    d_AppendString(corruption_test, "Before corruption", 0);
+    d_AppendToString(corruption_test, "Before corruption", 0);
 
     // Simulate memory corruption
     d_LogWarning("Simulating memory corruption scenario");

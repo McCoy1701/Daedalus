@@ -259,7 +259,7 @@ int test_static_table_get_all_keys(void)
     TEST_ASSERT(table != NULL, "Table should be created successfully");
 
     // Get all keys
-    dArray_t* all_keys = d_GetAllStaticTableKeys(table);
+    dArray_t* all_keys = d_GetAllKeysFromStaticTable(table);
     TEST_ASSERT(all_keys != NULL, "Should return valid keys array");
     TEST_ASSERT(all_keys->count == 5, "Should have 5 keys in array");
 
@@ -295,7 +295,7 @@ int test_static_table_get_all_values(void)
     TEST_ASSERT(table != NULL, "Table should be created successfully");
 
     // Get all values
-    dArray_t* all_values = d_GetAllStaticTableValues(table);
+    dArray_t* all_values = d_GetAllValuesFromStaticTable(table);
     TEST_ASSERT(all_values != NULL, "Should return valid values array");
     TEST_ASSERT(all_values->count == 4, "Should have 4 values in array");
 
@@ -403,8 +403,8 @@ int test_static_table_error_handling(void)
     TEST_ASSERT(d_GetValueInStaticTable(NULL, &key) == NULL, "Get with NULL table should return NULL");
     TEST_ASSERT(d_CheckForKeyInStaticTable(NULL, &key) == 1, "Check with NULL table should return not found");
     TEST_ASSERT(d_GetKeyCountOfStaticTable(NULL) == 0, "Count with NULL table should return 0");
-    TEST_ASSERT(d_GetAllStaticTableKeys(NULL) == NULL, "Get keys with NULL table should return NULL");
-    TEST_ASSERT(d_GetAllStaticTableValues(NULL) == NULL, "Get values with NULL table should return NULL");
+    TEST_ASSERT(d_GetAllKeysFromStaticTable(NULL) == NULL, "Get keys with NULL table should return NULL");
+    TEST_ASSERT(d_GetAllValuesFromStaticTable(NULL) == NULL, "Get values with NULL table should return NULL");
 
     // Test operations with NULL key/value
     TEST_ASSERT(d_SetValueInStaticTable(table, NULL, &value) == 1, "Set with NULL key should fail");

@@ -513,10 +513,10 @@ size_t d_GetKeyCountOfStaticTable(const dStaticTable_t* table)
  * @note The keys are copied into the array, not referenced
  *
  * Example:
- * `dArray_t* keys = d_GetAllStaticTableKeys(table);`
+ * `dArray_t* keys = d_GetAllKeysFromStaticTable(table);`
  * `d_DestroyArray(keys);`
  */
-dArray_t* d_GetAllStaticTableKeys(const dStaticTable_t* table)
+dArray_t* d_GetAllKeysFromStaticTable(const dStaticTable_t* table)
 {
     if (!table) {
         d_LogError("Attempted to get keys from NULL static hash table.");
@@ -575,10 +575,10 @@ dArray_t* d_GetAllStaticTableKeys(const dStaticTable_t* table)
  * @note The values are copied into the array, not referenced
  *
  * Example:
- * `dArray_t* values = d_GetAllStaticTableValues(table);`
+ * `dArray_t* values = d_GetAllValuesFromStaticTable(table);`
  * `d_DestroyArray(values);`
  */
-dArray_t* d_GetAllStaticTableValues(const dStaticTable_t* table)
+dArray_t* d_GetAllValuesFromStaticTable(const dStaticTable_t* table)
 {
     if (!table) {
         d_LogError("Attempted to get values from NULL static hash table.");
@@ -806,13 +806,13 @@ dStaticTable_t* d_RebucketStaticTable(const dStaticTable_t* source_table, size_t
     }
 
     // Collect all current keys and values
-    dArray_t* all_keys = d_GetAllStaticTableKeys(source_table);
+    dArray_t* all_keys = d_GetAllKeysFromStaticTable(source_table);
     if (!all_keys) {
         d_LogError("Failed to collect keys for rebucketing.");
         return NULL;
     }
 
-    dArray_t* all_values = d_GetAllStaticTableValues(source_table);
+    dArray_t* all_values = d_GetAllValuesFromStaticTable(source_table);
     if (!all_values) {
         d_LogError("Failed to collect values for rebucketing.");
         d_DestroyArray(all_keys);
@@ -889,19 +889,20 @@ dStaticTable_t* d_RebucketStaticTable(const dStaticTable_t* source_table, size_t
  *
  * @return A pointer to the newly created dStaticTable_t, or NULL on failure.
  *
- * @note The caller is responsible for destroying the returned table with d_DestroyStaticTable().
- * @note The new table will have the same configuration (key_size, value_size,
- * hash_func, compare_func, and num_buckets) as the source table.
+ * @note The caller is responsible for destroying the new table with d_DestroyStaticTable.
+ * @note The source table remains unchanged.
  *
  * Example:
- * `dStaticTable_t* cloned_static_table = d_CloneStaticTable(original_static_table);`
- * `// Use cloned_static_table...`
- * `d_DestroyStaticTable(&cloned_static_table);`
+ * `dStaticTable_t* new_table = d_CloneStaticTable(original_table);`
+ * `if (new_table) {`
+ * `    // ... use the new table`
+ * `    d_DestroyStaticTable(&new_table);`
+ * `}`
  */
 dStaticTable_t* d_CloneStaticTable(const dStaticTable_t* source_table)
 {
     if (!source_table) {
-        d_LogError("Attempted to clone a NULL source static hash table.");
+        d_LogError("Attempted to clone a NULL static hash table.");
         return NULL;
     }
 
@@ -910,90 +911,72 @@ dStaticTable_t* d_CloneStaticTable(const dStaticTable_t* source_table)
         return NULL;
     }
 
-    // 1. Collect all current keys and values from the source table
-    dArray_t* all_keys = d_GetAllStaticTableKeys(source_table);
+    // Use existing functions to extract all keys and values
+    dArray_t* all_keys = d_GetAllKeysFromStaticTable(source_table);
     if (!all_keys) {
-        d_LogError("Failed to collect keys for static table cloning.");
+        d_LogError("Failed to collect keys for cloning.");
         return NULL;
     }
 
-    dArray_t* all_values = d_GetAllStaticTableValues(source_table);
+    dArray_t* all_values = d_GetAllValuesFromStaticTable(source_table);
     if (!all_values) {
-        d_LogError("Failed to collect values for static table cloning.");
+        d_LogError("Failed to collect values for cloning.");
         d_DestroyArray(all_keys);
         return NULL;
     }
 
-    // Handle case where source table has no keys (though num_keys should be 0 then)
-    if (source_table->num_keys == 0) {
-        d_LogInfo("Source static table is empty. Creating an empty clone.");
-        d_DestroyArray(all_keys);
-        d_DestroyArray(all_values);
-        // Create an empty table with the same properties
-        return d_InitStaticTable(source_table->key_size,
-                                 source_table->value_size,
-                                 source_table->hash_func,
-                                 source_table->compare_func,
-                                 source_table->num_buckets,
-                                 NULL, // No keys
-                                 NULL, // No initial values
-                                 0);   // 0 keys
-    }
+    // d_InitStaticTable requires an array of pointers to the data.
+    // We create temporary arrays of pointers to the data within our collected arrays.
+    const void** key_ptrs = (const void**)malloc(source_table->num_keys * sizeof(void*));
+    const void** value_ptrs = (const void**)malloc(source_table->num_keys * sizeof(void*));
 
-    // 2. Create arrays of pointers for the new table initialization
-    // These pointers will point to the data *within* all_keys and all_values dArrays.
-    void** key_ptrs = malloc(source_table->num_keys * sizeof(void*));
-    void** value_ptrs = malloc(source_table->num_keys * sizeof(void*));
-    
     if (!key_ptrs || !value_ptrs) {
-        d_LogError("Failed to allocate pointer arrays for static table cloning.");
-        free(key_ptrs); // Safe to call free on NULL
+        d_LogError("Failed to allocate pointer arrays for cloning operation.");
+        free(key_ptrs); // It's safe to free NULL
         free(value_ptrs);
         d_DestroyArray(all_keys);
         d_DestroyArray(all_values);
         return NULL;
     }
-
-    // Populate pointer arrays
+    
+    // Populate the pointer arrays
     for (size_t i = 0; i < source_table->num_keys; i++) {
         key_ptrs[i] = d_IndexDataFromArray(all_keys, i);
         value_ptrs[i] = d_IndexDataFromArray(all_values, i);
-        
         if (!key_ptrs[i] || !value_ptrs[i]) {
-            d_LogErrorF("Failed to retrieve key/value data from temporary array at index %zu during cloning.", i);
-            free(key_ptrs);
-            free(value_ptrs);
-            d_DestroyArray(all_keys);
-            d_DestroyArray(all_values);
-            return NULL;
+             d_LogError("Failed to retrieve data from temporary arrays during cloning.");
+             free(key_ptrs);
+             free(value_ptrs);
+             d_DestroyArray(all_keys);
+             d_DestroyArray(all_values);
+             return NULL;
         }
     }
 
-    // 3. Initialize the new static table using the collected data
+    // Create the new table using the collected data and original parameters
     dStaticTable_t* new_table = d_InitStaticTable(
         source_table->key_size,
         source_table->value_size,
         source_table->hash_func,
         source_table->compare_func,
         source_table->num_buckets,
-        (const void**)key_ptrs,   // Cast to const void** for the function signature
-        (const void**)value_ptrs, // Cast to const void** for the function signature
+        key_ptrs,
+        value_ptrs,
         source_table->num_keys
     );
 
-    // 4. Cleanup temporary arrays and pointer arrays
+    // Clean up all temporary allocations
     free(key_ptrs);
     free(value_ptrs);
     d_DestroyArray(all_keys);
     d_DestroyArray(all_values);
 
     if (new_table) {
-        d_LogInfoF("Successfully cloned static table with %zu fixed keys and %zu buckets.",
-                   new_table->num_keys, new_table->num_buckets);
+        d_LogInfoF("Successfully cloned static table with %zu keys.", source_table->num_keys);
     } else {
-        d_LogError("Failed to create cloned static table.");
+        d_LogError("Failed to create new table during clone operation.");
     }
-
+    
     return new_table;
 }
 

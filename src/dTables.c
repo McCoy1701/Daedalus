@@ -136,19 +136,18 @@ static void _d_GenerateEntryName(const dTableEntry_t* entry, char* name_buffer, 
  * @param hash_func A pointer to the user-provided hashing function
  * @param compare_func A pointer to the user-provided key comparison function
  * @param initial_num_buckets The initial number of buckets for the table
- * @param load_factor_threshold The threshold at which the table will rehash
  *
  * @return A pointer to the newly initialized dTable_t instance, or NULL on failure
  *
  * Example:
- * `dTable_t* table = d_InitTable(sizeof(int), sizeof(char*), my_hash, my_compare, 16, 0.75f);`
+ * `dTable_t* table = d_InitTable(sizeof(int), sizeof(char*), my_hash, my_compare, 16);`
  */
 dTable_t* d_InitTable(size_t key_size, size_t value_size, dTableHashFunc hash_func,
-                      dTableCompareFunc compare_func, size_t initial_num_buckets,
-                      float load_factor_threshold)
+                      dTableCompareFunc compare_func, size_t initial_num_buckets
+                    )
 {
     if (key_size == 0 || value_size == 0 || !hash_func || !compare_func || 
-        initial_num_buckets == 0 || load_factor_threshold <= 0.0f) {
+        initial_num_buckets == 0) {
         d_LogError("Invalid parameters for hash table initialization.");
         return NULL;
     }
@@ -180,10 +179,10 @@ dTable_t* d_InitTable(size_t key_size, size_t value_size, dTableHashFunc hash_fu
     table->value_size = value_size;
     table->hash_func = hash_func;
     table->compare_func = compare_func;
-    table->load_factor_threshold = load_factor_threshold;
+    table->load_factor_threshold = 0.75f;
 
     d_LogDebugF("Initialized hash table with %zu buckets, load factor threshold: %.2f",
-                initial_num_buckets, load_factor_threshold);
+                initial_num_buckets, 0.75f);
 
     return table;
 }
@@ -263,9 +262,9 @@ int d_DestroyTable(dTable_t** table)
  * @return 0 on success, 1 on failure
  *
  * Example:
- * `int key = 42; char* value = "hello"; d_SetDataToTable(table, &key, &value);`
+ * `int key = 42; char* value = "hello"; d_SetDataInTable(table, &key, &value);`
  */
-int d_SetDataToTable(dTable_t* table, const void* key, const void* value)
+int d_SetDataInTable(dTable_t* table, const void* key, const void* value)
 {
     if (!table || !key || !value) {
         d_LogError("Invalid parameters for setting data to hash table.");
@@ -332,12 +331,21 @@ int d_SetDataToTable(dTable_t* table, const void* key, const void* value)
     d_LogDebugF("Added new key-value pair to hash table (bucket %zu, total count: %zu).",
                 bucket_index, table->count);
 
+    d_LogDebugF("Load Factor for the Table is %.2f", table->load_factor_threshold);
     // Check if rehashing is needed
     float current_load_factor = (float)table->count / (float)table->num_buckets;
     if (current_load_factor > table->load_factor_threshold) {
-        d_LogInfoF("Load factor (%.2f) exceeds threshold (%.2f). Rehashing recommended.",
+        d_LogInfoF("Load factor (%.2f) exceeds threshold (%.2f). Triggering auto-rehash.",
                    current_load_factor, table->load_factor_threshold);
-        // TODO: Implement rehashing in future version
+        
+        // Auto-resize by doubling the number of buckets.
+        // d_RehashTable with 0 for the new size handles this automatically.
+        if (d_RehashTable(table, 0) != 0) {
+            d_LogError("Rehashing failed. Table performance may be degraded.");
+            // The insertion was successful, but the table maintenance failed.
+            // Return 1 to signal that a non-fatal error occurred.
+            return 1;
+        }
     }
 
     return 0;
@@ -842,86 +850,3 @@ dArray_t* d_GetAllValuesFromTable(const dTable_t* table)
     return all_values_array;
 }
 
-/**
- * @brief Create a deep copy of a dynamic hash table.
- *
- * This function creates a new dTable_t and copies all key-value pairs
- * from the source table into the new table. All keys and values are
- * deep-copied, ensuring the new table is independent of the original.
- *
- * @param source_table A pointer to the dTable_t to clone.
- *
- * @return A pointer to the newly created dTable_t, or NULL on failure.
- *
- * @note The caller is responsible for destroying the returned table with d_DestroyTable().
- * @note The new table will have the same configuration (key_size, value_size,
- * hash_func, compare_func, initial num_buckets, load_factor_threshold)
- * as the source table.
- *
- * Example:
- * `dTable_t* cloned_table = d_CloneTable(original_table);`
- * `// Use cloned_table...`
- * `d_DestroyTable(&cloned_table);`
- */
-dTable_t* d_CloneTable(const dTable_t* source_table)
-{
-    if (!source_table) {
-        d_LogError("Attempted to clone a NULL source hash table.");
-        return NULL;
-    }
-
-    // 1. Initialize a new dTable_t with the same configuration
-    // We use the source table's current number of buckets and load factor threshold
-    // for the initial allocation, as this is typically what you want for a copy.
-    dTable_t* new_table = d_InitTable(source_table->key_size,
-                                      source_table->value_size,
-                                      source_table->hash_func,
-                                      source_table->compare_func,
-                                      source_table->num_buckets, // Use current buckets, not necessarily initial
-                                      source_table->load_factor_threshold);
-    if (!new_table) {
-        d_LogError("Failed to initialize new table for cloning.");
-        return NULL;
-    }
-
-    // 2. Iterate through all entries in the source table and insert into new table
-    size_t entries_cloned = 0;
-    for (size_t i = 0; i < source_table->num_buckets; i++) {
-        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(source_table->buckets, i);
-        if (!bucket_ptr || !*bucket_ptr) {
-            continue; // Empty bucket
-        }
-
-        dLinkedList_t* current_node = *bucket_ptr;
-        while (current_node != NULL) {
-            dTableEntry_t* entry = (dTableEntry_t*)current_node->data;
-            if (entry && entry->key_data && entry->value_data) {
-                // Insert key-value pair into the new table
-                if (d_SetDataToTable(new_table, entry->key_data, entry->value_data) != 0) {
-                    d_LogErrorF("Failed to clone entry during table cloning (key_size: %zu, val_size: %zu).",
-                                entry->key_data, entry->value_data);
-                    // Clean up partially cloned table
-                    d_DestroyTable(&new_table);
-                    return NULL;
-                }
-                entries_cloned++;
-            }
-            current_node = current_node->next;
-        }
-    }
-
-    d_LogInfoF("Successfully cloned dynamic table: %zu entries copied to new table with %zu buckets.",
-               entries_cloned, new_table->num_buckets);
-    
-    // Ensure the count of the new table matches the source table,
-    // in case d_SetDataToTable's internal rehash logic changed behavior.
-    // However, since we're just copying, `new_table->count` should already be `source_table->count`.
-    if (new_table->count != source_table->count) {
-        d_LogWarningF("Cloned table count (%zu) does not match source table count (%zu). This indicates an issue with cloning logic.",
-                      new_table->count, source_table->count);
-        // This is a warning, not a fatal error for a clone unless we want exact behavior.
-        // It's more of a self-check.
-    }
-
-    return new_table;
-}

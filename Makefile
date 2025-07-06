@@ -24,6 +24,7 @@ native: $(BIN_DIR)/debug
 NATIVE_OBJS = \
 							$(OBJ_DIR)/main.o\
 							$(OBJ_DIR)/dArrays.o\
+							$(OBJ_DIR)/dFunctions.o\
 							$(OBJ_DIR)/dKinematicBody.o\
 							$(OBJ_DIR)/dLinkedList.o\
 							$(OBJ_DIR)/dLogs.o\
@@ -47,6 +48,7 @@ shared: $(BIN_DIR)/libDaedalus
 
 SHARED_OBJS = \
 							$(SHA_DIR)/dArrays.o\
+							$(SHA_DIR)/dFunctions.o\
 							$(SHA_DIR)/dKinematicBody.o\
 							$(SHA_DIR)/dLinkedList.o\
 							$(SHA_DIR)/dLogs.o\
@@ -70,6 +72,7 @@ EM: $(BIN_DIR)/libDaedalus.a
 
 EMS_OBJS = \
 							$(EMS_DIR)/dArrays.o\
+							$(EMS_DIR)/dFunctions.o\
 							$(EMS_DIR)/dKinematicBody.o\
 							$(EMS_DIR)/dLinkedList.o\
 							$(EMS_DIR)/dLogs.o\
@@ -242,8 +245,8 @@ run-test-string-padding: test-string-padding
 	@./$(BIN_DIR)/test_string_padding
 
 .PHONY: test-string-pythonic
-test-string-pythonic: always $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings-dArrays.o
-	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_string_pythonic $(TEST_DIR)/strings/test_string_pythonic.c $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings-dArrays.o
+test-string-pythonic: always $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings-dArrays.o $(OBJ_DIR)/dLogs.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_string_pythonic $(TEST_DIR)/strings/test_string_pythonic.c $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings-dArrays.o $(OBJ_DIR)/dLogs.o
 
 .PHONY: run-test-string-pythonic
 run-test-string-pythonic: test-string-pythonic
@@ -274,16 +277,16 @@ run-test-dynamic-array-resize: test-dynamic-array-resize
 	@./$(BIN_DIR)/test_dynamic_array_resize
 
 .PHONY: test-dynamic-array-performance
-test-dynamic-array-performance: always $(OBJ_DIR)/dArrays.o
-	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_performance $(TEST_DIR)/dynamicarrays/test_dynamic_array_performance.c $(OBJ_DIR)/dArrays.o
+test-dynamic-array-performance: always $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dStrings.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_performance $(TEST_DIR)/dynamicarrays/test_dynamic_array_performance.c $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dStrings.o
 
 .PHONY: run-test-dynamic-array-performance
 run-test-dynamic-array-performance: test-dynamic-array-performance
 	@./$(BIN_DIR)/test_dynamic_array_performance
 
 .PHONY: test-dynamic-array-advanced
-test-dynamic-array-advanced: always $(OBJ_DIR)/dArrays.o
-	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_advanced $(TEST_DIR)/dynamicarrays/test_dynamic_array_advanced.c $(OBJ_DIR)/dArrays.o
+test-dynamic-array-advanced: always $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dStrings.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_advanced $(TEST_DIR)/dynamicarrays/test_dynamic_array_advanced.c $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dStrings.o
 
 .PHONY: run-test-dynamic-array-advanced
 run-test-dynamic-array-advanced: test-dynamic-array-advanced
@@ -301,10 +304,12 @@ test-dynamic-array-debug-hunting: always $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dString
 run-test-dynamic-array-debug-hunting: test-dynamic-array-debug-hunting
 	@./$(BIN_DIR)/test_dynamic_array_debug_hunting
 
+
+
 # Global test runner (summary output)
 .PHONY: test-dynamic-array-errors
-test-dynamic-array-errors: always $(OBJ_DIR)/dArrays.o
-	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_errors $(TEST_DIR)/dynamicarrays/test_dynamic_array_errors.c $(OBJ_DIR)/dArrays.o
+test-dynamic-array-errors: always $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dStrings.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_dynamic_array_errors $(TEST_DIR)/dynamicarrays/test_dynamic_array_errors.c $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dStrings.o
 
 .PHONY: test-static-array-basic
 test-static-array-basic: always $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o
@@ -324,7 +329,7 @@ run-test-static-array-advanced: test-static-array-advanced
 
 .PHONY: test-static-array-save-load
 test-static-array-save-load: always $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o
-	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_static_array_save_load $(TEST_DIR)/staticarrays/test_static_array_save_load.c $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dArocrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_static_array_save_load $(TEST_DIR)/staticarrays/test_static_array_save_load.c $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o
 
 .PHONY: run-test-static-array-save-load
 run-test-static-array-save-load: test-static-array-save-load
@@ -409,6 +414,46 @@ test-static-tables-iterators: always $(OBJ_DIR)/dStaticTables.o $(OBJ_DIR)/dTabl
 .PHONY: run-test-static-tables-iterators
 run-test-static-tables-iterators: test-static-tables-iterators
 	@./$(BIN_DIR)/test_static_tables_iterators
+
+.PHONY: test-functions-hashing
+test-functions-hashing: always $(OBJ_DIR)/dFunctions.o $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dStaticTables.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_functions_hashing $(TEST_DIR)/functions/test_functions_hashing.c $(OBJ_DIR)/dFunctions.o $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dStaticTables.o
+
+.PHONY: run-test-functions-hashing
+run-test-functions-hashing: test-functions-hashing
+	@./$(BIN_DIR)/test_functions_hashing
+
+.PHONY: test-functions-static-table-save-load
+test-functions-static-table-save-load: always $(OBJ_DIR)/dFunctions.o $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dStaticTables.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_functions_static_table_save_load $(TEST_DIR)/functions/test_functions_static_table_save_load.c $(OBJ_DIR)/dFunctions.o $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dStaticTables.o
+
+.PHONY: run-test-functions-static-table-save-load
+run-test-functions-static-table-save-load: test-functions-static-table-save-load
+	@./$(BIN_DIR)/test_functions_static_table_save_load
+
+.PHONY: test-functions-daedalus-compare
+test-functions-daedalus-compare: always $(OBJ_DIR)/dFunctions.o $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dStaticTables.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_functions_daedalus_compare $(TEST_DIR)/functions/test_functions_daedalus_compare.c $(OBJ_DIR)/dFunctions.o $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dStaticTables.o
+
+.PHONY: run-test-functions-daedalus-compare
+run-test-functions-daedalus-compare: test-functions-daedalus-compare
+	@./$(BIN_DIR)/test_functions_daedalus_compare
+
+.PHONY: test-functions-debug-hunting
+test-functions-debug-hunting: always $(OBJ_DIR)/dFunctions.o $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dStaticTables.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_functions_debug_hunting $(TEST_DIR)/functions/test_functions_debug_hunting.c $(OBJ_DIR)/dFunctions.o $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dStaticTables.o
+
+.PHONY: run-test-functions-debug-hunting
+run-test-functions-debug-hunting: test-functions-debug-hunting
+	@./$(BIN_DIR)/test_functions_debug_hunting
+
+.PHONY: test-functions-debug-hunting-2
+test-functions-debug-hunting-2: always $(OBJ_DIR)/dFunctions.o $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dStaticTables.o
+	$(CC) $(TEST_CFLAGS) -o $(BIN_DIR)/test_functions_debug_hunting_2 $(TEST_DIR)/functions/test_functions_debug_hunting_2.c $(OBJ_DIR)/dFunctions.o $(OBJ_DIR)/dTables.o $(OBJ_DIR)/dLinkedList.o $(OBJ_DIR)/dArrays.o $(OBJ_DIR)/dStrings.o $(OBJ_DIR)/dLogs.o $(OBJ_DIR)/dStaticArrays.o $(OBJ_DIR)/dStaticTables.o
+
+.PHONY: run-test-functions-debug-hunting-2
+run-test-functions-debug-hunting-2: test-functions-debug-hunting-2
+	@./$(BIN_DIR)/test_functions_debug_hunting_2
 
 # Emscripten test targets using the static library
 .PHONY: test-logging-emscripten-web

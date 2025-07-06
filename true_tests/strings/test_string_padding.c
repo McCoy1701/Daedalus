@@ -27,8 +27,8 @@ void log_test_result(const char* test_name, bool passed, const char* details)
     dString_t* log_msg = d_InitString();
     d_FormatString(log_msg, "Test %s: %s", test_name, passed ? "PASSED" : "FAILED");
     if (details) {
-        d_AppendString(log_msg, " - ", 0);
-        d_AppendString(log_msg, details, 0);
+        d_AppendToString(log_msg, " - ", 0);
+        d_AppendToString(log_msg, details, 0);
     }
     LOG(d_PeekString(log_msg));
     d_DestroyString(log_msg);
@@ -37,7 +37,7 @@ void log_test_result(const char* test_name, bool passed, const char* details)
 void log_string_comparison(const char* expected, const char* actual)
 {
     dString_t* log_msg = d_InitString();
-    d_AppendString(log_msg, "String comparison:\n", 0);
+    d_AppendToString(log_msg, "String comparison:\n", 0);
     d_FormatString(log_msg, "  Expected: '%s'\n", expected);
     d_FormatString(log_msg, "  Actual:   '%s'", actual);
     printf("%s\n", d_PeekString(log_msg));
@@ -116,7 +116,7 @@ int test_pad_left_zero_width(void)
 
     dString_t* sb = d_InitString();
     d_PadLeftString(sb, "Test", 0, '.');
-    TEST_ASSERT(d_GetStringLength(sb) == 0, "Zero width should not add anything");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 0, "Zero width should not add anything");
 
     log_test_result("pad_left_zero_width", true, "Zero width handled correctly");
     d_DestroyString(sb);
@@ -173,7 +173,7 @@ int test_pad_left_null_safety(void)
 
     dString_t* sb = d_InitString();
     d_PadLeftString(sb, NULL, 5, '.');
-    TEST_ASSERT(d_GetStringLength(sb) == 0, "NULL text should not modify string");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 0, "NULL text should not modify string");
 
     log_test_result("pad_left_null_safety", true, "NULL parameters handled safely");
     d_DestroyString(sb);
@@ -269,7 +269,7 @@ int test_pad_right_append_to_existing(void)
     log_test_start("pad_right_append_to_existing");
 
     dString_t* sb = d_InitString();
-    d_AppendString(sb, "Start: ", 0);
+    d_AppendToString(sb, "Start: ", 0);
     d_PadRightString(sb, "Item", 8, '.');
     const char* expected = "Start: Item....";
     const char* actual = d_PeekString(sb);
@@ -295,7 +295,7 @@ int test_pad_right_null_safety(void)
 
     dString_t* sb = d_InitString();
     d_PadRightString(sb, NULL, 5, '.');
-    TEST_ASSERT(d_GetStringLength(sb) == 0, "NULL text should not modify string");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 0, "NULL text should not modify string");
 
     log_test_result("pad_right_null_safety", true, "NULL parameters handled safely");
     d_DestroyString(sb);
@@ -456,7 +456,7 @@ int test_pad_center_null_safety(void)
 
     dString_t* sb = d_InitString();
     d_PadCenterString(sb, NULL, 5, '.');
-    TEST_ASSERT(d_GetStringLength(sb) == 0, "NULL text should not modify string");
+    TEST_ASSERT(d_GetLengthOfString(sb) == 0, "NULL text should not modify string");
 
     log_test_result("pad_center_null_safety", true, "NULL parameters handled safely");
     d_DestroyString(sb);
@@ -475,40 +475,40 @@ int test_rpg_table_formatting(void)
 
     // Create a character stats table
     d_PadCenterString(table, "CHARACTER STATS", 40, '=');
-    d_AppendChar(table, '\n');
+    d_AppendCharToString(table, '\n');
 
     // Column headers
     d_PadLeftString(table, "Attribute", 15, ' ');
-    d_AppendString(table, " | ", 0);
+    d_AppendToString(table, " | ", 0);
     d_PadRightString(table, "Value", 10, ' ');
-    d_AppendString(table, " | ", 0);
+    d_AppendToString(table, " | ", 0);
     d_PadCenterString(table, "Status", 10, ' ');
-    d_AppendString(table, "\n", 0);
+    d_AppendToString(table, "\n", 0);
 
     // Separator line
     d_RepeatString(table, '-', 40);
-    d_AppendChar(table, '\n');
+    d_AppendCharToString(table, '\n');
 
     // Data rows
     d_PadLeftString(table, "Strength", 15, ' ');
-    d_AppendString(table, " | ", 0);
+    d_AppendToString(table, " | ", 0);
     d_PadRightString(table, "18", 10, ' ');
-    d_AppendString(table, " | ", 0);
+    d_AppendToString(table, " | ", 0);
     d_PadCenterString(table, "Strong", 10, ' ');
-    d_AppendString(table, "\n", 0);
+    d_AppendToString(table, "\n", 0);
 
     d_PadLeftString(table, "Dexterity", 15, ' ');
-    d_AppendString(table, " | ", 0);
+    d_AppendToString(table, " | ", 0);
     d_PadRightString(table, "14", 10, ' ');
-    d_AppendString(table, " | ", 0);
+    d_AppendToString(table, " | ", 0);
     d_PadCenterString(table, "Good", 10, ' ');
-    d_AppendString(table, "\n", 0);
+    d_AppendToString(table, "\n", 0);
 
     const char* result = d_PeekString(table);
 
     dString_t* log_msg = d_InitString();
-    d_AppendString(log_msg, "Table After Padding:\n", 0);
-    d_AppendString(log_msg, result, 0);
+    d_AppendToString(log_msg, "Table After Padding:\n", 0);
+    d_AppendToString(log_msg, result, 0);
     printf("%s\n", d_PeekString(log_msg));
     d_DestroyString(log_msg);
 
@@ -531,23 +531,23 @@ int test_rpg_menu_system(void)
 
     // Menu title
     d_PadCenterString(menu, "MAIN MENU", 30, '*');
-    d_AppendString(menu, "\n\n", 0);
+    d_AppendToString(menu, "\n\n", 0);
 
     // Menu options
     const char* options[] = {"New Game", "Load Game", "Settings", "Quit"};
     for (int i = 0; i < 4; i++) {
-        d_AppendString(menu, "[", 0);
-        d_AppendInt(menu, i + 1);
-        d_AppendString(menu, "] ", 0);
+        d_AppendToString(menu, "[", 0);
+        d_AppendIntToString(menu, i + 1);
+        d_AppendToString(menu, "] ", 0);
         d_PadRightString(menu, options[i], 20, '.');
-        d_AppendString(menu, "\n", 0);
+        d_AppendToString(menu, "\n", 0);
     }
 
     const char* result = d_PeekString(menu);
 
     dString_t* log_msg = d_InitString();
-    d_AppendString(log_msg, "Menu After Padding:\n", 0);
-    d_AppendString(log_msg, result, 0);
+    d_AppendToString(log_msg, "Menu After Padding:\n", 0);
+    d_AppendToString(log_msg, result, 0);
     printf("%s\n", d_PeekString(log_msg));
     d_DestroyString(log_msg);
 
@@ -569,38 +569,38 @@ int test_rpg_dialogue_box(void)
 
     // Create dialogue box border
     d_RepeatString(dialogue, '+', 50);
-    d_AppendChar(dialogue, '\n');
+    d_AppendCharToString(dialogue, '\n');
 
     // Speaker name centered
-    d_AppendChar(dialogue, '|');
+    d_AppendCharToString(dialogue, '|');
     d_PadCenterString(dialogue, "Royal Guard Captain", 48, ' ');
-    d_AppendString(dialogue, "|\n", 0);
+    d_AppendToString(dialogue, "|\n", 0);
 
     // Separator
-    d_AppendChar(dialogue, '|');
+    d_AppendCharToString(dialogue, '|');
     d_RepeatString(dialogue, '-', 48);
-    d_AppendString(dialogue, "|\n", 0);
+    d_AppendToString(dialogue, "|\n", 0);
 
     // Dialogue text (left-aligned)
-    d_AppendChar(dialogue, '|');
-    d_AppendChar(dialogue, ' ');
+    d_AppendCharToString(dialogue, '|');
+    d_AppendCharToString(dialogue, ' ');
     d_PadRightString(dialogue, "\"Halt! None shall pass without", 47, ' ');
-    d_AppendString(dialogue, "|\n", 0);
+    d_AppendToString(dialogue, "|\n", 0);
 
-    d_AppendChar(dialogue, '|');
-    d_AppendChar(dialogue, ' ');
+    d_AppendCharToString(dialogue, '|');
+    d_AppendCharToString(dialogue, ' ');
     d_PadRightString(dialogue, "the King's seal!\"", 47, ' ');
-    d_AppendString(dialogue, "|\n", 0);
+    d_AppendToString(dialogue, "|\n", 0);
 
     // Bottom border
     d_RepeatString(dialogue, '+', 50);
-    d_AppendChar(dialogue, '\n');
+    d_AppendCharToString(dialogue, '\n');
 
     const char* result = d_PeekString(dialogue);
 
     dString_t* log_msg = d_InitString();
-    d_AppendString(log_msg, "Dialogue After Padding:\n", 0);
-    d_AppendString(log_msg, result, 0);
+    d_AppendToString(log_msg, "Dialogue After Padding:\n", 0);
+    d_AppendToString(log_msg, result, 0);
     printf("%s\n", d_PeekString(log_msg));
     d_DestroyString(log_msg);
 
@@ -625,31 +625,31 @@ int test_float_padding_integration(void)
 
     // Create a stats display with float values and padding
     d_PadCenterString(stats, "PLAYER STATISTICS", 30, '=');
-    d_AppendString(stats, "\n\n", 0);
+    d_AppendToString(stats, "\n\n", 0);
 
     // Health percentage with padding
     d_PadLeftString(stats, "Health", 12, ' ');
-    d_AppendString(stats, ": ", 0);
-    d_AppendFloat(stats, 85.75f, 1);
-    d_AppendString(stats, "%\n", 0);
+    d_AppendToString(stats, ": ", 0);
+    d_AppendFloatToString(stats, 85.75f, 1);
+    d_AppendToString(stats, "%\n", 0);
 
     // Damage with padding
     d_PadLeftString(stats, "Damage", 12, ' ');
-    d_AppendString(stats, ": ", 0);
-    d_AppendFloat(stats, 47.333f, 2);
-    d_AppendString(stats, "\n", 0);
+    d_AppendToString(stats, ": ", 0);
+    d_AppendFloatToString(stats, 47.333f, 2);
+    d_AppendToString(stats, "\n", 0);
 
     // Experience with no decimals
     d_PadLeftString(stats, "Experience", 12, ' ');
-    d_AppendString(stats, ": ", 0);
-    d_AppendFloat(stats, 1024.89f, 0);
-    d_AppendString(stats, " XP\n", 0);
+    d_AppendToString(stats, ": ", 0);
+    d_AppendFloatToString(stats, 1024.89f, 0);
+    d_AppendToString(stats, " XP\n", 0);
 
     const char* result = d_PeekString(stats);
 
     dString_t* log_msg = d_InitString();
-    d_AppendString(log_msg, "Float Padding Stats:\n", 0);
-    d_AppendString(log_msg, result, 0);
+    d_AppendToString(log_msg, "Float Padding Stats:\n", 0);
+    d_AppendToString(log_msg, result, 0);
     printf("%s\n", d_PeekString(log_msg));
     d_DestroyString(log_msg);
 

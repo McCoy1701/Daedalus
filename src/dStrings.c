@@ -53,22 +53,11 @@ char* d_CreateStringFromFile(const char *filename)
   return fileString;
 }
 
-/*
- * Ensure the string builder has enough space for additional data
+/**
+ * @brief Ensure the string builder has enough space for additional content
  *
- * `sb` - Pointer to string builder
- * `add_len` - Number of bytes to add (not including null terminator)
- *
- * -- Internal function that grows the buffer using doubling strategy
- * -- Buffer is always kept null-terminated
- * -- MEMORY ALLOCATION: Uses realloc() which may move buffer location
- * -- GROWTH STRATEGY: Doubles capacity until sufficient space is available
- * -- OVERFLOW PROTECTION: Handles maximum allocation size boundary gracefully
- * -- PERFORMANCE: O(1) amortized time complexity due to exponential growth
- * -- PRECONDITIONS: sb must be valid pointer to initialized string builder
- * -- SIDE EFFECTS: May invalidate existing pointers to sb->str buffer
- * -- THREAD SAFETY: Not thread-safe, caller must synchronize access
- * -- Edge case: If add_len would cause integer overflow, allocation is capped
+ * @param sb The string builder to ensure space for
+ * @param add_len The number of bytes to add (not including null terminator)
  */
 static void d_StringBuilderEnsureSpace(dString_t* sb, size_t add_len)
 {
@@ -137,7 +126,7 @@ void d_DestroyString(dString_t* sb)
 /*
  * Add a string to the string builder
  */
- void d_AppendString(dString_t* sb, const char* str, size_t len)
+ void d_AppendToString(dString_t* sb, const char* str, size_t len)
   {
       // Basic validation: must have a valid string builder and source string.
       if (sb == NULL || str == NULL) {
@@ -256,7 +245,7 @@ dString_t* d_CloneString(const dString_t* source)
  /*
   * Add a limited portion of a string to the string builder
   */
- void d_AppendStringN(dString_t* sb, const char* str, size_t max_len)
+ void d_AppendToStringN(dString_t* sb, const char* str, size_t max_len)
  {
      if (sb == NULL || str == NULL || max_len == 0) {
          return;
@@ -272,7 +261,7 @@ dString_t* d_CloneString(const dString_t* source)
          return; // Nothing to append
      }
 
-     // Handle the self-append edge case (similar to d_AppendString)
+     // Handle the self-append edge case (similar to d_AppendToString)
      ptrdiff_t offset = -1;
      if (str >= sb->str && str < sb->str + sb->alloced) {
          offset = str - sb->str;
@@ -301,11 +290,11 @@ dString_t* d_CloneString(const dString_t* source)
  * -- Does nothing if sb is NULL
  * -- Can append any character including '\0' (though this may confuse string functions)
  */
-void d_AppendChar(dString_t* sb, char c)
+void d_AppendCharToString(dString_t* sb, char c)
 {
     if (sb == NULL)
         {
-        LOG("d_AppendChar: sb is NULL");
+        LOG("d_AppendCharToString: sb is NULL");
         return;
     }
 
@@ -324,17 +313,17 @@ void d_AppendChar(dString_t* sb, char c)
  * -- Uses snprintf internally for safe conversion
  * -- Supports full 32-bit integer range including negative values
  */
-void d_AppendInt(dString_t* sb, int val)
+void d_AppendIntToString(dString_t* sb, int val)
 {
     char str[12]; // Enough for 32-bit int plus sign and null terminator
 
     if (sb == NULL)
         {
-        LOG("d_AppendInt: sb is NULL");
+        LOG("d_AppendIntToString: sb is NULL");
         return;
         }
     snprintf(str, sizeof(str), "%d", val);
-    d_AppendString(sb, str, 0);
+    d_AppendToString(sb, str, 0);
 }
 /*
  * Append a floating-point number to the string builder
@@ -348,14 +337,14 @@ void d_AppendInt(dString_t* sb, int val)
  * -- If decimals > 10, caps at 10 decimal places
  * -- Uses standard printf formatting for floating-point representation
  */
-void d_AppendFloat(dString_t* sb, float val, int decimals)
+void d_AppendFloatToString(dString_t* sb, float val, int decimals)
 {
     char str[32]; // Enough for float with up to 10 decimal places
     char format[8]; // Format string like "%.2f"
 
     if (sb == NULL)
         {
-        LOG("d_AppendFloat: sb is NULL");
+        LOG("d_AppendFloatToString: sb is NULL");
         return;
         }
     // Clamp decimals to reasonable range
@@ -369,7 +358,7 @@ void d_AppendFloat(dString_t* sb, float val, int decimals)
 
     // Format the float
     snprintf(str, sizeof(str), format, val);
-    d_AppendString(sb, str, 0);
+    d_AppendToString(sb, str, 0);
 }
 /*
  * Clear the string builder content
@@ -445,10 +434,10 @@ void d_DropString(dString_t* sb, size_t len)
  * -- Return value does not include the null terminator
  * -- Safe to call with NULL pointer (returns 0)
  */
-size_t d_GetStringLength(const dString_t* sb)
+size_t d_GetLengthOfString(const dString_t* sb)
 {
     if (sb == NULL) {
-        LOG("d_GetStringLength: sb is NULL");
+        LOG("d_GetLengthOfString: sb is NULL");
         return 0;
     }
     return sb->len;
@@ -578,16 +567,16 @@ void d_RepeatString(dString_t* sb, char character, int count) {
  * -- If current < 0, the bar is empty
  * -- Total visual width is width + 2 (for brackets)
  */
-void d_AppendProgressBar(dString_t* sb, int current, int max, int width, char fill_char, char empty_char) {
+void d_AppendProgressBarToString(dString_t* sb, int current, int max, int width, char fill_char, char empty_char) {
     if (sb == NULL || width <= 0 || max <= 0) return;
 
     int filled = (current * width) / max;
     if (filled > width) filled = width;
 
-    d_AppendChar(sb, '[');
+    d_AppendCharToString(sb, '[');
     d_RepeatString(sb, fill_char, filled);
     d_RepeatString(sb, empty_char, width - filled);
-    d_AppendChar(sb, ']');
+    d_AppendCharToString(sb, ']');
 }
 
 /*
@@ -606,7 +595,7 @@ void d_AppendProgressBar(dString_t* sb, int current, int max, int width, char fi
  * -- Keys longer than 255 characters are treated as literal text
  * -- Supports nested braces by treating unmatched { as literal characters
  */
- void d_TemplateString(dString_t* sb, const char* tmplt, const char** keys, const char** values, int count) {
+ void d_ApplyTemplateToString(dString_t* sb, const char* tmplt, const char** keys, const char** values, int count) {
      if (sb == NULL || tmplt == NULL) return;
 
      const char* pos = tmplt;
@@ -627,7 +616,7 @@ void d_AppendProgressBar(dString_t* sb, int current, int max, int width, char fi
                          for (int i = 0; i < count; i++) {
                              if (keys[i] != NULL && strcmp(keys[i], key) == 0) {
                                  if (values[i] != NULL) {
-                                     d_AppendString(sb, values[i], 0);
+                                     d_AppendToString(sb, values[i], 0);
                                  }
                                  found = 1;
                                  break;
@@ -637,19 +626,19 @@ void d_AppendProgressBar(dString_t* sb, int current, int max, int width, char fi
 
                      if (!found) {
                          // Keep original placeholder if no match
-                         d_AppendString(sb, pos, end - pos + 1);
+                         d_AppendToString(sb, pos, end - pos + 1);
                      }
 
                      pos = end + 1;
                  } else {
-                     d_AppendChar(sb, *pos++);
+                     d_AppendCharToString(sb, *pos++);
                      continue;
                  }
              } else {
-                 d_AppendChar(sb, *pos++);
+                 d_AppendCharToString(sb, *pos++);
              }
          } else {
-             d_AppendChar(sb, *pos++);
+             d_AppendCharToString(sb, *pos++);
          }
      }
  }
@@ -677,7 +666,7 @@ void d_AppendProgressBar(dString_t* sb, int current, int max, int width, char fi
      if (pad_needed > 0) {
          d_RepeatString(sb, pad_char, pad_needed);
      }
-     d_AppendString(sb, text, 0);
+     d_AppendToString(sb, text, 0);
  }
 
  /*
@@ -700,7 +689,7 @@ void d_AppendProgressBar(dString_t* sb, int current, int max, int width, char fi
      int text_len = strlen(text);
      int pad_needed = width - text_len;
 
-     d_AppendString(sb, text, 0);
+     d_AppendToString(sb, text, 0);
      if (pad_needed > 0) {
          d_RepeatString(sb, pad_char, pad_needed);
      }
@@ -729,7 +718,7 @@ void d_AppendProgressBar(dString_t* sb, int current, int max, int width, char fi
      int pad_needed = width - text_len;
 
      if (pad_needed <= 0) {
-         d_AppendString(sb, text, 0);
+         d_AppendToString(sb, text, 0);
          return;
      }
 
@@ -737,7 +726,7 @@ void d_AppendProgressBar(dString_t* sb, int current, int max, int width, char fi
      int right_pad = pad_needed - left_pad;
 
      d_RepeatString(sb, pad_char, left_pad);
-     d_AppendString(sb, text, 0);
+     d_AppendToString(sb, text, 0);
      d_RepeatString(sb, pad_char, right_pad);
  }
 
@@ -761,12 +750,12 @@ void d_AppendProgressBar(dString_t* sb, int current, int max, int width, char fi
 
      for (int i = 0; i < count; i++) {
          if (strings[i] != NULL) {
-             d_AppendString(sb, strings[i], 0);
+             d_AppendToString(sb, strings[i], 0);
          }
 
          // Add separator between elements (but not after the last one)
          if (i < count - 1 && separator != NULL) {
-             d_AppendString(sb, separator, 0);
+             d_AppendToString(sb, separator, 0);
          }
      }
  }
@@ -842,8 +831,15 @@ int d_CompareStrings(const dString_t* str1, const dString_t* str2)
         return 1;  // Treat valid str1 as "greater than" invalid str2.
     }
 
-    // If both are valid, perform the standard string comparison.
-    return strcmp(str1->str, str2->str);
+    // If both are valid, perform length-aware binary comparison
+    // First check if lengths are different
+    if (str1->len != str2->len) {
+        return (str1->len < str2->len) ? -1 : 1;
+    }
+    
+    // If lengths are equal, compare the actual data using memcmp
+    // This handles embedded null bytes correctly
+    return memcmp(str1->str, str2->str, str1->len);
 }
 
 /*
@@ -864,6 +860,16 @@ int d_CompareStringToCString(const dString_t* d_str, const char* c_str)
         return 1;  // Treat valid d_str as "greater than" a NULL c_str.
     }
 
-    // If both are valid, perform the standard string comparison.
-    return strcmp(d_str->str, c_str);
+    // If both are valid, perform length-aware comparison
+    // First get the C string length
+    size_t c_str_len = strlen(c_str);
+    
+    // If lengths are different, they're not equal
+    if (d_str->len != c_str_len) {
+        return (d_str->len < c_str_len) ? -1 : 1;
+    }
+    
+    // If lengths are equal, compare the actual data using memcmp
+    // This handles embedded null bytes correctly
+    return memcmp(d_str->str, c_str, d_str->len);
 }

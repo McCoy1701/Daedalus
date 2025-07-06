@@ -58,7 +58,7 @@ int test_table_init_destroy(void)
 {
     // Test basic initialization
     dTable_t* table = d_InitTable(sizeof(int), sizeof(int), int_hash_func, 
-                                  int_compare_func, 8, 0.75f);
+                                  int_compare_func, 8);
 
     TEST_ASSERT(table != NULL, "Should create hash table successfully");
     TEST_ASSERT(d_GetCountInTable(table) == 0, "New table should have count 0");
@@ -74,23 +74,20 @@ int test_table_init_destroy(void)
 int test_table_init_invalid_params(void)
 {
     // Test initialization with invalid parameters
-    dTable_t* table1 = d_InitTable(0, sizeof(int), int_hash_func, int_compare_func, 8, 0.75f);
+    dTable_t* table1 = d_InitTable(0, sizeof(int), int_hash_func, int_compare_func, 8);
     TEST_ASSERT(table1 == NULL, "Should fail with zero key size");
 
-    dTable_t* table2 = d_InitTable(sizeof(int), 0, int_hash_func, int_compare_func, 8, 0.75f);
+    dTable_t* table2 = d_InitTable(sizeof(int), 0, int_hash_func, int_compare_func, 8);
     TEST_ASSERT(table2 == NULL, "Should fail with zero value size");
 
-    dTable_t* table3 = d_InitTable(sizeof(int), sizeof(int), NULL, int_compare_func, 8, 0.75f);
+    dTable_t* table3 = d_InitTable(sizeof(int), sizeof(int), NULL, int_compare_func, 8);
     TEST_ASSERT(table3 == NULL, "Should fail with NULL hash function");
 
-    dTable_t* table4 = d_InitTable(sizeof(int), sizeof(int), int_hash_func, NULL, 8, 0.75f);
+    dTable_t* table4 = d_InitTable(sizeof(int), sizeof(int), int_hash_func, NULL, 8);
     TEST_ASSERT(table4 == NULL, "Should fail with NULL compare function");
 
-    dTable_t* table5 = d_InitTable(sizeof(int), sizeof(int), int_hash_func, int_compare_func, 0, 0.75f);
+    dTable_t* table5 = d_InitTable(sizeof(int), sizeof(int), int_hash_func, int_compare_func, 0);
     TEST_ASSERT(table5 == NULL, "Should fail with zero buckets");
-
-    dTable_t* table6 = d_InitTable(sizeof(int), sizeof(int), int_hash_func, int_compare_func, 8, 0.0f);
-    TEST_ASSERT(table6 == NULL, "Should fail with zero load factor");
 
     return 1;
 }
@@ -98,7 +95,7 @@ int test_table_init_invalid_params(void)
 int test_table_set_get_basic(void)
 {
     dTable_t* table = d_InitTable(sizeof(int), sizeof(int), int_hash_func, 
-                                  int_compare_func, 8, 0.75f);
+                                  int_compare_func, 8);
 
     // Test setting and getting basic key-value pairs
     int key1 = 42, value1 = 100;
@@ -106,9 +103,9 @@ int test_table_set_get_basic(void)
     int key3 = 126, value3 = 300;
 
     // Set values
-    TEST_ASSERT(d_SetDataToTable(table, &key1, &value1) == 0, "Should set first key-value pair");
-    TEST_ASSERT(d_SetDataToTable(table, &key2, &value2) == 0, "Should set second key-value pair");
-    TEST_ASSERT(d_SetDataToTable(table, &key3, &value3) == 0, "Should set third key-value pair");
+    TEST_ASSERT(d_SetDataInTable(table, &key1, &value1) == 0, "Should set first key-value pair");
+    TEST_ASSERT(d_SetDataInTable(table, &key2, &value2) == 0, "Should set second key-value pair");
+    TEST_ASSERT(d_SetDataInTable(table, &key3, &value3) == 0, "Should set third key-value pair");
 
     TEST_ASSERT(d_GetCountInTable(table) == 3, "Table should have 3 entries");
 
@@ -128,16 +125,16 @@ int test_table_set_get_basic(void)
 int test_table_update_existing_key(void)
 {
     dTable_t* table = d_InitTable(sizeof(int), sizeof(int), int_hash_func, 
-                                  int_compare_func, 8, 0.75f);
+                                  int_compare_func, 8);
 
     // Set initial value
     int key = 42, original_value = 100;
-    d_SetDataToTable(table, &key, &original_value);
+    d_SetDataInTable(table, &key, &original_value);
     TEST_ASSERT(d_GetCountInTable(table) == 1, "Should have 1 entry initially");
 
     // Update the value
     int new_value = 999;
-    d_SetDataToTable(table, &key, &new_value);
+    d_SetDataInTable(table, &key, &new_value);
     TEST_ASSERT(d_GetCountInTable(table) == 1, "Should still have 1 entry after update");
 
     // Verify the value was updated
@@ -152,7 +149,7 @@ int test_table_update_existing_key(void)
 int test_table_check_key_existence(void)
 {
     dTable_t* table = d_InitTable(sizeof(int), sizeof(int), int_hash_func, 
-                                  int_compare_func, 8, 0.75f);
+                                  int_compare_func, 8);
 
     int key1 = 42, value1 = 100;
     int key2 = 84, value2 = 200;
@@ -162,8 +159,8 @@ int test_table_check_key_existence(void)
     TEST_ASSERT(d_CheckForKeyInTable(table, &key1) == 1, "Key should not exist in empty table");
 
     // Add keys
-    d_SetDataToTable(table, &key1, &value1);
-    d_SetDataToTable(table, &key2, &value2);
+    d_SetDataInTable(table, &key1, &value1);
+    d_SetDataInTable(table, &key2, &value2);
 
     // Test existence
     TEST_ASSERT(d_CheckForKeyInTable(table, &key1) == 0, "Key1 should exist");
@@ -177,16 +174,16 @@ int test_table_check_key_existence(void)
 int test_table_remove_data(void)
 {
     dTable_t* table = d_InitTable(sizeof(int), sizeof(int), int_hash_func, 
-                                  int_compare_func, 8, 0.75f);
+                                  int_compare_func, 8);
 
     int key1 = 42, value1 = 100;
     int key2 = 84, value2 = 200;
     int key3 = 126, value3 = 300;
 
     // Add entries
-    d_SetDataToTable(table, &key1, &value1);
-    d_SetDataToTable(table, &key2, &value2);
-    d_SetDataToTable(table, &key3, &value3);
+    d_SetDataInTable(table, &key1, &value1);
+    d_SetDataInTable(table, &key2, &value2);
+    d_SetDataInTable(table, &key3, &value3);
     TEST_ASSERT(d_GetCountInTable(table) == 3, "Should have 3 entries initially");
 
     // Remove middle entry
@@ -210,12 +207,12 @@ int test_table_remove_data(void)
 int test_table_clear(void)
 {
     dTable_t* table = d_InitTable(sizeof(int), sizeof(int), int_hash_func, 
-                                  int_compare_func, 8, 0.75f);
+                                  int_compare_func, 8);
 
     // Add multiple entries
     for (int i = 0; i < 10; i++) {
         int key = i, value = i * 10;
-        d_SetDataToTable(table, &key, &value);
+        d_SetDataInTable(table, &key, &value);
     }
     TEST_ASSERT(d_GetCountInTable(table) == 10, "Should have 10 entries");
 
@@ -231,7 +228,7 @@ int test_table_clear(void)
 
     // Verify table can be reused
     int new_key = 999, new_value = 888;
-    TEST_ASSERT(d_SetDataToTable(table, &new_key, &new_value) == 0, "Should be able to add new data after clear");
+    TEST_ASSERT(d_SetDataInTable(table, &new_key, &new_value) == 0, "Should be able to add new data after clear");
     TEST_ASSERT(d_GetCountInTable(table) == 1, "Should have 1 entry after reuse");
 
     d_DestroyTable(&table);
@@ -241,7 +238,7 @@ int test_table_clear(void)
 int test_table_string_keys(void)
 {
     dTable_t* table = d_InitTable(sizeof(char*), sizeof(int), string_hash_func, 
-                                  string_compare_func, 8, 0.75f);
+                                  string_compare_func, 8);
 
     // Test with string keys
     char* key1 = "hello";
@@ -250,9 +247,9 @@ int test_table_string_keys(void)
     int value1 = 100, value2 = 200, value3 = 300;
 
     // Set values
-    TEST_ASSERT(d_SetDataToTable(table, &key1, &value1) == 0, "Should set string key1");
-    TEST_ASSERT(d_SetDataToTable(table, &key2, &value2) == 0, "Should set string key2");
-    TEST_ASSERT(d_SetDataToTable(table, &key3, &value3) == 0, "Should set string key3");
+    TEST_ASSERT(d_SetDataInTable(table, &key1, &value1) == 0, "Should set string key1");
+    TEST_ASSERT(d_SetDataInTable(table, &key2, &value2) == 0, "Should set string key2");
+    TEST_ASSERT(d_SetDataInTable(table, &key3, &value3) == 0, "Should set string key3");
 
     // Get values
     int* retrieved1 = (int*)d_GetDataFromTable(table, &key1);
@@ -283,15 +280,15 @@ int test_table_struct_values(void)
     } Point;
 
     dTable_t* table = d_InitTable(sizeof(int), sizeof(Point), int_hash_func, 
-                                  int_compare_func, 8, 0.75f);
+                                  int_compare_func, 8);
 
     int key1 = 1, key2 = 2;
     Point point1 = {10, 20, "origin"};
     Point point2 = {30, 40, "corner"};
 
     // Set struct values
-    TEST_ASSERT(d_SetDataToTable(table, &key1, &point1) == 0, "Should set struct value1");
-    TEST_ASSERT(d_SetDataToTable(table, &key2, &point2) == 0, "Should set struct value2");
+    TEST_ASSERT(d_SetDataInTable(table, &key1, &point1) == 0, "Should set struct value1");
+    TEST_ASSERT(d_SetDataInTable(table, &key2, &point2) == 0, "Should set struct value2");
 
     // Get struct values
     Point* retrieved1 = (Point*)d_GetDataFromTable(table, &key1);
@@ -313,7 +310,7 @@ int test_table_collision_handling(void)
 {
     // Create a small table to force collisions
     dTable_t* table = d_InitTable(sizeof(int), sizeof(int), int_hash_func, 
-                                  int_compare_func, 2, 0.75f); // Only 2 buckets
+                                  int_compare_func, 2); // Only 2 buckets
 
     // Add many keys that will likely collide
     int keys[] = {1, 3, 5, 7, 9, 11, 13, 15};
@@ -322,7 +319,7 @@ int test_table_collision_handling(void)
 
     // Set all key-value pairs
     for (int i = 0; i < num_pairs; i++) {
-        TEST_ASSERT(d_SetDataToTable(table, &keys[i], &values[i]) == 0, "Should set key-value pair despite collisions");
+        TEST_ASSERT(d_SetDataInTable(table, &keys[i], &values[i]) == 0, "Should set key-value pair despite collisions");
     }
 
     TEST_ASSERT(d_GetCountInTable(table) == num_pairs, "Should have all entries despite collisions");
@@ -354,12 +351,12 @@ int test_table_collision_handling(void)
 int test_table_error_handling(void)
 {
     dTable_t* table = d_InitTable(sizeof(int), sizeof(int), int_hash_func, 
-                                  int_compare_func, 8, 0.75f);
+                                  int_compare_func, 8);
 
     int key = 42, value = 100;
 
     // Test operations with NULL table
-    TEST_ASSERT(d_SetDataToTable(NULL, &key, &value) == 1, "Set with NULL table should fail");
+    TEST_ASSERT(d_SetDataInTable(NULL, &key, &value) == 1, "Set with NULL table should fail");
     TEST_ASSERT(d_GetDataFromTable(NULL, &key) == NULL, "Get with NULL table should return NULL");
     TEST_ASSERT(d_RemoveDataFromTable(NULL, &key) == 1, "Remove with NULL table should fail");
     TEST_ASSERT(d_CheckForKeyInTable(NULL, &key) == 1, "Check with NULL table should return not found");
@@ -367,8 +364,8 @@ int test_table_error_handling(void)
     TEST_ASSERT(d_ClearTable(NULL) == 1, "Clear with NULL table should fail");
 
     // Test operations with NULL key/value
-    TEST_ASSERT(d_SetDataToTable(table, NULL, &value) == 1, "Set with NULL key should fail");
-    TEST_ASSERT(d_SetDataToTable(table, &key, NULL) == 1, "Set with NULL value should fail");
+    TEST_ASSERT(d_SetDataInTable(table, NULL, &value) == 1, "Set with NULL key should fail");
+    TEST_ASSERT(d_SetDataInTable(table, &key, NULL) == 1, "Set with NULL value should fail");
     TEST_ASSERT(d_GetDataFromTable(table, NULL) == NULL, "Get with NULL key should return NULL");
     TEST_ASSERT(d_RemoveDataFromTable(table, NULL) == 1, "Remove with NULL key should fail");
     TEST_ASSERT(d_CheckForKeyInTable(table, NULL) == 1, "Check with NULL key should return not found");
@@ -383,7 +380,7 @@ int test_table_error_handling(void)
 int test_table_large_dataset(void)
 {
     dTable_t* table = d_InitTable(sizeof(int), sizeof(int), int_hash_func, 
-                                  int_compare_func, 16, 0.75f);
+                                  int_compare_func, 16);
 
     const int num_entries = 100;
 
@@ -391,7 +388,7 @@ int test_table_large_dataset(void)
     LOOP_TEST_START();
     for (int i = 0; i < num_entries; i++) {
         int key = i, value = i * 10;
-        TEST_ASSERT(d_SetDataToTable(table, &key, &value) == 0, "Should set entry in large dataset");
+        TEST_ASSERT(d_SetDataInTable(table, &key, &value) == 0, "Should set entry in large dataset");
     }
     LOOP_TEST_END();
 

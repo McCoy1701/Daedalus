@@ -26,15 +26,15 @@ void emscripten_test_capture_handler(const dLogEntry_t* entry, void* user_data) 
         emscripten_capture_buffer = d_InitString();
     }
 
-    d_AppendString(emscripten_capture_buffer, "[", 0);
-    d_AppendString(emscripten_capture_buffer, d_LogLevel_ToString(entry->level), 0);
-    d_AppendString(emscripten_capture_buffer, "] ", 0);
+    d_AppendToString(emscripten_capture_buffer, "[", 0);
+    d_AppendToString(emscripten_capture_buffer, d_LogLevel_ToString(entry->level), 0);
+    d_AppendToString(emscripten_capture_buffer, "] ", 0);
 
     if (entry->message) {
-        d_AppendString(emscripten_capture_buffer, d_PeekString(entry->message), 0);
+        d_AppendToString(emscripten_capture_buffer, d_PeekString(entry->message), 0);
     }
 
-    d_AppendString(emscripten_capture_buffer, "\n", 0);
+    d_AppendToString(emscripten_capture_buffer, "\n", 0);
 }
 
 void setup_emscripten_logging() {
@@ -195,7 +195,7 @@ int test_webassembly_memory_constraints() {
     }
 
     // Check buffer size
-    size_t buffer_size = d_GetStringLength(memory_buffer);
+    size_t buffer_size = d_GetLengthOfString(memory_buffer);
     d_LogInfoF("Memory test buffer size: %zu bytes", buffer_size);
     TEST_ASSERT(buffer_size > 0, "Buffer should contain logged data");
     TEST_ASSERT(buffer_size < 100000, "Buffer should not be excessively large for WebAssembly");

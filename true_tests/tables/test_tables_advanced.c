@@ -57,18 +57,18 @@ static int string_compare_func(const void* key1, const void* key2, size_t key_si
 int test_rehash_basic_functionality(void)
 {
     dTable_t* table = d_InitTable(sizeof(int), sizeof(int), int_hash_func, 
-                                  int_compare_func, 4, 0.75f);
+                                  int_compare_func, 4);
 
     // Add some entries to a small table
     for (int i = 0; i < 8; i++) {
         int key = i, value = i * 10;
-        d_SetDataToTable(table, &key, &value);
+        d_SetDataInTable(table, &key, &value);
     }
 
     TEST_ASSERT(d_GetCountInTable(table) == 8, "Should have 8 entries before rehash");
     
     // Rehash to larger size
-    TEST_ASSERT(d_RehashTable(table, 16) == 0, "Rehash should succeed");
+    TEST_ASSERT(d_RehashTable(table, 0) == 0, "Rehash should succeed");
     TEST_ASSERT(d_GetCountInTable(table) == 8, "Should still have 8 entries after rehash");
 
     // Verify all entries are still accessible
@@ -85,12 +85,12 @@ int test_rehash_basic_functionality(void)
 int test_rehash_auto_sizing(void)
 {
     dTable_t* table = d_InitTable(sizeof(int), sizeof(int), int_hash_func, 
-                                  int_compare_func, 8, 0.75f);
+                                  int_compare_func, 8);
 
     // Add entries
     for (int i = 0; i < 5; i++) {
         int key = i, value = i * 100;
-        d_SetDataToTable(table, &key, &value);
+        d_SetDataInTable(table, &key, &value);
     }
 
     // Auto-resize (pass 0 for new_num_buckets)
@@ -111,7 +111,7 @@ int test_rehash_auto_sizing(void)
 int test_rehash_invalid_parameters(void)
 {
     dTable_t* table = d_InitTable(sizeof(int), sizeof(int), int_hash_func, 
-                                  int_compare_func, 8, 0.75f);
+                                  int_compare_func, 8);
 
     // Test with NULL table
     TEST_ASSERT(d_RehashTable(NULL, 16) == 1, "Should fail with NULL table");
@@ -129,14 +129,14 @@ int test_rehash_invalid_parameters(void)
 int test_get_all_keys_basic(void)
 {
     dTable_t* table = d_InitTable(sizeof(int), sizeof(int), int_hash_func, 
-                                  int_compare_func, 8, 0.75f);
+                                  int_compare_func, 8);
 
     // Add some entries
     int keys_to_add[] = {10, 20, 30, 40, 50};
     int values[] = {100, 200, 300, 400, 500};
     
     for (int i = 0; i < 5; i++) {
-        d_SetDataToTable(table, &keys_to_add[i], &values[i]);
+        d_SetDataInTable(table, &keys_to_add[i], &values[i]);
     }
 
     // Get all keys
@@ -165,7 +165,7 @@ int test_get_all_keys_basic(void)
 int test_get_all_keys_empty_table(void)
 {
     dTable_t* table = d_InitTable(sizeof(int), sizeof(int), int_hash_func, 
-                                  int_compare_func, 8, 0.75f);
+                                  int_compare_func, 8);
 
     // Get keys from empty table
     dArray_t* all_keys = d_GetAllKeysFromTable(table);
@@ -189,14 +189,14 @@ int test_get_all_keys_null_parameter(void)
 int test_get_all_values_basic(void)
 {
     dTable_t* table = d_InitTable(sizeof(int), sizeof(int), int_hash_func, 
-                                  int_compare_func, 8, 0.75f);
+                                  int_compare_func, 8);
 
     // Add some entries
     int keys[] = {1, 2, 3, 4};
     int values_to_add[] = {101, 202, 303, 404};
     
     for (int i = 0; i < 4; i++) {
-        d_SetDataToTable(table, &keys[i], &values_to_add[i]);
+        d_SetDataInTable(table, &keys[i], &values_to_add[i]);
     }
 
     // Get all values
@@ -225,7 +225,7 @@ int test_get_all_values_basic(void)
 int test_get_all_values_empty_table(void)
 {
     dTable_t* table = d_InitTable(sizeof(int), sizeof(int), int_hash_func, 
-                                  int_compare_func, 8, 0.75f);
+                                  int_compare_func, 8);
 
     // Get values from empty table
     dArray_t* all_values = d_GetAllValuesFromTable(table);
@@ -249,14 +249,14 @@ int test_get_all_values_null_parameter(void)
 int test_string_keys_advanced_operations(void)
 {
     dTable_t* table = d_InitTable(sizeof(char*), sizeof(int), string_hash_func, 
-                                  string_compare_func, 4, 0.75f);
+                                  string_compare_func, 4);
 
     // Add string entries
     char* keys[] = {"apple", "banana", "cherry", "date", "elderberry"};
     int values[] = {1, 2, 3, 4, 5};
     
     for (int i = 0; i < 5; i++) {
-        d_SetDataToTable(table, &keys[i], &values[i]);
+        d_SetDataInTable(table, &keys[i], &values[i]);
     }
 
     // Test rehashing with string keys
@@ -294,7 +294,7 @@ int test_string_keys_advanced_operations(void)
 int test_large_dataset_advanced_operations(void)
 {
     dTable_t* table = d_InitTable(sizeof(int), sizeof(int), int_hash_func, 
-                                  int_compare_func, 8, 0.75f);
+                                  int_compare_func, 8);
 
     const size_t num_entries = 50;
 
@@ -302,12 +302,12 @@ int test_large_dataset_advanced_operations(void)
     LOOP_TEST_START();
     for (size_t i = 0; i < num_entries; i++) {
         int key = (int)i, value = (int)i * 2;
-        TEST_ASSERT(d_SetDataToTable(table, &key, &value) == 0, "Should add entry to large dataset");
+        TEST_ASSERT(d_SetDataInTable(table, &key, &value) == 0, "Should add entry to large dataset");
     }
     LOOP_TEST_END();
 
     // Test rehashing large dataset
-    TEST_ASSERT(d_RehashTable(table, 128) == 0, "Should successfully rehash large dataset");
+    TEST_ASSERT(d_RehashTable(table, 0) == 0, "Should successfully rehash large dataset");
     TEST_ASSERT(d_GetCountInTable(table) == num_entries, "Should maintain count after large rehash");
 
     // Get all keys and verify count
@@ -336,12 +336,12 @@ int test_large_dataset_advanced_operations(void)
 int test_mixed_operations_stress_test(void)
 {
     dTable_t* table = d_InitTable(sizeof(int), sizeof(int), int_hash_func, 
-                                  int_compare_func, 4, 0.75f);
+                                  int_compare_func, 4);
 
     // Phase 1: Add initial data
     for (int i = 0; i < 10; i++) {
         int key = i, value = i * 10;
-        d_SetDataToTable(table, &key, &value);
+        d_SetDataInTable(table, &key, &value);
     }
 
     // Phase 2: Rehash
@@ -350,7 +350,7 @@ int test_mixed_operations_stress_test(void)
     // Phase 3: Add more data after rehash
     for (int i = 10; i < 20; i++) {
         int key = i, value = i * 10;
-        d_SetDataToTable(table, &key, &value);
+        d_SetDataInTable(table, &key, &value);
     }
 
     // Phase 4: Get all keys and values
