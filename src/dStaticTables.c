@@ -250,8 +250,9 @@ dStaticTable_t* d_InitStaticTable(size_t key_size, size_t value_size, dTableHash
     table->num_keys = num_keys;
     table->is_initialized = true;
 
-    d_LogInfoF("Static hash table initialized with %zu fixed keys across %zu buckets.", 
-               num_keys, table->num_buckets);
+    d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_INFO, 1, 2.0,
+        "Static hash table initialized with %zu fixed keys across %zu buckets.", 
+        num_keys, table->num_buckets);  
 
     return table;
 }
@@ -306,7 +307,8 @@ int d_DestroyStaticTable(dStaticTable_t** table)
     // Set caller's pointer to NULL
     *table = NULL;
 
-    d_LogDebug("Static hash table destroyed successfully.");
+    d_LogRateLimited(D_LOG_LEVEL_DEBUG, 1, 2.0,
+        "Static hash table destroyed successfully.");
     return 0;
 }
 
@@ -419,7 +421,8 @@ void* d_GetDataFromStaticTable(const dStaticTable_t* table, const void* key)
     dTableEntry_t* entry = _d_FindEntryInStaticBucket(*bucket_ptr, key, table->key_size, table->compare_func);
 
     if (entry) {
-        d_LogDebugF("Found key in static hash table (bucket %zu).", bucket_index);
+        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG, 1, 2.0,
+            "Found key in static hash table (bucket %zu).", bucket_index);
         return entry->value_data;
     }
 

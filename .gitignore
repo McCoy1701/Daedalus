@@ -7,6 +7,8 @@ sisyphus.legend
 .cache/
 
 obj/
+ems_obj/
+shared_obj/
 index/
 bin/
 core

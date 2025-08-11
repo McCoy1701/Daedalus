@@ -342,7 +342,7 @@ int test_debug_hunt_boundary_overflow_detection(void)
         size_t test_idx = test_indices[i];
         bool should_be_valid = (test_idx < array->count);
         
-        d_LogRateLimitedF(D_LOG_LEVEL_DEBUG, 5, 1.0, 
+        d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG, 5, 1.0, 
                          "Testing index %zu (expected: %s)", test_idx, 
                          should_be_valid ? "VALID" : "INVALID");
         
@@ -466,7 +466,7 @@ int test_debug_hunt_data_integrity_stress_test(void)
         
         // Periodic integrity check
         if (i % 20 == 0) {
-            d_LogRateLimitedF(D_LOG_LEVEL_DEBUG, 3, 2.0, 
+            d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING, D_LOG_LEVEL_DEBUG, 3, 2.0, 
                              "Stress iteration %zu: count=%zu, capacity=%zu", 
                              i, array->count, array->capacity);
         }

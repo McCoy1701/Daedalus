@@ -311,7 +311,7 @@ typedef struct          // dTable_t
  * @warning Keys cannot be added or removed after initialization. The structure is optimized
  * for use cases where the complete key set is known beforehand.
  */
-typedef struct          // dStaticTable_t  
+typedef struct          // dStaticTable_t
 {
     dArray_t* buckets;            /**< An array of `dLinkedList_t` pointers for collision resolution (same as dTable_t). */
     size_t num_buckets;           /**< The fixed total number of buckets in the hash table. */
@@ -1194,10 +1194,10 @@ dArray_t* d_GetAllValuesFromTable(const dTable_t* table);
  *
  * Example:
  * ```c
- * int keys[] = {1, 2, 3}; 
+ * int keys[] = {1, 2, 3};
  * char* values[] = {"a", "b", "c"};
  * size_t count = sizeof(keys)/sizeof(keys[0]); // Calculate array size safely
- * dStaticTable_t* table = d_InitStaticTable(sizeof(int), sizeof(char*), my_hash, my_compare, 16, 
+ * dStaticTable_t* table = d_InitStaticTable(sizeof(int), sizeof(char*), my_hash, my_compare, 16,
  *                                           (const void**)keys, (const void**)values, count);
  * ```
  */
@@ -1353,7 +1353,7 @@ int d_ClearStaticTable(dStaticTable_t* table);
  * `size_t min, max, empty; float avg;`
  * `d_GetStaticTableStats(table, &min, &max, &avg, &empty);`
  */
-int d_GetStaticTableStats(const dStaticTable_t* table, size_t* min_entries, 
+int d_GetStaticTableStats(const dStaticTable_t* table, size_t* min_entries,
                           size_t* max_entries, float* avg_entries, size_t* empty_buckets);
 
 /**
@@ -1451,7 +1451,7 @@ dStaticTable_t* d_CloneStaticTable(const dStaticTable_t* source_table);
  *
  * Example:
  * ```c
- * dTable_t* table = d_InitTable(sizeof(int), sizeof(char*), 
+ * dTable_t* table = d_InitTable(sizeof(int), sizeof(char*),
  *                               d_HashInt, d_CompareInt, 16, 0.75f);
  * ```
  */
@@ -1469,7 +1469,7 @@ size_t d_HashInt(const void* key, size_t key_size);
  *
  * Example:
  * ```c
- * dTable_t* table = d_InitTable(sizeof(char*), sizeof(int), 
+ * dTable_t* table = d_InitTable(sizeof(char*), sizeof(int),
  *                               d_HashString, d_CompareString, 16, 0.75f);
  * ```
  */
@@ -1499,7 +1499,7 @@ size_t d_HashStringLiteral(const void* key, size_t key_size);
  *
  * Example:
  * ```c
- * dTable_t* table = d_InitTable(sizeof(float), sizeof(int), 
+ * dTable_t* table = d_InitTable(sizeof(float), sizeof(int),
  *                               d_HashFloat, d_CompareFloat, 16, 0.75f);
  * ```
  */
@@ -1530,7 +1530,7 @@ size_t d_HashDouble(const void* key, size_t key_size);
  * Example:
  * ```c
  * typedef struct { int x, y; } Point;
- * dTable_t* table = d_InitTable(sizeof(Point), sizeof(int), 
+ * dTable_t* table = d_InitTable(sizeof(Point), sizeof(int),
  *                               d_HashBinary, d_CompareBinary, 16, 0.75f);
  * ```
  */
@@ -1801,20 +1801,20 @@ dString_t *d_InitString(void);
 
 /**
  * @brief Destroy a string builder and free its memory.
- * 
+ *
  * @param sb The string builder to destroy.
- * 
+ *
  * @return: Success/failure indicator.
  */
 void d_DestroyString(dString_t* sb);
 
 /**
- * @brief Add a C string to the string builder. 
- * 
+ * @brief Add a C string to the string builder.
+ *
  * @param sb The string builder to append to.
  * @param str The string to append (must be null-terminated if len is 0).
  * @param len The length of string to append, or 0 to use strlen().
- * 
+ *
  * @return: Success/failure indicator.
  */
 void d_AppendToString(dString_t* sb, const char* str, size_t len);
@@ -1825,7 +1825,7 @@ void d_AppendToString(dString_t* sb, const char* str, size_t len);
  * @param string: Pointer to existing dString_t structure.
  * @param content: C-string content to copy into the dString_t.
  * @param flags: Optional flags for string handling behavior.
- * 
+ *
  * @return: Success/failure indicator.
  */
 int d_SetString(dString_t* string, const char* content, int flags);
@@ -1841,84 +1841,87 @@ dString_t* d_CloneString(const dString_t* source);
 
 /**
  * @brief Negatively Append, removing content from the end of the string.
- * 
+ *
  * @param sb The string builder to remove from.
  * @param count The number of characters to remove.
  */
 void d_AppendToStringN(dString_t* sb, const char* str, size_t max_len);
-
 /**
  * @brief Add a single character to the string builder.
- * 
+ *
  * @param sb The string builder to append to.
  * @param c The character to append.
  */
 void d_AppendCharToString(dString_t* sb, char c);
 /**
  * @brief Add an integer to the string builder as a decimal string.
- * 
+ *
  * @param sb The string builder to append to.
  * @param val The integer value to append.
- 
  */
 void d_AppendIntToString(dString_t* sb, int val);
 /**
  * @brief Add a floating-point number to the string builder.
- * 
+ *
  * @param sb The string builder to append to.
  * @param val The floating-point value to append.
  * @param decimals The number of decimal places to show (0-10).
- * 
+ *
  * @return: Success/failure indicator.
  */
 void d_AppendFloatToString(dString_t* sb, float val, int decimals);
 /**
  * @brief Clear the string builder content.
- * 
+ *
  * @param sb The string builder to clear.
  *
  * @return: Success/failure indicator.
  */
 void d_ClearString(dString_t* sb);
-/*
- * Truncate the string builder to a specific length
+
+/**
+ * @brief Truncate the string builder to a specific length
  *
- * `sb` - Pointer to string builder
- * `len` - New length (must be <= current length)
+ * @param sb Pointer to string builder
+ * @param len New length (must be <= current length)
+ *
+ * @return void
  *
  * -- Does nothing if sb is NULL or len >= current length
  * -- Memory is not freed, only the length is reduced
  * -- The string remains null-terminated at the new length
  */
 void d_TruncateString(dString_t* sb, size_t len);
-/*
- * Remove characters from the beginning of the string builder
+
+/**
+ * @brief Remove characters from the beginning of the string builder
  *
- * `sb` - Pointer to string builder
- * `len` - Number of characters to remove from the beginning
+ * @param sb Pointer to string builder
+ * @param len Number of characters to remove from the beginning
+ *
+ * @return void
  *
  * -- Does nothing if sb is NULL or len is 0
  * -- If len >= current length, the string builder is cleared completely
  * -- Uses memmove for safe overlapping memory operation
  */
 void d_DropString(dString_t* sb, size_t len);
-/*
- * Get the current length of the string builder content
+
+/**
+ * @brief Get the current length of the string builder content
  *
- * `sb` - Pointer to string builder
+ * @param sb Pointer to string builder
  *
- * `size_t` - Current length in characters, or 0 if sb is NULL
- *
- * -- Return value does not include the null terminator
- * -- Safe to call with NULL pointer (returns 0)
+ * @return size_t Current length in characters, or 0 if sb is NULL
  */
 size_t d_GetLengthOfString(const dString_t* sb);
-/*
- * Get a read-only pointer to the string builder's content
+
+/**
+ * @brief Get a read-only pointer to the string builder's content
  *
- * `sb` - Pointer to string builder
+ * @param sb Pointer to string builder
  *
- * `const char*` - Pointer to internal string, or NULL if sb is NULL
+ * @return const char* Pointer to internal string, or NULL if sb is NULL
  *
  * -- Do not modify the returned string or free the pointer
  * -- The pointer becomes invalid after any modification to the string builder
@@ -1926,13 +1929,14 @@ size_t d_GetLengthOfString(const dString_t* sb);
  * -- Safe to call with NULL pointer (returns NULL)
  */
 const char* d_PeekString(const dString_t* sb);
-/*
- * Create a copy of the string builder's content
+
+/**
+ * @brief Create a copy of the string builder's content
  *
- * `sb` - Pointer to string builder
- * `len` - Optional pointer to receive the length of the returned string
+ * @param sb Pointer to string builder
+ * @param len Optional pointer to receive the length of the returned string
  *
- * `char*` - Newly allocated copy of the string, or NULL on error
+ * @return char* Newly allocated copy of the string, or NULL on error
  *
  * -- The caller is responsible for freeing the returned pointer
  * -- If len is not NULL, it receives the length of the string (excluding null terminator)
@@ -1940,12 +1944,13 @@ const char* d_PeekString(const dString_t* sb);
  * -- The returned string is always null-terminated
  */
 char *d_DumpString(const dString_t* sb, size_t* len);
-/*
- * Add formatted text to the string builder using printf-style formatting
+
+/**
+ * @brief Append formatted text to the string builder using printf-style formatting
  *
- * `sb` - Pointer to string builder
- * `format` - Printf-style format string
- * `...` - Variable arguments corresponding to format specifiers
+ * @param sb Pointer to string builder
+ * @param format Printf-style format string
+ * @param ... Variable arguments corresponding to format specifiers
  *
  * -- Does nothing if sb or format is NULL
  * -- Uses vsnprintf internally for safe formatting
@@ -1954,8 +1959,9 @@ char *d_DumpString(const dString_t* sb, size_t* len);
  * -- Appends formatted text to existing content (does not replace)
  */
 void d_FormatString(dString_t* sb, const char* format, ...);
-/*
- * Add text with template substitution to the string builder
+
+/**
+ * @brief Add text with template substitution to the string builder
  *
  * `sb` - Pointer to string builder
  * `tmplt` - Template string with placeholders in {key} format
@@ -1971,15 +1977,16 @@ void d_FormatString(dString_t* sb, const char* format, ...);
  * -- Supports nested braces by treating unmatched { as literal characters
  */
 void d_ApplyTemplateToString(dString_t* sb, const char* tmplt, const char** keys, const char** values, int count);
-/*
- * Add an ASCII progress bar to the string builder
+
+/**
+ * @brief Add an ASCII progress bar to the string builder
  *
- * `sb` - Pointer to string builder
- * `current` - Current progress value
- * `max` - Maximum progress value
- * `width` - Width of the progress bar (excluding brackets)
- * `fill_char` - Character to use for filled portions
- * `empty_char` - Character to use for empty portions
+ * @param sb Pointer to string builder
+ * @param current Current progress value
+ * @param max Maximum progress value
+ * @param width Width of the progress bar (excluding brackets)
+ * @param fill_char Character to use for filled portions
+ * @param empty_char Character to use for empty portions
  *
  * -- Does nothing if sb is NULL, width <= 0, or max <= 0
  * -- Progress bar format: [████████----] where █ is fill_char and - is empty_char
@@ -1988,59 +1995,65 @@ void d_ApplyTemplateToString(dString_t* sb, const char* tmplt, const char** keys
  * -- Total visual width is width + 2 (for brackets)
  */
 void d_AppendProgressBarToString(dString_t* sb, int current, int max, int width, char fill_char, char empty_char);
-/*
-  * Add text padded to the center with specified character to reach target width
-  *
-  * `sb` - Pointer to string builder
-  * `text` - Text to center (must be null-terminated)
-  * `width` - Target total width including padding
-  * `pad_char` - Character to use for padding
-  *
-  * -- Does nothing if sb or text is NULL
-  * -- If text length >= width, adds text without padding
-  * -- Text is centered with padding distributed evenly on both sides
-  * -- If padding cannot be evenly distributed, left side gets one less character
-  * -- Example: d_PadCenterString(sb, "Hi", 6, '.') produces "..Hi.."
-  * -- Example: d_PadCenterString(sb, "Hi", 7, '.') produces "..Hi..."
-  * -- Commonly used for centered headers and titles in ASCII interfaces
-  */
-void d_PadCenterString(dString_t* sb, const char* text, int width, char pad_char);
-/*
-  * Add text padded to the left with specified character to reach target width
-  *
-  * `sb` - Pointer to string builder
-  * `text` - Text to pad (must be null-terminated)
-  * `width` - Target total width including padding
-  * `pad_char` - Character to use for padding
-  *
-  * -- Does nothing if sb or text is NULL
-  * -- If text length >= width, adds text without padding
-  * -- Padding is added to the left side of the text
-  * -- Example: d_PadLeftString(sb, "Hi", 5, '.') produces "...Hi"
-  * -- Commonly used for right-aligned text in tables and menus
-  */
-void d_PadLeftString(dString_t* sb, const char* text, int width, char pad_char);
-/*
-  * Add text padded to the right with specified character to reach target width
 
-  * `sb` - Pointer to string builder
-  * `text` - Text to pad (must be null-terminated)
-  * `width` - Target total width including padding
-  * `pad_char` - Character to use for padding
-  *
-  * -- Does nothing if sb or text is NULL
-  * -- If text length >= width, adds text without padding
-  * -- Padding is added to the right side of the text
-  * -- Example: d_PadRightString(sb, "Hi", 5, '.') produces "Hi..."
-  * -- Commonly used for left-aligned text in tables and menus
-  */
-void d_PadRightString(dString_t* sb, const char* text, int width, char pad_char);
 /*
- * Add repeated characters to the string builder
+ * @brief Add text centered with specified padding character to reach target width
  *
- * `sb` - Pointer to string builder
- * `character` - Character to repeat
- * `count` - Number of times to repeat the character
+ * @param sb Pointer to string builder
+ * @param text Text to center (must be null-terminated)
+ * @param width Target total width including padding
+ * @param pad_char Character to use for padding
+ *
+ * -- Does nothing if sb or text is NULL
+ * -- If text length >= width, adds text without padding
+ * -- Text is centered with padding distributed evenly on both sides
+ * -- If padding cannot be evenly distributed, left side gets one less character
+ * -- Example: d_PadCenterString(sb, "Hi", 6, '.') produces "..Hi.."
+ * -- Example: d_PadCenterString(sb, "Hi", 7, '.') produces "..Hi..."
+ * -- Commonly used for centered headers and titles in ASCII interfaces
+ */
+void d_PadCenterString(dString_t* sb, const char* text, int width, char pad_char);
+
+/**
+ * @brief Add text padded to the left with specified character to reach target width
+ *
+ * @param sb Pointer to string builder
+ * @param text Text to pad (must be null-terminated)
+ * @param width Target total width including padding
+ * @param pad_char Character to use for padding
+ *
+ * -- Does nothing if sb or text is NULL
+ * -- If text length >= width, adds text without padding
+ * -- Padding is added to the left side of the text
+ * -- Example: d_PadLeftString(sb, "Hi", 5, '.') produces "...Hi"
+ * -- Commonly used for right-aligned text in tables and menus
+ */
+void d_PadLeftString(dString_t* sb, const char* text, int width, char pad_char);
+
+/**
+ * @brief Add text padded to the right with specified character to reach target width
+ *
+ * @param sb Pointer to string builder
+ * @param text Text to pad (must be null-terminated)
+ * @param width Target total width including padding
+ * @param pad_char Character to use for padding
+ *
+ * -- Does nothing if sb or text is NULL
+ * -- If text length >= width, adds text without padding
+ * -- Padding is added to the right side of the text
+ * -- Example: d_PadRightString(sb, "Hi", 5, '.') produces "Hi..."
+ * -- Commonly used for left-aligned text in tables and menus
+ */
+void d_PadRightString(dString_t* sb, const char* text, int width, char pad_char);
+
+/**
+ * @brief Add repeated characters to the string builder
+ *
+ * @param sb Pointer to string builder
+ * @param character Character to repeat
+ * @param count Number of times to repeat the character
+ *
+ * @return void
  *
  * -- Does nothing if sb is NULL or count <= 0
  * -- Efficiently adds multiple copies of the same character
@@ -2049,38 +2062,39 @@ void d_PadRightString(dString_t* sb, const char* text, int width, char pad_char)
 void d_RepeatString(dString_t* sb, char character, int count);
 
 // Pythonic String Utils
-/*
-  * Join an array of strings with a separator (like Python's str.join())
-  *
-  * `sb` - Pointer to string builder
-  * `strings` - Array of string pointers to join
-  * `count` - Number of strings in the array
-  * `separator` - String to insert between each element
-  *
-  * -- Does nothing if sb is NULL or count <= 0
-  * -- If strings array is NULL, does nothing
-  * -- NULL strings in the array are treated as empty strings
-  * -- If separator is NULL, strings are joined without separation
-  * -- Example: d_JoinStrings(sb, {"a", "b", "c"}, 3, ", ") produces "a, b, c"
-  * -- Commonly used for creating comma-separated lists, file paths, etc.
-  */
+/**
+ * @brief Join an array of strings with a separator (like Python's str.join())
+ *
+ * @param sb Pointer to string builder
+ * @param strings Array of string pointers to join
+ * @param count Number of strings in the array
+ * @param separator String to insert between each element
+ *
+ * -- Does nothing if sb is NULL or count <= 0
+ * -- If strings array is NULL, does nothing
+ * -- NULL strings in the array are treated as empty strings
+ * -- If separator is NULL, strings are joined without separation
+ * -- Example: d_JoinStrings(sb, {"a", "b", "c"}, 3, ", ") produces "a, b, c"
+ * -- Commonly used for creating comma-separated lists, file paths, etc.
+ */
 void d_JoinStrings(dString_t* sb, const char** strings, int count, const char* separator);
-/*
-  * Extract a substring using Python-style slice notation (like str[start:end])
-  *
-  * `sb` - Pointer to string builder
-  * `text` - Source string to slice (must be null-terminated)
-  * `start` - Starting index (inclusive, negative values count from end)
-  * `end` - Ending index (exclusive, negative values count from end, -1 means end of string)
-  *
-  * -- Does nothing if sb or text is NULL
-  * -- Negative indices count from the end: -1 is last character, -2 is second-to-last, etc.
-  * -- If start >= end (after resolving negative indices), no text is added
-  * -- Indices are clamped to valid range [0, string_length]
-  * -- Example: d_SliceString(sb, "Hello", 1, 4) produces "ell"
-  * -- Example: d_SliceString(sb, "Hello", -3, -1) produces "llo"
-  * -- Example: d_SliceString(sb, "Hello", 0, -1) produces "Hello"
-  */
+
+/**
+ * @brief Extract a substring using Python-style slice notation (like str[start:end])
+ *
+ * @param sb Pointer to string builder
+ * @param text Source string to slice (must be null-terminated)
+ * @param start Starting index (inclusive, negative values count from end)
+ * @param end Ending index (exclusive, negative values count from end)
+ *
+ * -- Does nothing if sb or text is NULL
+ * -- Negative indices count from the end: -1 is last character, -2 is second-to-last, etc.
+ * -- SPECIAL CASE: An 'end' value of -1 is treated as the end of the string.
+ * -- If start >= end (after resolving negative indices), no text is added
+ * -- Indices are clamped to valid range [0, string_length]
+ * -- Example: d_SliceString(sb, "Hello", 1, 4) produces "ell"
+ * -- Example: d_SliceString(sb, "Hello", -3, -1) produces "llo"
+ */
 void d_SliceString(dString_t* sb, const char* text, int start, int end);
 
 /*
@@ -2941,17 +2955,17 @@ int d_CompareStringToCString(const dString_t* d_str, const char* c_str);
 
 /**
  * @brief Initialize a Dynamic Array.
- * 
+ *
  * @param capacity The initial capacity of the array in elements.
  * @param element_size The size of each element in bytes.
- * 
+ *
  * @return A pointer to the new array, or NULL on error.
- * 
+ *
  * -- Must be destroyed with d_DestroyArray() to free memory
  * -- Initial count is 0 even though capacity may be larger
  * -- Elements can be any type as long as element_size is correct
  * -- Capacity of 0 is allowed but array cannot store elements until resized
- * 
+ *
  * Example: `dArray_t* array = d_InitArray(10, sizeof(int));`
  * This creates a new array with a capacity of 10 elements, each of size 4 bytes.
  */
@@ -2959,14 +2973,14 @@ dArray_t* d_InitArray( size_t capacity, size_t element_size );
 
 /**
  * @brief Destroy a dynamic array.
- * 
+ *
  * @param array The array to destroy.
- * 
+ *
  * @return: 0 on success, 1 on failure.
- * 
+ *
  * -- Frees both the data buffer and the array structure itself
  * -- After calling this function, the pointer is invalid and should not be used
- * 
+ *
  * Example: `d_DestroyArray(array);`
  * This destroys the dynamic array and frees its memory.
  */
@@ -3005,14 +3019,14 @@ int d_ResizeArray( dArray_t* array, size_t new_capacity );
 
 /**
  * @brief Grow the array by a number of additional bytes.
- * 
+ *
  * @param array The array to grow.
  * @param additional_bytes The number of bytes to add.
- * 
+ *
  * @return 0 on success, 1 on failure.
- * 
+ *
  * -- Convenience function that calls d_ResizeArray() internally
- * 
+ *
  * Example: `d_GrowArray(array, 10 * sizeof(int));`
  * This grows the dynamic array by 10 elements, each of size 4 bytes.
  */
@@ -3044,18 +3058,18 @@ int d_AppendDataToArray( dArray_t* array, void* data );
 
 /**
  * @brief Get a pointer to the data at a specific index.
- * 
+ *
  * @param array The array to get data from.
  * @param index The index of the element to get.
- * 
+ *
  * @return A pointer to the element data, or NULL if index is out of bounds.
- * 
+ *
  * -- Returns NULL if array is NULL or index >= count
  * -- Returned pointer is valid until the array is modified or destroyed
  * -- Caller can read/write through the returned pointer safely
  * -- Use appropriate casting: int* ptr = (int*)d_IndexDataFromArray(array, 0)
  * -- Index must be less than count, not capacity (only counts appended elements)
- * 
+ *
  * Example: `void* data = d_IndexDataFromArray(array, 0);`
  * This retrieves the first element from the dynamic array.
  */
@@ -3063,16 +3077,16 @@ void* d_IndexDataFromArray(dArray_t* array, size_t index);
 
 /**
  * @brief Remove and return the last element from the array.
- * 
+ *
  * @param array The array to pop from.
- * 
+ *
  * @return A pointer to the last element's data, or NULL if array is empty.
- * 
+ *
  * -- Decrements count but does not free memory (element data remains in buffer)
  * -- Returned pointer becomes invalid after next append or array modification
  * -- Implements stack-like behavior for dynamic arrays
  * -- Memory is not reallocated, only the count is decremented for efficiency
- * 
+ *
  * Example: `void* data = d_PopDataFromArray(array);`
  * This removes and returns the last element from the dynamic array.
  */
@@ -3080,18 +3094,18 @@ void* d_PopDataFromArray(dArray_t* array);
 
 /**
  * @brief Insert data at a specific index in the array
- * 
+ *
  * @param array The array to insert into
  * @param data Pointer to the data to insert
  * @param index The index where to insert the data
- * 
+ *
  * @return 0 on success, 1 on failure
- * 
+ *
  * -- Shifts existing elements to the right to make space
  * -- Grows the array capacity if needed
  * -- index must be <= array->count (can insert at end)
  * -- Uses memmove for safe overlapping memory operations
- * 
+ *
  * Example: `d_InsertDataIntoArray(array, &value, 2);`
  * This inserts a value at index 2, shifting existing elements to the right.
  */
@@ -3099,17 +3113,17 @@ int d_InsertDataIntoArray(dArray_t* array, void* data, size_t index);
 
 /**
  * @brief Remove data at a specific index from the array
- * 
+ *
  * @param array The array to remove from
  * @param index The index of the element to remove
- * 
+ *
  * @return 0 on success, 1 on failure
- * 
+ *
  * -- Shifts existing elements to the left to fill the gap
  * -- Does not resize the array capacity (use d_TrimCapacityOfArray for that)
  * -- index must be < array->count
  * -- Uses memmove for safe overlapping memory operations
- * 
+ *
  * Example: `d_RemoveDataFromArray(array, 2);`
  * This removes the element at index 2, shifting remaining elements to the left.
  */
@@ -3124,14 +3138,14 @@ int d_RemoveDataFromArray(dArray_t* array, size_t index);
  *
  * @param capacity: Maximum number of elements the array can hold
  * @param element_size: Size of each element in bytes
- * 
+ *
  * @return: Pointer to new static array, or NULL on allocation failure
  *
  * -- Allocates memory for both the structure and the data buffer
  * -- Data buffer size = capacity * element_size
  * -- count is initialized to 0
  * -- capacity and element_size are fixed for the lifetime of the array
- * 
+ *
  * Example: `dStaticArray_t* array = d_InitStaticArray(10, sizeof(int));`
  * This creates a new static array with a capacity of 10 elements, each of size 4 bytes.
  */
@@ -3146,13 +3160,13 @@ dStaticArray_t* d_InitStaticArray(size_t capacity, size_t element_size);
  * -- Safe to call with NULL pointer
  * -- Frees data buffer first, then structure
  * -- After calling, the pointer becomes invalid
- * 
+ *
  * Example: `d_DestroyStaticArray(array);`
  * This destroys the static array and frees its memory.
  */
 int d_DestroyStaticArray(dStaticArray_t* array);
 
-/** 
+/**
  * @brief Append an element to the end of the static array.
  * *
  * @param array: Pointer to static array
@@ -3163,7 +3177,7 @@ int d_DestroyStaticArray(dStaticArray_t* array);
  * -- Fails if array or data is NULL
  * -- Copies element_size bytes from data
  * -- Increments count on successful append
- * 
+ *
  * Example: `d_AppendDataToStaticArray(array, &data);`
  * This appends a pointer to a data element to the end of the static array.
  */
@@ -3179,7 +3193,7 @@ int d_AppendDataToStaticArray(dStaticArray_t* array, void* data);
  * -- Returns NULL if array is NULL or index >= count
  * -- Performs bounds checking for safety
  * -- Returned pointer is valid until array is modified or destroyed
- * 
+ *
  * Example: `void* data = d_IndexDataFromStaticArray(array, 0);`
  * This retrieves the first element from the static array.
  */
@@ -3195,7 +3209,7 @@ void* d_IndexDataFromStaticArray(dStaticArray_t* array, size_t index);
  * -- Decrements count but doesn't free memory
  * -- Element data remains in buffer but is no longer active
  * -- Returned pointer becomes invalid after next append
- * 
+ *
  * Example: `void* data = d_PopDataFromStaticArray(array);`
  * This removes and returns the last element from the static array.
  */
@@ -3210,7 +3224,7 @@ void* d_PopDataFromStaticArray(dStaticArray_t* array);
  * -- Returns 0 if array is NULL (no space available)
  * -- Returns capacity - count for valid arrays
  * -- Useful for checking if array can accept more elements before attempting append
- * 
+ *
  * Example: `size_t free_slots = d_GetFreeSpaceInStaticArray(array);`
  * This returns how many more elements can be added to the array.
  */
@@ -3229,7 +3243,7 @@ size_t d_GetFreeSpaceInStaticArray(dStaticArray_t* array);
  * -- Copies element_size bytes from value to each position
  * -- Sets array count to num_elements after successful fill
  * -- Overwrites existing data in the array
- * 
+ *
  * Example: `int value = 42; d_FillDataInStaticArray(array, &value, 5);`
  * This fills the first 5 positions of the array with the value 42.
  */
@@ -3246,7 +3260,7 @@ int d_FillDataInStaticArray(dStaticArray_t* array, const void* value, size_t num
  * -- Returned pointer is valid until array is destroyed
  * -- Use with caution - direct memory access bypasses safety checks
  * -- Primarily intended for advanced operations or serialization
- * 
+ *
  * Example: `void* raw_buffer = d_PeekRawMemoryOfStaticArray(array);`
  * This returns a pointer to the entire data buffer of the array.
  */
@@ -3262,7 +3276,7 @@ void* d_PeekRawMemoryOfStaticArray(dStaticArray_t* array);
  * -- Saves array metadata (capacity, count, element_size) and data
  * -- Uses binary format with magic number for validation
  * -- File can be loaded later using d_LoadStaticArrayFromFile
- * 
+ *
  * Example: `d_SaveStaticArrayToFile("myarray.bin", array);`
  */
 int d_SaveStaticArrayToFile(const char* filename, const dStaticArray_t* array);
@@ -3276,7 +3290,7 @@ int d_SaveStaticArrayToFile(const char* filename, const dStaticArray_t* array);
  * -- Validates file format and magic number
  * -- Allocates new array with original capacity and data
  * -- Returns NULL if file format is invalid or allocation fails
- * 
+ *
  * Example: `dStaticArray_t* array = d_LoadStaticArrayFromFile("myarray.bin");`
  */
 dStaticArray_t* d_LoadStaticArrayFromFile(const char* filename);
@@ -3292,7 +3306,7 @@ dStaticArray_t* d_LoadStaticArrayFromFile(const char* filename);
  * -- Calls callback function for each element in the array (up to count)
  * -- Provides element index, data pointer, and size to callback
  * -- Safe iteration - callback receives read-only access to elements
- * 
+ *
  * Example: `d_IterateStaticArray(array, my_callback, &context);`
  */
 int d_IterateStaticArray(const dStaticArray_t* array, dStaticArrayIteratorFunc callback, void* user_data);

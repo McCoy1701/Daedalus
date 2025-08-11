@@ -85,8 +85,10 @@ static void d_StringBuilderEnsureSpace(dString_t* sb, size_t add_len)
     sb->str = realloc(sb->str, sb->alloced);
 }
 
-/*
- * Create a new string builder
+/**
+ * @brief Create a new string builder.
+ *
+ * @return A new string builder, or NULL on allocation failure.
  */
  dString_t* d_InitString(void)
  {
@@ -123,8 +125,14 @@ void d_DestroyString(dString_t* sb)
     free(sb->str);
     free(sb);
 }
-/*
- * Add a string to the string builder
+/**
+ * @brief Add a C string to the string builder.
+ *
+ * @param sb The string builder to append to.
+ * @param str The string to append (must be null-terminated if len is 0).
+ * @param len The length of string to append, or 0 to use strlen().
+ *
+ * @return: Success/failure indicator.
  */
  void d_AppendToString(dString_t* sb, const char* str, size_t len)
   {
@@ -168,9 +176,15 @@ void d_DestroyString(dString_t* sb)
      sb->str[sb->len] = '\0'; // Ensure null-termination.
  }
 
-/*
- * Set the content of an existing dString_t to a new value
- */
+ /**
+  * @brief Set the content of an existing dString_t to a new value.
+  *
+  * @param string: Pointer to existing dString_t structure.
+  * @param content: C-string content to copy into the dString_t.
+  * @param flags: Optional flags for string handling behavior.
+  *
+  * @return: Success/failure indicator.
+  */
 int d_SetString(dString_t* string, const char* content, int flags)
 {
     // Check your inputs.
@@ -242,9 +256,12 @@ dString_t* d_CloneString(const dString_t* source)
     return clone; // Success
 }
 
- /*
-  * Add a limited portion of a string to the string builder
-  */
+/**
+ * @brief Negatively Append, removing content from the end of the string.
+ *
+ * @param sb The string builder to remove from.
+ * @param count The number of characters to remove.
+ */
  void d_AppendToStringN(dString_t* sb, const char* str, size_t max_len)
  {
      if (sb == NULL || str == NULL || max_len == 0) {
@@ -281,15 +298,12 @@ dString_t* d_CloneString(const dString_t* source)
      sb->len += actual_len;
      sb->str[sb->len] = '\0'; // Ensure null termination
  }
-/*
- * Add a single character to the string builder
- *
- * `sb` - Pointer to string builder
- * `c` - Character to append
- *
- * -- Does nothing if sb is NULL
- * -- Can append any character including '\0' (though this may confuse string functions)
- */
+ /**
+  * @brief Add a single character to the string builder.
+  *
+  * @param sb The string builder to append to.
+  * @param c The character to append.
+  */
 void d_AppendCharToString(dString_t* sb, char c)
 {
     if (sb == NULL)
@@ -303,15 +317,11 @@ void d_AppendCharToString(dString_t* sb, char c)
     sb->len++;
     sb->str[sb->len] = '\0';
 }
-/*
- * Add an integer to the string builder as a decimal string
+/**
+ * @brief Add an integer to the string builder as a decimal string.
  *
- * `sb` - Pointer to string builder
- * `val` - Integer value to append
- *
- * -- Does nothing if sb is NULL
- * -- Uses snprintf internally for safe conversion
- * -- Supports full 32-bit integer range including negative values
+ * @param sb The string builder to append to.
+ * @param val The integer value to append.
  */
 void d_AppendIntToString(dString_t* sb, int val)
 {
@@ -325,17 +335,14 @@ void d_AppendIntToString(dString_t* sb, int val)
     snprintf(str, sizeof(str), "%d", val);
     d_AppendToString(sb, str, 0);
 }
-/*
- * Append a floating-point number to the string builder
+/**
+ * @brief Add a floating-point number to the string builder.
  *
- * `sb` - Pointer to string builder
- * `val` - Float value to append
- * `decimals` - Number of decimal places to show (0-10)
+ * @param sb The string builder to append to.
+ * @param val The floating-point value to append.
+ * @param decimals The number of decimal places to show (0-10).
  *
- * -- Does nothing if sb is NULL
- * -- If decimals is negative, uses 6 decimal places (default)
- * -- If decimals > 10, caps at 10 decimal places
- * -- Uses standard printf formatting for floating-point representation
+ * @return: Success/failure indicator.
  */
 void d_AppendFloatToString(dString_t* sb, float val, int decimals)
 {
@@ -360,14 +367,12 @@ void d_AppendFloatToString(dString_t* sb, float val, int decimals)
     snprintf(str, sizeof(str), format, val);
     d_AppendToString(sb, str, 0);
 }
-/*
- * Clear the string builder content
+/**
+ * @brief Clear the string builder content.
  *
- * `sb` - Pointer to string builder
+ * @param sb The string builder to clear.
  *
- * -- Does nothing if sb is NULL
- * -- Memory is not freed, only the length is reset to 0
- * -- Buffer capacity remains unchanged for efficient reuse
+ * @return: Success/failure indicator.
  */
 void d_ClearString(dString_t* sb)
 {
@@ -378,11 +383,13 @@ void d_ClearString(dString_t* sb)
     d_TruncateString(sb, 0);
 }
 
-/*
- * Truncate the string builder to a specific length
+/**
+ * @brief Truncate the string builder to a specific length
  *
- * `sb` - Pointer to string builder
- * `len` - New length (must be <= current length)
+ * @param sb Pointer to string builder
+ * @param len New length (must be <= current length)
+ *
+ * @return void
  *
  * -- Does nothing if sb is NULL or len >= current length
  * -- Memory is not freed, only the length is reduced
@@ -398,11 +405,14 @@ void d_TruncateString(dString_t* sb, size_t len)
     sb->len = len;
     sb->str[sb->len] = '\0';
 }
-/*
- * Remove characters from the beginning of the string builder
+
+/**
+ * @brief Remove characters from the beginning of the string builder
  *
- * `sb` - Pointer to string builder
- * `len` - Number of characters to remove from the beginning
+ * @param sb Pointer to string builder
+ * @param len Number of characters to remove from the beginning
+ *
+ * @return void
  *
  * -- Does nothing if sb is NULL or len is 0
  * -- If len >= current length, the string builder is cleared completely
@@ -424,15 +434,13 @@ void d_DropString(dString_t* sb, size_t len)
     /* +1 to move the NULL terminator. */
     memmove(sb->str, sb->str + len, sb->len + 1);
 }
-/*
- * Get the current length of the string builder content
+
+/**
+ * @brief Get the current length of the string builder content
  *
- * `sb` - Pointer to string builder
+ * @param sb Pointer to string builder
  *
- * `size_t` - Current length in characters, or 0 if sb is NULL
- *
- * -- Return value does not include the null terminator
- * -- Safe to call with NULL pointer (returns 0)
+ * @return size_t Current length in characters, or 0 if sb is NULL
  */
 size_t d_GetLengthOfString(const dString_t* sb)
 {
@@ -443,12 +451,12 @@ size_t d_GetLengthOfString(const dString_t* sb)
     return sb->len;
 }
 
-/*
- * Get a read-only pointer to the string builder's content
+/**
+ * @brief Get a read-only pointer to the string builder's content
  *
- * `sb` - Pointer to string builder
+ * @param sb Pointer to string builder
  *
- * `const char*` - Pointer to internal string, or NULL if sb is NULL
+ * @return const char* Pointer to internal string, or NULL if sb is NULL
  *
  * -- Do not modify the returned string or free the pointer
  * -- The pointer becomes invalid after any modification to the string builder
@@ -462,13 +470,13 @@ const char* d_PeekString(const dString_t* sb)
     return sb->str;
 }
 
-/*
- * Create a copy of the string builder's content
+/**
+ * @brief Create a copy of the string builder's content
  *
- * `sb` - Pointer to string builder
- * `len` - Optional pointer to receive the length of the returned string
+ * @param sb Pointer to string builder
+ * @param len Optional pointer to receive the length of the returned string
  *
- * `char*` - Newly allocated copy of the string, or NULL on error
+ * @return char* Newly allocated copy of the string, or NULL on error
  *
  * -- The caller is responsible for freeing the returned pointer
  * -- If len is not NULL, it receives the length of the string (excluding null terminator)
@@ -491,12 +499,12 @@ char* d_DumpString(const dString_t* sb, size_t* len)
     return out;
 }
 
-/*
- * Add formatted text to the string builder using printf-style formatting
+/**
+ * @brief Append formatted text to the string builder using printf-style formatting
  *
- * `sb` - Pointer to string builder
- * `format` - Printf-style format string
- * `...` - Variable arguments corresponding to format specifiers
+ * @param sb Pointer to string builder
+ * @param format Printf-style format string
+ * @param ... Variable arguments corresponding to format specifiers
  *
  * -- Does nothing if sb or format is NULL
  * -- Uses vsnprintf internally for safe formatting
@@ -529,12 +537,14 @@ void d_FormatString(dString_t* sb, const char* format, ...) {
     va_end(args);
 }
 
-/*
- * Add repeated characters to the string builder
+/**
+ * @brief Add repeated characters to the string builder
  *
- * `sb` - Pointer to string builder
- * `character` - Character to repeat
- * `count` - Number of times to repeat the character
+ * @param sb Pointer to string builder
+ * @param character Character to repeat
+ * @param count Number of times to repeat the character
+ *
+ * @return void
  *
  * -- Does nothing if sb is NULL or count <= 0
  * -- Efficiently adds multiple copies of the same character
@@ -551,15 +561,15 @@ void d_RepeatString(dString_t* sb, char character, int count) {
     sb->str[sb->len] = '\0';
 }
 
-/*
- * Add an ASCII progress bar to the string builder
+/**
+ * @brief Add an ASCII progress bar to the string builder
  *
- * `sb` - Pointer to string builder
- * `current` - Current progress value
- * `max` - Maximum progress value
- * `width` - Width of the progress bar (excluding brackets)
- * `fill_char` - Character to use for filled portions
- * `empty_char` - Character to use for empty portions
+ * @param sb Pointer to string builder
+ * @param current Current progress value
+ * @param max Maximum progress value
+ * @param width Width of the progress bar (excluding brackets)
+ * @param fill_char Character to use for filled portions
+ * @param empty_char Character to use for empty portions
  *
  * -- Does nothing if sb is NULL, width <= 0, or max <= 0
  * -- Progress bar format: [████████----] where █ is fill_char and - is empty_char
@@ -579,8 +589,8 @@ void d_AppendProgressBarToString(dString_t* sb, int current, int max, int width,
     d_AppendCharToString(sb, ']');
 }
 
-/*
- * Add text with template substitution to the string builder
+/**
+ * @brief Add text with template substitution to the string builder
  *
  * `sb` - Pointer to string builder
  * `tmplt` - Template string with placeholders in {key} format
@@ -595,8 +605,8 @@ void d_AppendProgressBarToString(dString_t* sb, int current, int max, int width,
  * -- Keys longer than 255 characters are treated as literal text
  * -- Supports nested braces by treating unmatched { as literal characters
  */
- void d_ApplyTemplateToString(dString_t* sb, const char* tmplt, const char** keys, const char** values, int count) {
-     if (sb == NULL || tmplt == NULL) return;
+void d_ApplyTemplateToString(dString_t* sb, const char* tmplt, const char** keys, const char** values, int count) {
+    if (sb == NULL || tmplt == NULL) return;
 
      const char* pos = tmplt;
      while (*pos) {
@@ -643,22 +653,22 @@ void d_AppendProgressBarToString(dString_t* sb, int current, int max, int width,
      }
  }
 
-/*
-  * Add text padded to the left with specified character to reach target width
-  *
-  * `sb` - Pointer to string builder
-  * `text` - Text to pad (must be null-terminated)
-  * `width` - Target total width including padding
-  * `pad_char` - Character to use for padding
-  *
-  * -- Does nothing if sb or text is NULL
-  * -- If text length >= width, adds text without padding
-  * -- Padding is added to the left side of the text
-  * -- Example: d_PadLeftString(sb, "Hi", 5, '.') produces "...Hi"
-  * -- Commonly used for right-aligned text in tables and menus
-  */
- void d_PadLeftString(dString_t* sb, const char* text, int width, char pad_char) {
-     if (sb == NULL || text == NULL || width <= 0) return;
+/**
+ * @brief Add text padded to the left with specified character to reach target width
+ *
+ * @param sb Pointer to string builder
+ * @param text Text to pad (must be null-terminated)
+ * @param width Target total width including padding
+ * @param pad_char Character to use for padding
+ *
+ * -- Does nothing if sb or text is NULL
+ * -- If text length >= width, adds text without padding
+ * -- Padding is added to the left side of the text
+ * -- Example: d_PadLeftString(sb, "Hi", 5, '.') produces "...Hi"
+ * -- Commonly used for right-aligned text in tables and menus
+ */
+void d_PadLeftString(dString_t* sb, const char* text, int width, char pad_char) {
+    if (sb == NULL || text == NULL || width <= 0) return;
 
      int text_len = strlen(text);
      int pad_needed = width - text_len;
@@ -669,13 +679,13 @@ void d_AppendProgressBarToString(dString_t* sb, int current, int max, int width,
      d_AppendToString(sb, text, 0);
  }
 
- /*
-  * Add text padded to the right with specified character to reach target width
+ /**
+  * @brief Add text padded to the right with specified character to reach target width
   *
-  * `sb` - Pointer to string builder
-  * `text` - Text to pad (must be null-terminated)
-  * `width` - Target total width including padding
-  * `pad_char` - Character to use for padding
+  * @param sb Pointer to string builder
+  * @param text Text to pad (must be null-terminated)
+  * @param width Target total width including padding
+  * @param pad_char Character to use for padding
   *
   * -- Does nothing if sb or text is NULL
   * -- If text length >= width, adds text without padding
@@ -683,8 +693,8 @@ void d_AppendProgressBarToString(dString_t* sb, int current, int max, int width,
   * -- Example: d_PadRightString(sb, "Hi", 5, '.') produces "Hi..."
   * -- Commonly used for left-aligned text in tables and menus
   */
- void d_PadRightString(dString_t* sb, const char* text, int width, char pad_char) {
-     if (sb == NULL || text == NULL || width <= 0) return;
+void d_PadRightString(dString_t* sb, const char* text, int width, char pad_char) {
+    if (sb == NULL || text == NULL || width <= 0) return;
 
      int text_len = strlen(text);
      int pad_needed = width - text_len;
@@ -696,12 +706,12 @@ void d_AppendProgressBarToString(dString_t* sb, int current, int max, int width,
  }
 
  /*
-  * Add text centered with specified padding character to reach target width
+  * @brief Add text centered with specified padding character to reach target width
   *
-  * `sb` - Pointer to string builder
-  * `text` - Text to center (must be null-terminated)
-  * `width` - Target total width including padding
-  * `pad_char` - Character to use for padding
+  * @param sb Pointer to string builder
+  * @param text Text to center (must be null-terminated)
+  * @param width Target total width including padding
+  * @param pad_char Character to use for padding
   *
   * -- Does nothing if sb or text is NULL
   * -- If text length >= width, adds text without padding
@@ -730,22 +740,26 @@ void d_AppendProgressBarToString(dString_t* sb, int current, int max, int width,
      d_RepeatString(sb, pad_char, right_pad);
  }
 
-/*
-  * Join an array of strings with a separator (like Python's str.join())
-  *
-  * `sb` - Pointer to string builder
-  * `strings` - Array of string pointers to join
-  * `count` - Number of strings in the array
-  * `separator` - String to insert between each element
-  *
-  * -- Does nothing if sb is NULL or count <= 0
-  * -- If strings array is NULL, does nothing
-  * -- NULL strings in the array are treated as empty strings
-  * -- If separator is NULL, strings are joined without separation
-  * -- Example: d_JoinStrings(sb, {"a", "b", "c"}, 3, ", ") produces "a, b, c"
-  * -- Commonly used for creating comma-separated lists, file paths, etc.
-  */
- void d_JoinStrings(dString_t* sb, const char** strings, int count, const char* separator) {
+// ===
+// Pythonic String Utils
+// ===
+
+/**
+ * @brief Join an array of strings with a separator (like Python's str.join())
+ *
+ * @param sb Pointer to string builder
+ * @param strings Array of string pointers to join
+ * @param count Number of strings in the array
+ * @param separator String to insert between each element
+ *
+ * -- Does nothing if sb is NULL or count <= 0
+ * -- If strings array is NULL, does nothing
+ * -- NULL strings in the array are treated as empty strings
+ * -- If separator is NULL, strings are joined without separation
+ * -- Example: d_JoinStrings(sb, {"a", "b", "c"}, 3, ", ") produces "a, b, c"
+ * -- Commonly used for creating comma-separated lists, file paths, etc.
+ */
+void d_JoinStrings(dString_t* sb, const char** strings, int count, const char* separator) {
      if (sb == NULL || strings == NULL || count <= 0) return;
 
      for (int i = 0; i < count; i++) {
@@ -759,14 +773,14 @@ void d_AppendProgressBarToString(dString_t* sb, int current, int max, int width,
          }
      }
  }
- 
- /*
-  * Extract a substring using Python-style slice notation (like str[start:end])
+
+ /**
+  * @brief Extract a substring using Python-style slice notation (like str[start:end])
   *
-  * `sb` - Pointer to string builder
-  * `text` - Source string to slice (must be null-terminated)
-  * `start` - Starting index (inclusive, negative values count from end)
-  * `end` - Ending index (exclusive, negative values count from end)
+  * @param sb Pointer to string builder
+  * @param text Source string to slice (must be null-terminated)
+  * @param start Starting index (inclusive, negative values count from end)
+  * @param end Ending index (exclusive, negative values count from end)
   *
   * -- Does nothing if sb or text is NULL
   * -- Negative indices count from the end: -1 is last character, -2 is second-to-last, etc.
@@ -836,7 +850,7 @@ int d_CompareStrings(const dString_t* str1, const dString_t* str2)
     if (str1->len != str2->len) {
         return (str1->len < str2->len) ? -1 : 1;
     }
-    
+
     // If lengths are equal, compare the actual data using memcmp
     // This handles embedded null bytes correctly
     return memcmp(str1->str, str2->str, str1->len);
@@ -863,12 +877,12 @@ int d_CompareStringToCString(const dString_t* d_str, const char* c_str)
     // If both are valid, perform length-aware comparison
     // First get the C string length
     size_t c_str_len = strlen(c_str);
-    
+
     // If lengths are different, they're not equal
     if (d_str->len != c_str_len) {
         return (d_str->len < c_str_len) ? -1 : 1;
     }
-    
+
     // If lengths are equal, compare the actual data using memcmp
     // This handles embedded null bytes correctly
     return memcmp(d_str->str, c_str, d_str->len);
