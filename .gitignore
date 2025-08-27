@@ -9,8 +9,9 @@ sisyphus.legend
 obj/
 index/
 bin/
+ems_obj/
+shared_obj/
 core
-./resources/world/world_test.dat
 compile_commands.json
 
 .sisyphus/

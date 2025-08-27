@@ -539,6 +539,9 @@ void  d_LimitVec2f( dVec2_t *output, const dVec2_t a, const float value ); //Lim
 void  d_NormalizeVec2f( dVec2_t *output, const dVec2_t vec ); //Normalize a vector 2f
 void  d_CreateNormalVec2f( dVec2_t *output, const dVec2_t a, const dVec2_t b ); //Create a normal vector from two vector 2fs
 void  d_FindIntersectionVec2f( dVec2_t *output, const dVec2_t lineA0, const dVec2_t lineA1, const dVec2_t lineB0, const dVec2_t lineB1 ); //Find the intersection between two vector 2fs
+dVec2_t d_Perpendicular( dVec2_t vec );
+int d_PointOnRightSideOfLine( dVec2_t a, dVec2_t b, dVec2_t p );
+int d_PointInsideOfTriangle( dVec2_t a, dVec2_t b, dVec2_t c, dVec2_t p );
 
 float d_LengthOfVec3f( const dVec3_t vec ); //Length of a vector 3f
 float d_DistanceVec3f( const dVec3_t a, const dVec3_t b ); //Distance between two vector 3fs

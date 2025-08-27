@@ -29,6 +29,20 @@ float d_Sqrtf( float number )
   return number * y;
 }
 
+int d_Clampi( int value, int min, int max )
+{
+  if ( value < min ) return min;
+  if( value > max ) return max;
+  return value;
+}
+
+float d_Clampf( float value, float min, float max )
+{
+  if ( value < min ) return min;
+  if( value > max ) return max;
+  return value;
+}
+
 /*---------------------------------------------*/
 /*---------------- Vector Math ----------------*/
 /*---------------------------------------------*/
@@ -129,8 +143,8 @@ void d_AddTwoVec2f( dVec2_t *output, const dVec2_t a, const dVec2_t b )
 */
 void d_SubTwoVec2f( dVec2_t *output, const dVec2_t a, const dVec2_t b )
 {
-  output->x = ( a.x - b.x );
-  output->y = ( a.y - b.y );
+  output->x = ( b.x - a.x );
+  output->y = ( b.y - a.y );
 }
 
 /*
@@ -274,6 +288,29 @@ void d_FindIntersectionVec2f( dVec2_t *output, const dVec2_t lineA0, const dVec2
   ( ( lineA0.y - lineA1.y ) * ( ( lineB0.x * lineB1.y ) - ( lineB0.y * lineB1.x ) ) );
 
   output->y /= temp;
+}
+
+dVec2_t d_Perpendicular( dVec2_t vec )
+{
+  return (dVec2_t){ .x = vec.y, .y = -vec.x };
+}
+
+int d_PointOnRightSideOfLine( dVec2_t a, dVec2_t b, dVec2_t p )
+{
+  dVec2_t ap;
+  dVec2_t ab;
+  d_SubTwoVec2f( &ap, a, p );
+  d_SubTwoVec2f( &ab, a, b );
+  dVec2_t ab_perp = d_Perpendicular( ab );
+  return d_DotProductVec2f( ap, ab_perp ) >= 0;
+}
+
+int d_PointInsideOfTriangle( dVec2_t a, dVec2_t b, dVec2_t c, dVec2_t p )
+{
+  int AB = d_PointOnRightSideOfLine( a, b, p );
+  int BC = d_PointOnRightSideOfLine( b, c, p );
+  int CA = d_PointOnRightSideOfLine( c, a, p );
+  return AB == BC && BC == CA;
 }
 
 /*---------------- Vector 3 float Math ----------------*/
