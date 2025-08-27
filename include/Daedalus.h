@@ -526,6 +526,9 @@ typedef struct {
 /* Vector Math Float */
 float d_Sqrtf( float number ); //Quake fast inverse square root
 
+int d_Clampi( int value, int min, int max );
+float d_Clampf( float value, float min, float max );
+
 float d_LengthOfVec2f( const dVec2_t vec ); //Length of a vector 2f
 float d_DistanceVec2f( const dVec2_t a, const dVec2_t b ); //Distance between two vector 2fs
 float d_DotProductVec2f( const dVec2_t a, const dVec2_t b ); //Dot product between two vector 2fs
