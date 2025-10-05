@@ -1,7 +1,5 @@
 // File: src/dStrings-dArrays.c - Utilities that turn dStrings into dArrays
 
-#define LOG( msg ) printf( "%s | File: %s, Line: %d\n", msg, __FILE__, __LINE__ )
-
 #include "Daedalus.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,7 +7,6 @@
 
 void d_FreeSplitStringArray(dArray_t* string_array) {
     if (string_array == NULL) {
-        LOG("d_FreeSplitStringArray: NULL array");
         return;
     }
 
@@ -29,13 +26,11 @@ void d_FreeSplitStringArray(dArray_t* string_array) {
 
 dArray_t* d_SplitString(const char* text, const char* delimiter) {
     if (text == NULL || delimiter == NULL) {
-        LOG("d_SplitString: NULL text or delimiter");
         return NULL;
     }
 
     size_t delimiter_len = strlen(delimiter);
     if (delimiter_len == 0) {
-        LOG("d_SplitString: Empty delimiter");
         // Splitting by an empty delimiter is not supported.
         return NULL;
     }
@@ -44,7 +39,6 @@ dArray_t* d_SplitString(const char* text, const char* delimiter) {
     // The element size is the size of a pointer to a dString_t.
     dArray_t* result_array = d_InitArray(8, sizeof(dString_t*));
     if (result_array == NULL) {
-        LOG("d_SplitString: Failed to create array");
         return NULL; // Failed to create the array.
     }
 
@@ -67,7 +61,6 @@ dArray_t* d_SplitString(const char* text, const char* delimiter) {
             if (d_GrowArray(result_array, 8 * result_array->element_size) != 0) {
                 d_DestroyString(segment_sb);
                 d_FreeSplitStringArray(result_array);
-                LOG("d_SplitString: Failed to grow array");
                 return NULL;
             }
         }
@@ -91,7 +84,6 @@ dArray_t* d_SplitString(const char* text, const char* delimiter) {
         if (d_GrowArray(result_array, 8 * result_array->element_size) != 0) {
             d_DestroyString(final_segment_sb);
             d_FreeSplitStringArray(result_array);
-            LOG("d_SplitString: Failed to grow array");
             return NULL;
         }
     }
