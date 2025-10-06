@@ -440,3 +440,28 @@ int d_RemoveDataFromArray(dArray_t* array, size_t index) {
     array->count--;
     return 0;
 }
+
+/**
+ * @brief Clear all elements from the array without deallocating memory
+ *
+ * @param array The array to clear
+ *
+ * @return 0 on success, 1 on failure
+ *
+ * -- Sets count to 0, preserving capacity for efficient reuse
+ * -- O(1) operation - no memory operations performed
+ * -- Does not zero memory or shrink capacity
+ * -- Ideal for clearing collections that will be reused (hands, queues, temp buffers)
+ *
+ * Example: `d_ClearArray(array);`
+ * This clears all elements from the array, resetting count to 0 while keeping capacity.
+ */
+int d_ClearArray(dArray_t* array) {
+    if (!array) {
+        d_LogError("Attempted to clear a NULL dynamic array.");
+        return 1;
+    }
+
+    array->count = 0;
+    return 0;
+}
