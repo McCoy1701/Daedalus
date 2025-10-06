@@ -325,11 +325,7 @@ int d_EnsureCapacityOfArray(dArray_t* array, size_t min_capacity) {
     }
 
     size_t old_capacity = array->capacity;
-    size_t new_capacity = array->capacity == 0 ? 1 : array->capacity;
-    
-    while (new_capacity < min_capacity) {
-        new_capacity *= 2;
-    }
+    size_t new_capacity = min_capacity;
 
     size_t new_size_in_bytes = new_capacity * array->element_size;
 
