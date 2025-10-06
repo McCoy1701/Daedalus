@@ -3105,21 +3105,73 @@ int d_InsertDataIntoArray(dArray_t* array, void* data, size_t index);
 
 /**
  * @brief Remove data at a specific index from the array
- * 
+ *
  * @param array The array to remove from
  * @param index The index of the element to remove
- * 
+ *
  * @return 0 on success, 1 on failure
- * 
+ *
  * -- Shifts existing elements to the left to fill the gap
  * -- Does not resize the array capacity (use d_TrimCapacityOfArray for that)
  * -- index must be < array->count
  * -- Uses memmove for safe overlapping memory operations
- * 
+ *
  * Example: `d_RemoveDataFromArray(array, 2);`
  * This removes the element at index 2, shifting remaining elements to the left.
  */
 int d_RemoveDataFromArray(dArray_t* array, size_t index);
+
+/**
+ * @brief Clear all elements from the array without deallocating memory
+ *
+ * @param array The array to clear
+ *
+ * @return 0 on success, 1 on failure
+ *
+ * -- Sets count to 0, preserving capacity for efficient reuse
+ * -- O(1) operation - no memory operations performed
+ * -- Does not zero memory or shrink capacity
+ * -- Ideal for clearing collections that will be reused (hands, queues, temp buffers)
+ *
+ * Example: `d_ClearArray(array);`
+ * This clears all elements from the array, resetting count to 0 while keeping capacity.
+ */
+int d_ClearArray(dArray_t* array);
+
+/**
+ * @brief Optimize memory usage by shrinking the array's capacity to match its count
+ *
+ * @param array The array to trim
+ *
+ * @return 0 on success, 1 on failure
+ *
+ * -- Reduces allocated memory to exactly match the number of elements
+ * -- If array is empty, frees the data buffer
+ * -- Does nothing if array is already optimally sized
+ * -- Useful after bulk removal operations to reclaim memory
+ *
+ * Example: `d_TrimCapacityOfArray(array);`
+ * This trims the array's capacity to match its count, freeing memory if necessary.
+ */
+int d_TrimCapacityOfArray(dArray_t* array);
+
+/**
+ * @brief Ensure the array has enough capacity for at least min_capacity elements
+ *
+ * @param array The array to ensure capacity for
+ * @param min_capacity Minimum number of elements the array should accommodate
+ *
+ * @return 0 on success, 1 on failure
+ *
+ * -- Grows the array if current capacity is less than min_capacity
+ * -- Uses exponential growth strategy to minimize reallocations
+ * -- Never shrinks the array - use d_TrimCapacityOfArray for that
+ * -- Useful for pre-allocating space before bulk operations
+ *
+ * Example: `d_EnsureCapacityOfArray(array, 100);`
+ * This ensures the array has at least 100 elements allocated, growing the array if needed.
+ */
+int d_EnsureCapacityOfArray(dArray_t* array, size_t min_capacity);
 
 
 /* --- Static Arrays --- */
