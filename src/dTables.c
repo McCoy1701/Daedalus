@@ -388,7 +388,7 @@ void* d_GetDataFromTable(dTable_t* table, const void* key)
     dTableEntry_t* entry = _d_FindEntryInBucket(*bucket_ptr, key, table->key_size, table->compare_func);
 
     if (entry) {
-        d_LogDebugF("Found key in hash table (bucket %zu).", bucket_index);
+        // d_LogDebugF("Found key in hash table (bucket %zu).", bucket_index);
         return entry->value_data;
     }
 
