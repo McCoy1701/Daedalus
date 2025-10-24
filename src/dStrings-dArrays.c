@@ -16,7 +16,7 @@ void d_FreeSplitStringArray(dArray_t* string_array) {
         dString_t** sb_ptr_location = (dString_t**)d_IndexDataFromArray(string_array, i);
         if (sb_ptr_location != NULL && *sb_ptr_location != NULL) {
             // Dereference the location to get the actual dString_t* and destroy it.
-            d_DestroyString(*sb_ptr_location);
+            d_StringDestroy(*sb_ptr_location);
         }
     }
 
@@ -48,18 +48,18 @@ dArray_t* d_SplitString(const char* text, const char* delimiter) {
     // Loop through the string, finding each occurrence of the delimiter.
     while ((next_delim = strstr(current_pos, delimiter)) != NULL) {
         size_t segment_len = next_delim - current_pos;
-        dString_t* segment_sb = d_InitString();
+        dString_t* segment_sb = d_StringInit();
         if (segment_sb == NULL) {
             d_FreeSplitStringArray(result_array); // Clean up on failure.
             return NULL;
         }
 
-        d_AppendToString(segment_sb, current_pos, segment_len);
+        d_StringAppend(segment_sb, current_pos, segment_len);
 
         // Check if array is full and grow it if needed
         if (result_array->count >= result_array->capacity) {
             if (d_GrowArray(result_array, 8 * result_array->element_size) != 0) {
-                d_DestroyString(segment_sb);
+                d_StringDestroy(segment_sb);
                 d_FreeSplitStringArray(result_array);
                 return NULL;
             }
@@ -72,17 +72,17 @@ dArray_t* d_SplitString(const char* text, const char* delimiter) {
     }
 
     // Append the final segment (the remainder of the string after the last delimiter).
-    dString_t* final_segment_sb = d_InitString();
+    dString_t* final_segment_sb = d_StringInit();
     if (final_segment_sb == NULL) {
         d_FreeSplitStringArray(result_array); // Clean up on failure.
         return NULL;
     }
-    d_AppendToString(final_segment_sb, current_pos, 0); // Use strlen via len=0
+    d_StringAppend(final_segment_sb, current_pos, 0); // Use strlen via len=0
 
     // Check if array is full and grow it if needed for final segment
     if (result_array->count >= result_array->capacity) {
         if (d_GrowArray(result_array, 8 * result_array->element_size) != 0) {
-            d_DestroyString(final_segment_sb);
+            d_StringDestroy(final_segment_sb);
             d_FreeSplitStringArray(result_array);
             return NULL;
         }

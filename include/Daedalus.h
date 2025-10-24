@@ -1796,14 +1796,14 @@ static inline bool d_IsStringInvalid(const dString_t* s)
     return (s == NULL || s->str == NULL || s->len == 0);
 }
 
-char* d_CreateStringFromFile(const char *filename);
+char* d_StringCreateFromFile(const char *filename);
 
 /**
  * @brief Create a new string builder.
  *
  * @return A new string builder, or NULL on allocation failure.
  */
-dString_t *d_InitString(void);
+dString_t *d_StringInit(void);
 
 /**
  * @brief Destroy a string builder and free its memory.
@@ -1812,7 +1812,7 @@ dString_t *d_InitString(void);
  * 
  * @return: Success/failure indicator.
  */
-void d_DestroyString(dString_t* sb);
+void d_StringDestroy(dString_t* sb);
 
 /**
  * @brief Add a C string to the string builder. 
@@ -1823,7 +1823,7 @@ void d_DestroyString(dString_t* sb);
  * 
  * @return: Success/failure indicator.
  */
-void d_AppendToString(dString_t* sb, const char* str, size_t len);
+void d_StringAppend(dString_t* sb, const char* str, size_t len);
 
 /**
  * @brief Set the content of an existing dString_t to a new value.
@@ -1834,7 +1834,7 @@ void d_AppendToString(dString_t* sb, const char* str, size_t len);
  * 
  * @return: Success/failure indicator.
  */
-int d_SetString(dString_t* string, const char* content, int flags);
+int d_StringSet(dString_t* string, const char* content, int flags);
 
 /**
  * @brief Create a new string builder with the same content as another string.
@@ -1843,7 +1843,7 @@ int d_SetString(dString_t* string, const char* content, int flags);
  *
  * @return A new string builder with the same content as the source, or NULL on error.
  */
-dString_t* d_CloneString(const dString_t* source);
+dString_t* d_StringClone(const dString_t* source);
 
 /**
  * @brief Negatively Append, removing content from the end of the string.
@@ -1851,7 +1851,7 @@ dString_t* d_CloneString(const dString_t* source);
  * @param sb The string builder to remove from.
  * @param count The number of characters to remove.
  */
-void d_AppendToStringN(dString_t* sb, const char* str, size_t max_len);
+void d_StringAppendN(dString_t* sb, const char* str, size_t max_len);
 
 /**
  * @brief Add a single character to the string builder.
@@ -1859,7 +1859,7 @@ void d_AppendToStringN(dString_t* sb, const char* str, size_t max_len);
  * @param sb The string builder to append to.
  * @param c The character to append.
  */
-void d_AppendCharToString(dString_t* sb, char c);
+void d_StringAppendChar(dString_t* sb, char c);
 /**
  * @brief Add an integer to the string builder as a decimal string.
  * 
@@ -1867,7 +1867,7 @@ void d_AppendCharToString(dString_t* sb, char c);
  * @param val The integer value to append.
  
  */
-void d_AppendIntToString(dString_t* sb, int val);
+void d_StringAppendInt(dString_t* sb, int val);
 /**
  * @brief Add a floating-point number to the string builder.
  * 
@@ -1875,17 +1875,17 @@ void d_AppendIntToString(dString_t* sb, int val);
  * @param val The floating-point value to append.
  * @param decimals The number of decimal places to show (0-10).
  * 
- * @return: Success/failure indicator.
+ * @return Success/failure indicator.
  */
-void d_AppendFloatToString(dString_t* sb, float val, int decimals);
+void d_StringAppendFloat(dString_t* sb, float val, int decimals);
 /**
  * @brief Clear the string builder content.
  * 
  * @param sb The string builder to clear.
  *
- * @return: Success/failure indicator.
+ * @return Success/failure indicator.
  */
-void d_ClearString(dString_t* sb);
+void d_StringClear(dString_t* sb);
 /*
  * Truncate the string builder to a specific length
  *
@@ -1896,7 +1896,7 @@ void d_ClearString(dString_t* sb);
  * -- Memory is not freed, only the length is reduced
  * -- The string remains null-terminated at the new length
  */
-void d_TruncateString(dString_t* sb, size_t len);
+void d_StringTruncate(dString_t* sb, size_t len);
 /*
  * Remove characters from the beginning of the string builder
  *
@@ -1907,7 +1907,7 @@ void d_TruncateString(dString_t* sb, size_t len);
  * -- If len >= current length, the string builder is cleared completely
  * -- Uses memmove for safe overlapping memory operation
  */
-void d_DropString(dString_t* sb, size_t len);
+void d_StringDrop(dString_t* sb, size_t len);
 /*
  * Get the current length of the string builder content
  *
@@ -1918,20 +1918,16 @@ void d_DropString(dString_t* sb, size_t len);
  * -- Return value does not include the null terminator
  * -- Safe to call with NULL pointer (returns 0)
  */
-size_t d_GetLengthOfString(const dString_t* sb);
-/*
- * Get a read-only pointer to the string builder's content
- *
- * `sb` - Pointer to string builder
- *
- * `const char*` - Pointer to internal string, or NULL if sb is NULL
- *
- * -- Do not modify the returned string or free the pointer
- * -- The pointer becomes invalid after any modification to the string builder
- * -- The returned string is always null-terminated
- * -- Safe to call with NULL pointer (returns NULL)
+size_t d_StringGetLength(const dString_t* sb);
+
+/**
+ * @brief Get the internal C string without copying
+ * 
+ * @param sb String builder
+ * 
+ * @return Pointer to internal string, or NULL if sb is NULL
  */
-const char* d_PeekString(const dString_t* sb);
+const char* d_StringPeek(const dString_t* sb);
 /*
  * Create a copy of the string builder's content
  *
@@ -1945,38 +1941,27 @@ const char* d_PeekString(const dString_t* sb);
  * -- Returns NULL if sb is NULL or memory allocation fails
  * -- The returned string is always null-terminated
  */
-char *d_DumpString(const dString_t* sb, size_t* len);
-/*
- * Add formatted text to the string builder using printf-style formatting
- *
- * `sb` - Pointer to string builder
- * `format` - Printf-style format string
- * `...` - Variable arguments corresponding to format specifiers
- *
- * -- Does nothing if sb or format is NULL
- * -- Uses vsnprintf internally for safe formatting
- * -- Supports all standard printf format specifiers (%d, %s, %f, etc.)
- * -- Automatically calculates required space and grows buffer as needed
- * -- Appends formatted text to existing content (does not replace)
+char *d_StringDump(const dString_t* sb, size_t* len);
+
+/**
+ * @brief Append formatted text to string builder using printf-style format specifiers
+ * 
+ * @param sb String builder to append to
+ * @param format Format string with %s, %d, %f, etc.
+ * @param ... Variable arguments corresponding to format specifiers
  */
-void d_FormatString(dString_t* sb, const char* format, ...);
-/*
- * Add text with template substitution to the string builder
- *
- * `sb` - Pointer to string builder
- * `tmplt` - Template string with placeholders in {key} format
- * `keys` - Array of key strings to match against placeholders
- * `values` - Array of replacement values corresponding to keys
- * `count` - Number of key-value pairs
- *
- * -- Does nothing if sb or tmplt is NULL
- * -- Placeholders must be in format {keyname} with no spaces
- * -- Keys are matched exactly (case-sensitive)
- * -- If a placeholder has no matching key, it is left unchanged
- * -- Keys longer than 255 characters are treated as literal text
- * -- Supports nested braces by treating unmatched { as literal characters
+void d_StringFormat(dString_t* sb, const char* format, ...);
+
+/**
+ * @brief Perform template string substitution replacing {key} placeholders with values
+ * 
+ * @param sb String builder to append result to
+ * @param tmplt Template string containing {key} placeholders
+ * @param keys Array of key strings to match
+ * @param values Array of replacement values
+ * @param count Number of key-value pairs
  */
-void d_ApplyTemplateToString(dString_t* sb, const char* tmplt, const char** keys, const char** values, int count);
+void d_StringTemplate(dString_t* sb, const char* tmplt, const char* keys[], const char* values[], int count);
 /*
  * Add an ASCII progress bar to the string builder
  *
@@ -1993,7 +1978,7 @@ void d_ApplyTemplateToString(dString_t* sb, const char* tmplt, const char** keys
  * -- If current < 0, the bar is empty
  * -- Total visual width is width + 2 (for brackets)
  */
-void d_AppendProgressBarToString(dString_t* sb, int current, int max, int width, char fill_char, char empty_char);
+void d_StringAppendProgressBar(dString_t* sb, int current, int max, int width, char fill_char, char empty_char);
 /*
   * Add text padded to the center with specified character to reach target width
   *
@@ -2006,11 +1991,11 @@ void d_AppendProgressBarToString(dString_t* sb, int current, int max, int width,
   * -- If text length >= width, adds text without padding
   * -- Text is centered with padding distributed evenly on both sides
   * -- If padding cannot be evenly distributed, left side gets one less character
-  * -- Example: d_PadCenterString(sb, "Hi", 6, '.') produces "..Hi.."
-  * -- Example: d_PadCenterString(sb, "Hi", 7, '.') produces "..Hi..."
+  * -- Example: d_StringPadCenter(sb, "Hi", 6, '.') produces "..Hi.."
+  * -- Example: d_StringPadCenter(sb, "Hi", 7, '.') produces "..Hi..."
   * -- Commonly used for centered headers and titles in ASCII interfaces
   */
-void d_PadCenterString(dString_t* sb, const char* text, int width, char pad_char);
+void d_StringPadCenter(dString_t* sb, const char* text, int width, char pad_char);
 /*
   * Add text padded to the left with specified character to reach target width
   *
@@ -2022,10 +2007,10 @@ void d_PadCenterString(dString_t* sb, const char* text, int width, char pad_char
   * -- Does nothing if sb or text is NULL
   * -- If text length >= width, adds text without padding
   * -- Padding is added to the left side of the text
-  * -- Example: d_PadLeftString(sb, "Hi", 5, '.') produces "...Hi"
+  * -- Example: d_StringPadLeft(sb, "Hi", 5, '.') produces "...Hi"
   * -- Commonly used for right-aligned text in tables and menus
   */
-void d_PadLeftString(dString_t* sb, const char* text, int width, char pad_char);
+void d_StringPadLeft(dString_t* sb, const char* text, int width, char pad_char);
 /*
   * Add text padded to the right with specified character to reach target width
 
@@ -2037,10 +2022,10 @@ void d_PadLeftString(dString_t* sb, const char* text, int width, char pad_char);
   * -- Does nothing if sb or text is NULL
   * -- If text length >= width, adds text without padding
   * -- Padding is added to the right side of the text
-  * -- Example: d_PadRightString(sb, "Hi", 5, '.') produces "Hi..."
+  * -- Example: d_StringPadRight(sb, "Hi", 5, '.') produces "Hi..."
   * -- Commonly used for left-aligned text in tables and menus
   */
-void d_PadRightString(dString_t* sb, const char* text, int width, char pad_char);
+void d_StringPadRight(dString_t* sb, const char* text, int width, char pad_char);
 /*
  * Add repeated characters to the string builder
  *
@@ -2052,7 +2037,7 @@ void d_PadRightString(dString_t* sb, const char* text, int width, char pad_char)
  * -- Efficiently adds multiple copies of the same character
  * -- Used internally by progress bar and padding functions
  */
-void d_RepeatString(dString_t* sb, char character, int count);
+void d_StringRepeat(dString_t* sb, char character, int count);
 
 // Pythonic String Utils
 /*
@@ -2067,27 +2052,19 @@ void d_RepeatString(dString_t* sb, char character, int count);
   * -- If strings array is NULL, does nothing
   * -- NULL strings in the array are treated as empty strings
   * -- If separator is NULL, strings are joined without separation
-  * -- Example: d_JoinStrings(sb, {"a", "b", "c"}, 3, ", ") produces "a, b, c"
+  * -- Example: d_StringJoin(sb, {"a", "b", "c"}, 3, ", ") produces "a, b, c"
   * -- Commonly used for creating comma-separated lists, file paths, etc.
   */
-void d_JoinStrings(dString_t* sb, const char** strings, int count, const char* separator);
-/*
-  * Extract a substring using Python-style slice notation (like str[start:end])
-  *
-  * `sb` - Pointer to string builder
-  * `text` - Source string to slice (must be null-terminated)
-  * `start` - Starting index (inclusive, negative values count from end)
-  * `end` - Ending index (exclusive, negative values count from end, -1 means end of string)
-  *
-  * -- Does nothing if sb or text is NULL
-  * -- Negative indices count from the end: -1 is last character, -2 is second-to-last, etc.
-  * -- If start >= end (after resolving negative indices), no text is added
-  * -- Indices are clamped to valid range [0, string_length]
-  * -- Example: d_SliceString(sb, "Hello", 1, 4) produces "ell"
-  * -- Example: d_SliceString(sb, "Hello", -3, -1) produces "llo"
-  * -- Example: d_SliceString(sb, "Hello", 0, -1) produces "Hello"
-  */
-void d_SliceString(dString_t* sb, const char* text, int start, int end);
+void d_StringJoin(dString_t* sb, const char** strings, int count, const char* separator);
+
+/**
+ * @brief Slice text and append a substring slice with Python-style indexing
+ * @param sb String builder to append result to
+ * @param text Source text to slice
+ * @param start Start index (negative counts from end)
+ * @param end End index, exclusive (negative counts from end)
+ */
+void d_StringSlice(dString_t* sb, const char* text, int start, int end);
 
 /*
  * Compare two dString_t objects lexicographically
@@ -2104,7 +2081,7 @@ void d_SliceString(dString_t* sb, const char* text, int start, int end);
  * -- Valid str1 is considered "greater than" invalid str2
  * -- Uses strcmp() for lexicographical comparison of valid strings
  */
-int d_CompareStrings(const dString_t* str1, const dString_t* str2);
+int d_StringCompare(const dString_t* str1, const dString_t* str2);
 
 /*
  * Compare a dString_t with a standard C-string
@@ -2122,7 +2099,7 @@ int d_CompareStrings(const dString_t* str1, const dString_t* str2);
  * -- Avoids need to create temporary dString_t for comparison
  * -- Critical for performance when interfacing with external C-strings
  */
-int d_CompareStringToCString(const dString_t* d_str, const char* c_str);
+int d_StringCompareToCString(const dString_t* d_str, const char* c_str);
 
 
 /* Dynamic Arrays */

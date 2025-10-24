@@ -66,11 +66,11 @@ free(name);                         // Manual cleanup required
 **After Daedalus (Master-Crafted)**
 
 ```c
-dString_t* name = d_InitString();
-d_AppendToString(name, "Player", 0);
-d_AppendToString(name, " Character", 0);  
-d_LogInfoF("Created: %s", d_PeekString(name));
-d_DestroyString(name);              // Automatic, safe cleanup
+dString_t* name = d_StringInit();
+d_StringAppend(name, "Player", 0);
+d_StringAppend(name, " Character", 0);  
+d_LogInfoF("Created: %s", d_StringPeek(name));
+d_StringDestroy(name);              // Automatic, safe cleanup
 ```
 
 **The Result:** Safer, cleaner code with automatic memory management.
@@ -93,11 +93,11 @@ Each guide includes quick-start examples, complete API reference, best practices
 ### Dynamic Strings - Python-like String Operations
 
 ```c
-dString_t* path = d_InitString();
+dString_t* path = d_StringInit();
 const char* parts[] = {"usr", "local", "bin"};
 d_JoinStrings(path, parts, 3, "/");
-printf("%s\n", d_PeekString(path));  // Output: usr/local/bin
-d_DestroyString(path);
+printf("%s\n", d_StringPeek(path));  // Output: usr/local/bin
+d_StringDestroy(path);
 ```
 
 ### Dynamic Arrays - Automatic Growth

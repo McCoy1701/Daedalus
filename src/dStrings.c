@@ -13,7 +13,7 @@
 
 static const size_t d_string_builder_min_size = 32;
 
-char* d_CreateStringFromFile(const char *filename)
+char* d_StringCreateFromFile(const char *filename)
 {
   long fileSize;
   char *fileString;
@@ -88,19 +88,19 @@ static void d_StringBuilderEnsureSpace(dString_t* sb, size_t add_len)
 /*
  * Create a new string builder
  */
- dString_t* d_InitString(void)
+ dString_t* d_StringInit(void)
  {
      dString_t* sb;
 
      sb = calloc(1, sizeof(*sb));
      if (sb == NULL) {
-         LOG("d_InitString: Failed to allocate memory for string builder");
+         LOG("d_StringInit: Failed to allocate memory for string builder");
          return NULL;
      }
 
      sb->str = malloc(d_string_builder_min_size);
      if (sb->str == NULL) {
-         LOG("d_InitString: Failed to allocate memory for string builder");
+         LOG("d_StringInit: Failed to allocate memory for string builder");
          free(sb);
          return NULL;
      }
@@ -114,10 +114,10 @@ static void d_StringBuilderEnsureSpace(dString_t* sb, size_t add_len)
 /*
  * Destroy a string builder and free its memory
  */
-void d_DestroyString(dString_t* sb)
+void d_StringDestroy(dString_t* sb)
 {
     if (sb == NULL) {
-        LOG("d_DestroyString: sb is NULL");
+        LOG("d_StringDestroy: sb is NULL");
         return;
     }
     free(sb->str);
@@ -126,7 +126,7 @@ void d_DestroyString(dString_t* sb)
 /*
  * Add a string to the string builder
  */
- void d_AppendToString(dString_t* sb, const char* str, size_t len)
+ void d_StringAppend(dString_t* sb, const char* str, size_t len)
   {
       // Basic validation: must have a valid string builder and source string.
       if (sb == NULL || str == NULL) {
@@ -171,7 +171,7 @@ void d_DestroyString(dString_t* sb)
 /*
  * Set the content of an existing dString_t to a new value
  */
-int d_SetString(dString_t* string, const char* content, int flags)
+int d_StringSet(dString_t* string, const char* content, int flags)
 {
     // Check your inputs.
     if (!string)
@@ -182,7 +182,7 @@ int d_SetString(dString_t* string, const char* content, int flags)
     // No content? Clear the string.
     if (!content)
     {
-        d_ClearString(string);
+        d_StringClear(string);
         return 0;
     }
 
@@ -216,7 +216,7 @@ int d_SetString(dString_t* string, const char* content, int flags)
  *
  * @return A new string builder with the same content as the source, or NULL on error.
  */
-dString_t* d_CloneString(const dString_t* source)
+dString_t* d_StringClone(const dString_t* source)
 {
     // Check input
     if (!source) {
@@ -224,7 +224,7 @@ dString_t* d_CloneString(const dString_t* source)
     }
 
     // Create new string builder
-    dString_t* clone = d_InitString();
+    dString_t* clone = d_StringInit();
     if (!clone) {
         return NULL; // Error: failed to create new string
     }
@@ -232,9 +232,9 @@ dString_t* d_CloneString(const dString_t* source)
     // If source has content, copy it
     if (source->str && source->len > 0) {
         // Set the content using existing function
-        if (d_SetString(clone, source->str, 0) != 0) {
+        if (d_StringSet(clone, source->str, 0) != 0) {
             // Failed to set content, cleanup and return error
-            d_DestroyString(clone);
+            d_StringDestroy(clone);
             return NULL;
         }
     }
@@ -245,7 +245,7 @@ dString_t* d_CloneString(const dString_t* source)
  /*
   * Add a limited portion of a string to the string builder
   */
- void d_AppendToStringN(dString_t* sb, const char* str, size_t max_len)
+ void d_StringAppendN(dString_t* sb, const char* str, size_t max_len)
  {
      if (sb == NULL || str == NULL || max_len == 0) {
          return;
@@ -261,7 +261,7 @@ dString_t* d_CloneString(const dString_t* source)
          return; // Nothing to append
      }
 
-     // Handle the self-append edge case (similar to d_AppendToString)
+     // Handle the self-append edge case (similar to d_StringAppend)
      ptrdiff_t offset = -1;
      if (str >= sb->str && str < sb->str + sb->alloced) {
          offset = str - sb->str;
@@ -290,11 +290,11 @@ dString_t* d_CloneString(const dString_t* source)
  * -- Does nothing if sb is NULL
  * -- Can append any character including '\0' (though this may confuse string functions)
  */
-void d_AppendCharToString(dString_t* sb, char c)
+void d_StringAppendChar(dString_t* sb, char c)
 {
     if (sb == NULL)
         {
-        LOG("d_AppendCharToString: sb is NULL");
+        LOG("d_StringAppendChar: sb is NULL");
         return;
     }
 
@@ -313,17 +313,17 @@ void d_AppendCharToString(dString_t* sb, char c)
  * -- Uses snprintf internally for safe conversion
  * -- Supports full 32-bit integer range including negative values
  */
-void d_AppendIntToString(dString_t* sb, int val)
+void d_StringAppendInt(dString_t* sb, int val)
 {
     char str[12]; // Enough for 32-bit int plus sign and null terminator
 
     if (sb == NULL)
         {
-        LOG("d_AppendIntToString: sb is NULL");
+        LOG("d_StringAppendInt: sb is NULL");
         return;
         }
     snprintf(str, sizeof(str), "%d", val);
-    d_AppendToString(sb, str, 0);
+    d_StringAppend(sb, str, 0);
 }
 /*
  * Append a floating-point number to the string builder
@@ -337,14 +337,14 @@ void d_AppendIntToString(dString_t* sb, int val)
  * -- If decimals > 10, caps at 10 decimal places
  * -- Uses standard printf formatting for floating-point representation
  */
-void d_AppendFloatToString(dString_t* sb, float val, int decimals)
+void d_StringAppendFloat(dString_t* sb, float val, int decimals)
 {
     char str[32]; // Enough for float with up to 10 decimal places
     char format[8]; // Format string like "%.2f"
 
     if (sb == NULL)
         {
-        LOG("d_AppendFloatToString: sb is NULL");
+        LOG("d_StringAppendFloat: sb is NULL");
         return;
         }
     // Clamp decimals to reasonable range
@@ -358,7 +358,7 @@ void d_AppendFloatToString(dString_t* sb, float val, int decimals)
 
     // Format the float
     snprintf(str, sizeof(str), format, val);
-    d_AppendToString(sb, str, 0);
+    d_StringAppend(sb, str, 0);
 }
 /*
  * Clear the string builder content
@@ -369,13 +369,13 @@ void d_AppendFloatToString(dString_t* sb, float val, int decimals)
  * -- Memory is not freed, only the length is reset to 0
  * -- Buffer capacity remains unchanged for efficient reuse
  */
-void d_ClearString(dString_t* sb)
+void d_StringClear(dString_t* sb)
 {
     if (sb == NULL) {
-        LOG("d_ClearString: sb is NULL");
+        LOG("d_StringClear: sb is NULL");
         return;
     }
-    d_TruncateString(sb, 0);
+    d_StringTruncate(sb, 0);
 }
 
 /*
@@ -388,10 +388,10 @@ void d_ClearString(dString_t* sb)
  * -- Memory is not freed, only the length is reduced
  * -- The string remains null-terminated at the new length
  */
-void d_TruncateString(dString_t* sb, size_t len)
+void d_StringTruncate(dString_t* sb, size_t len)
 {
     if (sb == NULL || len > sb->len){
-        LOG("d_TruncateString: sb is NULL or len > current length");
+        LOG("d_StringTruncate: sb is NULL or len > current length");
         return;
     }
 
@@ -408,15 +408,15 @@ void d_TruncateString(dString_t* sb, size_t len)
  * -- If len >= current length, the string builder is cleared completely
  * -- Uses memmove for safe overlapping memory operation
  */
-void d_DropString(dString_t* sb, size_t len)
+void d_StringDrop(dString_t* sb, size_t len)
 {
     if (sb == NULL || len == 0){
-        LOG("d_DropString: sb is NULL or len is 0");
+        LOG("d_StringDrop: sb is NULL or len is 0");
         return;
     }
     if (len >= sb->len) {
-        LOG("d_DropString: len >= current length");
-        d_ClearString(sb);
+        LOG("d_StringDrop: len >= current length");
+        d_StringClear(sb);
         return;
     }
 
@@ -434,28 +434,16 @@ void d_DropString(dString_t* sb, size_t len)
  * -- Return value does not include the null terminator
  * -- Safe to call with NULL pointer (returns 0)
  */
-size_t d_GetLengthOfString(const dString_t* sb)
+size_t d_StringGetLength(const dString_t* sb)
 {
     if (sb == NULL) {
-        LOG("d_GetLengthOfString: sb is NULL");
+        LOG("d_StringGetLength: sb is NULL");
         return 0;
     }
     return sb->len;
 }
 
-/*
- * Get a read-only pointer to the string builder's content
- *
- * `sb` - Pointer to string builder
- *
- * `const char*` - Pointer to internal string, or NULL if sb is NULL
- *
- * -- Do not modify the returned string or free the pointer
- * -- The pointer becomes invalid after any modification to the string builder
- * -- The returned string is always null-terminated
- * -- Safe to call with NULL pointer (returns NULL)
- */
-const char* d_PeekString(const dString_t* sb)
+const char* d_StringPeek(const dString_t* sb)
 {
     if (sb == NULL)
         return NULL;
@@ -475,7 +463,7 @@ const char* d_PeekString(const dString_t* sb)
  * -- Returns NULL if sb is NULL or memory allocation fails
  * -- The returned string is always null-terminated
  */
-char* d_DumpString(const dString_t* sb, size_t* len)
+char* d_StringDump(const dString_t* sb, size_t* len)
 {
     char* out;
 
@@ -491,20 +479,7 @@ char* d_DumpString(const dString_t* sb, size_t* len)
     return out;
 }
 
-/*
- * Add formatted text to the string builder using printf-style formatting
- *
- * `sb` - Pointer to string builder
- * `format` - Printf-style format string
- * `...` - Variable arguments corresponding to format specifiers
- *
- * -- Does nothing if sb or format is NULL
- * -- Uses vsnprintf internally for safe formatting
- * -- Supports all standard printf format specifiers (%d, %s, %f, etc.)
- * -- Automatically calculates required space and grows buffer as needed
- * -- Appends formatted text to existing content (does not replace)
- */
-void d_FormatString(dString_t* sb, const char* format, ...) {
+void d_StringFormat(dString_t* sb, const char* format, ...) {
     if (sb == NULL || format == NULL) return;
 
     va_list args;
@@ -540,7 +515,7 @@ void d_FormatString(dString_t* sb, const char* format, ...) {
  * -- Efficiently adds multiple copies of the same character
  * -- Used internally by progress bar and padding functions
  */
-void d_RepeatString(dString_t* sb, char character, int count) {
+void d_StringRepeat(dString_t* sb, char character, int count) {
     if (sb == NULL || count <= 0) return;
 
     d_StringBuilderEnsureSpace(sb, count);
@@ -567,35 +542,19 @@ void d_RepeatString(dString_t* sb, char character, int count) {
  * -- If current < 0, the bar is empty
  * -- Total visual width is width + 2 (for brackets)
  */
-void d_AppendProgressBarToString(dString_t* sb, int current, int max, int width, char fill_char, char empty_char) {
+void d_StringAppendProgressBar(dString_t* sb, int current, int max, int width, char fill_char, char empty_char) {
     if (sb == NULL || width <= 0 || max <= 0) return;
 
     int filled = (current * width) / max;
     if (filled > width) filled = width;
 
-    d_AppendCharToString(sb, '[');
-    d_RepeatString(sb, fill_char, filled);
-    d_RepeatString(sb, empty_char, width - filled);
-    d_AppendCharToString(sb, ']');
+    d_StringAppendChar(sb, '[');
+    d_StringRepeat(sb, fill_char, filled);
+    d_StringRepeat(sb, empty_char, width - filled);
+    d_StringAppendChar(sb, ']');
 }
 
-/*
- * Add text with template substitution to the string builder
- *
- * `sb` - Pointer to string builder
- * `tmplt` - Template string with placeholders in {key} format
- * `keys` - Array of key strings to match against placeholders
- * `values` - Array of replacement values corresponding to keys
- * `count` - Number of key-value pairs
- *
- * -- Does nothing if sb or tmplt is NULL
- * -- Placeholders must be in format {keyname} with no spaces
- * -- Keys are matched exactly (case-sensitive)
- * -- If a placeholder has no matching key, it is left unchanged
- * -- Keys longer than 255 characters are treated as literal text
- * -- Supports nested braces by treating unmatched { as literal characters
- */
- void d_ApplyTemplateToString(dString_t* sb, const char* tmplt, const char** keys, const char** values, int count) {
+ void d_StringTemplate(dString_t* sb, const char* tmplt, const char* keys[], const char* values[], int count) {
      if (sb == NULL || tmplt == NULL) return;
 
      const char* pos = tmplt;
@@ -616,7 +575,7 @@ void d_AppendProgressBarToString(dString_t* sb, int current, int max, int width,
                          for (int i = 0; i < count; i++) {
                              if (keys[i] != NULL && strcmp(keys[i], key) == 0) {
                                  if (values[i] != NULL) {
-                                     d_AppendToString(sb, values[i], 0);
+                                     d_StringAppend(sb, values[i], 0);
                                  }
                                  found = 1;
                                  break;
@@ -626,19 +585,19 @@ void d_AppendProgressBarToString(dString_t* sb, int current, int max, int width,
 
                      if (!found) {
                          // Keep original placeholder if no match
-                         d_AppendToString(sb, pos, end - pos + 1);
+                         d_StringAppend(sb, pos, end - pos + 1);
                      }
 
                      pos = end + 1;
                  } else {
-                     d_AppendCharToString(sb, *pos++);
+                     d_StringAppendChar(sb, *pos++);
                      continue;
                  }
              } else {
-                 d_AppendCharToString(sb, *pos++);
+                 d_StringAppendChar(sb, *pos++);
              }
          } else {
-             d_AppendCharToString(sb, *pos++);
+             d_StringAppendChar(sb, *pos++);
          }
      }
  }
@@ -657,16 +616,16 @@ void d_AppendProgressBarToString(dString_t* sb, int current, int max, int width,
   * -- Example: d_PadLeftString(sb, "Hi", 5, '.') produces "...Hi"
   * -- Commonly used for right-aligned text in tables and menus
   */
- void d_PadLeftString(dString_t* sb, const char* text, int width, char pad_char) {
+ void d_StringPadLeft(dString_t* sb, const char* text, int width, char pad_char) {
      if (sb == NULL || text == NULL || width <= 0) return;
 
      int text_len = strlen(text);
      int pad_needed = width - text_len;
 
      if (pad_needed > 0) {
-         d_RepeatString(sb, pad_char, pad_needed);
+         d_StringRepeat(sb, pad_char, pad_needed);
      }
-     d_AppendToString(sb, text, 0);
+     d_StringAppend(sb, text, 0);
  }
 
  /*
@@ -683,15 +642,15 @@ void d_AppendProgressBarToString(dString_t* sb, int current, int max, int width,
   * -- Example: d_PadRightString(sb, "Hi", 5, '.') produces "Hi..."
   * -- Commonly used for left-aligned text in tables and menus
   */
- void d_PadRightString(dString_t* sb, const char* text, int width, char pad_char) {
+ void d_StringPadRight(dString_t* sb, const char* text, int width, char pad_char) {
      if (sb == NULL || text == NULL || width <= 0) return;
 
      int text_len = strlen(text);
      int pad_needed = width - text_len;
 
-     d_AppendToString(sb, text, 0);
+     d_StringAppend(sb, text, 0);
      if (pad_needed > 0) {
-         d_RepeatString(sb, pad_char, pad_needed);
+         d_StringRepeat(sb, pad_char, pad_needed);
      }
  }
 
@@ -711,23 +670,23 @@ void d_AppendProgressBarToString(dString_t* sb, int current, int max, int width,
   * -- Example: d_PadCenterString(sb, "Hi", 7, '.') produces "..Hi..."
   * -- Commonly used for centered headers and titles in ASCII interfaces
   */
- void d_PadCenterString(dString_t* sb, const char* text, int width, char pad_char) {
+ void d_StringPadCenter(dString_t* sb, const char* text, int width, char pad_char) {
      if (sb == NULL || text == NULL || width <= 0) return;
 
      int text_len = strlen(text);
      int pad_needed = width - text_len;
 
      if (pad_needed <= 0) {
-         d_AppendToString(sb, text, 0);
+         d_StringAppend(sb, text, 0);
          return;
      }
 
      int left_pad = pad_needed / 2;
      int right_pad = pad_needed - left_pad;
 
-     d_RepeatString(sb, pad_char, left_pad);
-     d_AppendToString(sb, text, 0);
-     d_RepeatString(sb, pad_char, right_pad);
+     d_StringRepeat(sb, pad_char, left_pad);
+     d_StringAppend(sb, text, 0);
+     d_StringRepeat(sb, pad_char, right_pad);
  }
 
 /*
@@ -745,79 +704,56 @@ void d_AppendProgressBarToString(dString_t* sb, int current, int max, int width,
   * -- Example: d_JoinStrings(sb, {"a", "b", "c"}, 3, ", ") produces "a, b, c"
   * -- Commonly used for creating comma-separated lists, file paths, etc.
   */
- void d_JoinStrings(dString_t* sb, const char** strings, int count, const char* separator) {
+ void d_StringJoin(dString_t* sb, const char** strings, int count, const char* separator) {
      if (sb == NULL || strings == NULL || count <= 0) return;
 
      for (int i = 0; i < count; i++) {
          if (strings[i] != NULL) {
-             d_AppendToString(sb, strings[i], 0);
+             d_StringAppend(sb, strings[i], 0);
          }
 
          // Add separator between elements (but not after the last one)
          if (i < count - 1 && separator != NULL) {
-             d_AppendToString(sb, separator, 0);
+             d_StringAppend(sb, separator, 0);
          }
      }
  }
- 
- /*
-  * Extract a substring using Python-style slice notation (like str[start:end])
-  *
-  * `sb` - Pointer to string builder
-  * `text` - Source string to slice (must be null-terminated)
-  * `start` - Starting index (inclusive, negative values count from end)
-  * `end` - Ending index (exclusive, negative values count from end)
-  *
-  * -- Does nothing if sb or text is NULL
-  * -- Negative indices count from the end: -1 is last character, -2 is second-to-last, etc.
-  * -- SPECIAL CASE: An 'end' value of -1 is treated as the end of the string.
-  * -- If start >= end (after resolving negative indices), no text is added
-  * -- Indices are clamped to valid range [0, string_length]
-  * -- Example: d_SliceString(sb, "Hello", 1, 4) produces "ell"
-  * -- Example: d_SliceString(sb, "Hello", -3, -1) produces "llo"
-  */
-  void d_SliceString(dString_t* sb, const char* text, int start, int end) {
-      if (sb == NULL || text == NULL) return;
+void d_StringSlice(dString_t* sb, const char* text, int start, int end) {
+    if (sb == NULL || text == NULL) return;
 
-      int text_len = (int)strlen(text);
+    int text_len = (int)strlen(text);
 
-      // Handle negative indices for start
-      if (start < 0) {
-          start = text_len + start;
-      }
+    // Handle negative indices (Python-style)
+    if (start < 0) {
+        start = text_len + start;
+    }
+    if (end < 0) {
+        end = text_len + end;
+    }
 
-      // Handle 'end' index, with a special case for -1 to mean "to the end"
-      if (end == -1) {
-         end = text_len;
-      } else if (end < 0) {
-          end = text_len + end;
-      }
+    // Clamp indices to valid range
+    if (start < 0) start = 0;
+    if (start > text_len) start = text_len;
+    if (end < 0) end = 0;
+    if (end > text_len) end = text_len;
 
-      // Clamp indices to a valid range to prevent out-of-bounds access
-      if (start < 0) start = 0;
-      if (start > text_len) start = text_len;
-      if (end < 0) end = 0;
-      if (end > text_len) end = text_len;
+    // If slice is invalid or empty, do nothing
+    if (start >= end) {
+        return;
+    }
 
-      // After clamping, if the slice is invalid or empty, do nothing
-      if (start >= end) {
-          return;
-      }
-
-      // Add the slice to string builder
-      int slice_len = end - start;
-      d_StringBuilderEnsureSpace(sb, slice_len);
-
-      // Use memcpy as we know the exact length; it's safer than strncpy here.
-      memcpy(sb->str + sb->len, text + start, slice_len);
-      sb->len += slice_len;
-      sb->str[sb->len] = '\0'; // Ensure null termination
- }
+    // Add the slice to string builder
+    int slice_len = end - start;
+    d_StringBuilderEnsureSpace(sb, slice_len);
+    memcpy(sb->str + sb->len, text + start, slice_len);
+    sb->len += slice_len;
+    sb->str[sb->len] = '\0';
+}
 
 /*
  * Compare two dString_t objects lexicographically
  */
-int d_CompareStrings(const dString_t* str1, const dString_t* str2)
+int d_StringCompare(const dString_t* str1, const dString_t* str2)
 {
     // If both are the same kind of invalid, consider them equal.
     if (d_IsStringInvalid(str1) && d_IsStringInvalid(str2)) {
@@ -845,7 +781,7 @@ int d_CompareStrings(const dString_t* str1, const dString_t* str2)
 /*
  * Compare a dString_t with a standard C-string
  */
-int d_CompareStringToCString(const dString_t* d_str, const char* c_str)
+int d_StringCompareToCString(const dString_t* d_str, const char* c_str)
 {
     // An invalid dString and a NULL/empty C-string can be considered "equal".
     if (d_IsStringInvalid(d_str) && (c_str == NULL || *c_str == '\0')) {

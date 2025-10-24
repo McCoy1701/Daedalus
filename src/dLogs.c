@@ -388,9 +388,9 @@ void d_FormatTimestamp(char* buffer, size_t buffer_size, double timestamp, const
 static dString_t* get_tls_buffer(void)
 {
     if (!tls_format_buffer) {
-        tls_format_buffer = d_InitString();
+        tls_format_buffer = d_StringInit();
     } else {
-        d_ClearString(tls_format_buffer);
+        d_StringClear(tls_format_buffer);
     }
     return tls_format_buffer;
 }
@@ -408,7 +408,7 @@ static void enhanced_console_handler(const dLogEntry_t* entry, void* user_data)
 
     if (!entry || !entry->message) return;
 
-    dString_t* output = d_InitString();
+    dString_t* output = d_StringInit();
 
     // Get colors
     const char* level_color = d_LogLevel_GetColor(entry->level);
@@ -422,93 +422,93 @@ static void enhanced_console_handler(const dLogEntry_t* entry, void* user_data)
         char timestamp_buf[64];
         d_FormatTimestamp(timestamp_buf, sizeof(timestamp_buf), entry->timestamp, logger->config.timestamp_format);
 
-        d_AppendToString(output, LOG_COLOR_DIM, 0);
-        d_AppendToString(output, "[", 0);
-        d_AppendToString(output, timestamp_buf, 0);
-        d_AppendToString(output, "]", 0);
-        d_AppendToString(output, reset_color, 0);
-        d_AppendToString(output, " ", 0);
+        d_StringAppend(output, LOG_COLOR_DIM, 0);
+        d_StringAppend(output, "[", 0);
+        d_StringAppend(output, timestamp_buf, 0);
+        d_StringAppend(output, "]", 0);
+        d_StringAppend(output, reset_color, 0);
+        d_StringAppend(output, " ", 0);
     }
 
     // Add colored level with gaming prefix
     if (logger && logger->config.colorize_output) {
-        d_AppendToString(output, level_color, 0);
-        d_AppendToString(output, d_LogLevel_GetGamePrefix(entry->level), 0);
-        d_AppendToString(output, reset_color, 0);
+        d_StringAppend(output, level_color, 0);
+        d_StringAppend(output, d_LogLevel_GetGamePrefix(entry->level), 0);
+        d_StringAppend(output, reset_color, 0);
     } else {
         // Fallback to simple level
-        d_AppendToString(output, "[", 0);
-        d_AppendToString(output, d_LogLevel_ToString(entry->level), 0);
-        d_AppendToString(output, "]", 0);
+        d_StringAppend(output, "[", 0);
+        d_StringAppend(output, d_LogLevel_ToString(entry->level), 0);
+        d_StringAppend(output, "]", 0);
     }
 
     // Add thread ID if available (using your gray palette)
     if (entry->thread_id != 0) {
         if (g_supports_color) {
-            d_AppendToString(output, LOG_COLOR_GRAY_LIGHT LOG_COLOR_DIM, 0);
+            d_StringAppend(output, LOG_COLOR_GRAY_LIGHT LOG_COLOR_DIM, 0);
         }
-        d_AppendToString(output, " {", 0);
+        d_StringAppend(output, " {", 0);
 
         char thread_buf[16];
         snprintf(thread_buf, sizeof(thread_buf), "%u", entry->thread_id);
-        d_AppendToString(output, thread_buf, 0);
+        d_StringAppend(output, thread_buf, 0);
 
-        d_AppendToString(output, "}", 0);
+        d_StringAppend(output, "}", 0);
         if (g_supports_color) {
-            d_AppendToString(output, reset_color, 0);
+            d_StringAppend(output, reset_color, 0);
         }
     }
 
     // Add file/line info if enabled
     if (logger && logger->config.include_file_info && entry->file) {
-        d_AppendToString(output, LOG_COLOR_DIM, 0);
-        d_AppendToString(output, " (", 0);
-        d_AppendToString(output, entry->file, 0);
+        d_StringAppend(output, LOG_COLOR_DIM, 0);
+        d_StringAppend(output, " (", 0);
+        d_StringAppend(output, entry->file, 0);
         if (entry->line > 0) {
             char line_buf[16];
             snprintf(line_buf, sizeof(line_buf), ":%d", entry->line);
-            d_AppendToString(output, line_buf, 0);
+            d_StringAppend(output, line_buf, 0);
         }
-        d_AppendToString(output, ")", 0);
-        d_AppendToString(output, reset_color, 0);
+        d_StringAppend(output, ")", 0);
+        d_StringAppend(output, reset_color, 0);
     }
 
     // Add function name if enabled
     if (logger && logger->config.include_function && entry->function) {
-        d_AppendToString(output, LOG_COLOR_DIM, 0);
-        d_AppendToString(output, " [", 0);
-        d_AppendToString(output, entry->function, 0);
-        d_AppendToString(output, "]", 0);
-        d_AppendToString(output, reset_color, 0);
+        d_StringAppend(output, LOG_COLOR_DIM, 0);
+        d_StringAppend(output, " [", 0);
+        d_StringAppend(output, entry->function, 0);
+        d_StringAppend(output, "]", 0);
+        d_StringAppend(output, reset_color, 0);
     }
 
     // Add context if available (using your blue accent palette)
     if (entry->context) {
         if (g_supports_color) {
-            d_AppendToString(output, LOG_COLOR_BLUE_LIGHTER LOG_COLOR_BOLD, 0);
+            d_StringAppend(output, LOG_COLOR_BLUE_LIGHTER LOG_COLOR_BOLD, 0);
         }
-        d_AppendToString(output, " {", 0);
-        d_AppendToString(output, entry->context, 0);
-        d_AppendToString(output, "}", 0);
+        d_StringAppend(output, " {", 0);
+        d_StringAppend(output, entry->context, 0);
+        d_StringAppend(output, "}", 0);
         if (g_supports_color) {
-            d_AppendToString(output, reset_color, 0);
+            d_StringAppend(output, reset_color, 0);
         }
     }
 
     // Add separator and message
-    d_AppendToString(output, " ", 0);
-    d_AppendToString(output, d_PeekString(entry->message), 0);
-    d_AppendToString(output, "\n", 0);
+    d_StringAppend(output, " ", 0);
+    d_StringAppend(output, d_StringPeek(entry->message), 0);
+    d_StringAppend(output, "\n", 0);
 
     // Output to console
-    printf("%s", d_PeekString(output));
+    printf("%s", d_StringPeek(output));
 
     // For errors and fatals, also output to stderr
     if (entry->level >= D_LOG_LEVEL_ERROR) {
-        fprintf(stderr, "%s", d_PeekString(output));
+        fprintf(stderr, "%s", d_StringPeek(output));
     }
 
-    d_DestroyString(output);
+    d_StringDestroy(output);
 }
 
 // =============================================================================
@@ -526,7 +526,7 @@ dLogger_t* d_CreateLogger(dLogConfig_t config)
     logger->config = config;
     logger->handlers = d_InitArray(4, sizeof(dLogHandlerReg_t));
     logger->contexts = d_InitArray(8, sizeof(char*));
-    logger->format_buffer = d_InitString();
+    logger->format_buffer = d_StringInit();
     logger->stats = (dLogStats_t*)calloc(1, sizeof(dLogStats_t));
 
     // Initialize mutex for thread safety
@@ -571,7 +571,7 @@ void d_DestroyLogger(dLogger_t* logger)
     // Free all resources
     if (logger->handlers) d_DestroyArray(logger->handlers);
     if (logger->contexts) d_DestroyArray(logger->contexts);
-    if (logger->format_buffer) d_DestroyString(logger->format_buffer);
+    if (logger->format_buffer) d_StringDestroy(logger->format_buffer);
     if (logger->stats) free(logger->stats);
     if (logger->filters) {
         // Clean up filter engine with thread safety
@@ -800,15 +800,15 @@ void d_LogEx(dLogLevel_t level, const char* file, int line, const char* func, co
     };
 
     // Create a temporary string for the message (don't use TLS buffer)
-    dString_t* msg_buffer = d_InitString();
-    d_AppendToString(msg_buffer, message, 0);
+    dString_t* msg_buffer = d_StringInit();
+    d_StringAppend(msg_buffer, message, 0);
     entry.message = msg_buffer;
 
     // Process the entry
     process_log_entry(logger, &entry);
 
     // Clean up the temporary string
-    d_DestroyString(msg_buffer);
+    d_StringDestroy(msg_buffer);
 
     // Update performance stats
     double processing_time = d_GetTimestamp() - start_time;
@@ -854,7 +854,7 @@ void d_LogExF(dLogLevel_t level, const char* file, int line, const char* func, c
         va_copy(args_copy, args);
         vsnprintf(temp, sizeof(temp), format, args_copy);
         va_end(args_copy);
-        d_AppendToString(msg_buffer, temp, 0);
+        d_StringAppend(msg_buffer, temp, 0);
     }
 
     va_end(args);
@@ -917,12 +917,12 @@ void d_LogF(dLogLevel_t level, const char* format, ...)
         va_copy(args_copy, args);
         vsnprintf(temp, sizeof(temp), format, args_copy);
         va_end(args_copy);
-        d_AppendToString(msg_buffer, temp, 0);
+        d_StringAppend(msg_buffer, temp, 0);
     }
 
     va_end(args);
 
-    d_LogEx(level, NULL, 0, NULL, d_PeekString(msg_buffer));
+    d_LogEx(level, NULL, 0, NULL, d_StringPeek(msg_buffer));
 }
 
 // Convenience functions
@@ -949,8 +949,8 @@ void d_LogDebugF(const char* format, ...)
         va_copy(args_copy, args);
         vsnprintf(temp, sizeof(temp), format, args_copy);
         va_end(args_copy);
-        d_AppendToString(msg_buffer, temp, 0);
-        d_Log(D_LOG_LEVEL_DEBUG, d_PeekString(msg_buffer));
+        d_StringAppend(msg_buffer, temp, 0);
+        d_Log(D_LOG_LEVEL_DEBUG, d_StringPeek(msg_buffer));
     }
 
     va_end(args);
@@ -972,8 +972,8 @@ void d_LogInfoF(const char* format, ...)
         va_copy(args_copy, args);
         vsnprintf(temp, sizeof(temp), format, args_copy);
         va_end(args_copy);
-        d_AppendToString(msg_buffer, temp, 0);
-        d_Log(D_LOG_LEVEL_INFO, d_PeekString(msg_buffer));
+        d_StringAppend(msg_buffer, temp, 0);
+        d_Log(D_LOG_LEVEL_INFO, d_StringPeek(msg_buffer));
     }
 
     va_end(args);
@@ -995,8 +995,8 @@ void d_LogWarningF(const char* format, ...)
         va_copy(args_copy, args);
         vsnprintf(temp, sizeof(temp), format, args_copy);
         va_end(args_copy);
-        d_AppendToString(msg_buffer, temp, 0);
-        d_Log(D_LOG_LEVEL_WARNING, d_PeekString(msg_buffer));
+        d_StringAppend(msg_buffer, temp, 0);
+        d_Log(D_LOG_LEVEL_WARNING, d_StringPeek(msg_buffer));
     }
 
     va_end(args);
@@ -1018,8 +1018,8 @@ void d_LogErrorF(const char* format, ...)
         va_copy(args_copy, args);
         vsnprintf(temp, sizeof(temp), format, args_copy);
         va_end(args_copy);
-        d_AppendToString(msg_buffer, temp, 0);
-        d_Log(D_LOG_LEVEL_ERROR, d_PeekString(msg_buffer));
+        d_StringAppend(msg_buffer, temp, 0);
+        d_Log(D_LOG_LEVEL_ERROR, d_StringPeek(msg_buffer));
     }
 
     va_end(args);
@@ -1041,8 +1041,8 @@ void d_LogFatalF(const char* format, ...)
         va_copy(args_copy, args);
         vsnprintf(temp, sizeof(temp), format, args_copy);
         va_end(args_copy);
-        d_AppendToString(msg_buffer, temp, 0);
-        d_Log(D_LOG_LEVEL_FATAL, d_PeekString(msg_buffer));
+        d_StringAppend(msg_buffer, temp, 0);
+        d_Log(D_LOG_LEVEL_FATAL, d_StringPeek(msg_buffer));
     }
 
     va_end(args);
@@ -1398,7 +1398,7 @@ dLogStructured_t* d_LogStructured(dLogLevel_t level) {
     if (!structured) return NULL;
 
     // Initialize base builder
-    structured->base.buffer = d_InitString();
+    structured->base.buffer = d_StringInit();
     structured->base.level = level;
     structured->base.logger = d_GetGlobalLogger();
     structured->base.file = NULL;
@@ -1462,27 +1462,27 @@ void d_LogStructured_Commit(dLogStructured_t* structured) {
 
     // Build the structured message
     if (structured->in_json_mode) {
-        d_AppendToString(structured->base.buffer, "{", 0);
+        d_StringAppend(structured->base.buffer, "{", 0);
         for (size_t i = 0; i < structured->fields->count; i++) {
             dLogField_t* field = (dLogField_t*)d_IndexDataFromArray(structured->fields, i);
             if (!field || !field->key || !field->value) continue;
-            if (i > 0) d_AppendToString(structured->base.buffer, ",", 0);
-            d_AppendToString(structured->base.buffer, "\"", 0);
-            d_AppendToString(structured->base.buffer, field->key, 0);
-            d_AppendToString(structured->base.buffer, "\":\"", 0);
-            d_AppendToString(structured->base.buffer, field->value, 0);
-            d_AppendToString(structured->base.buffer, "\"", 0);
+            if (i > 0) d_StringAppend(structured->base.buffer, ",", 0);
+            d_StringAppend(structured->base.buffer, "\"", 0);
+            d_StringAppend(structured->base.buffer, field->key, 0);
+            d_StringAppend(structured->base.buffer, "\":\"", 0);
+            d_StringAppend(structured->base.buffer, field->value, 0);
+            d_StringAppend(structured->base.buffer, "\"", 0);
         }
-        d_AppendToString(structured->base.buffer, "}", 0);
+        d_StringAppend(structured->base.buffer, "}", 0);
     } else {
         // Key-value format
         for (size_t i = 0; i < structured->fields->count; i++) {
             dLogField_t* field = (dLogField_t*)d_IndexDataFromArray(structured->fields, i);
             if (!field || !field->key || !field->value) continue;
-            if (i > 0) d_AppendToString(structured->base.buffer, " ", 0);
-            d_AppendToString(structured->base.buffer, field->key, 0);
-            d_AppendToString(structured->base.buffer, "=", 0);
-            d_AppendToString(structured->base.buffer, field->value, 0);
+            if (i > 0) d_StringAppend(structured->base.buffer, " ", 0);
+            d_StringAppend(structured->base.buffer, field->key, 0);
+            d_StringAppend(structured->base.buffer, "=", 0);
+            d_StringAppend(structured->base.buffer, field->value, 0);
         }
     }
 
@@ -1491,7 +1491,7 @@ void d_LogStructured_Commit(dLogStructured_t* structured) {
 
     // Commit the log using the correct d_LogEx signature
     d_LogEx(structured->base.level, structured->base.file, structured->base.line,
-            structured->base.function, d_PeekString(structured->base.buffer));
+            structured->base.function, d_StringPeek(structured->base.buffer));
 
     structured->base.committed = true;
 
@@ -1503,7 +1503,7 @@ void d_LogStructured_Commit(dLogStructured_t* structured) {
     }
 
     d_DestroyArray(structured->fields);
-    d_DestroyString(structured->base.buffer);
+    d_StringDestroy(structured->base.buffer);
     free(structured);
 }
 
@@ -1601,7 +1601,7 @@ void d_FileLogHandler(const dLogEntry_t* entry, void* user_data) {
 
     fprintf(file, "[%s] %s\n",
             d_LogLevel_ToString(entry->level),
-            d_PeekString(entry->message));
+            d_StringPeek(entry->message));
 
     fflush(file); // Ensure immediate write
 }
@@ -1624,16 +1624,16 @@ void d_StringLogHandler(const dLogEntry_t* entry, void* user_data) {
 
     // Append to string buffer
     if (strlen(time_buf) > 0) {
-        d_AppendToString(buffer, "[", 0);
-        d_AppendToString(buffer, time_buf, 0);
-        d_AppendToString(buffer, "] ", 0);
+        d_StringAppend(buffer, "[", 0);
+        d_StringAppend(buffer, time_buf, 0);
+        d_StringAppend(buffer, "] ", 0);
     }
 
-    d_AppendToString(buffer, "[", 0);
-    d_AppendToString(buffer, d_LogLevel_ToString(entry->level), 0);
-    d_AppendToString(buffer, "] ", 0);
-    d_AppendToString(buffer, d_PeekString(entry->message), 0);
-    d_AppendToString(buffer, "\n", 0);
+    d_StringAppend(buffer, "[", 0);
+    d_StringAppend(buffer, d_LogLevel_ToString(entry->level), 0);
+    d_StringAppend(buffer, "] ", 0);
+    d_StringAppend(buffer, d_StringPeek(entry->message), 0);
+    d_StringAppend(buffer, "\n", 0);
 }
 
 // =============================================================================
@@ -1652,7 +1652,7 @@ dLogBuilder_t* d_LogBegin(dLogLevel_t level) {
     dLogBuilder_t* builder = malloc(sizeof(dLogBuilder_t));
     if (!builder) return NULL;
 
-    builder->buffer = d_InitString();
+    builder->buffer = d_StringInit();
     if (!builder->buffer) {
         free(builder);
         return NULL;
@@ -1674,7 +1674,7 @@ dLogBuilder_t* d_LogBegin(dLogLevel_t level) {
 dLogBuilder_t* d_LogBuilder_Append(dLogBuilder_t* builder, const char* text) {
     if (!builder || !text) return builder;
 
-    d_AppendToString(builder->buffer, text, 0);
+    d_StringAppend(builder->buffer, text, 0);
     return builder;
 }
 
@@ -1684,7 +1684,7 @@ dLogBuilder_t* d_LogBuilder_Append(dLogBuilder_t* builder, const char* text) {
 dLogBuilder_t* d_LogBuilder_AppendInt(dLogBuilder_t* builder, int value) {
     if (!builder) return builder;
 
-    d_AppendIntToString(builder->buffer, value);
+    d_StringAppendInt(builder->buffer, value);
     return builder;
 }
 
@@ -1694,7 +1694,7 @@ dLogBuilder_t* d_LogBuilder_AppendInt(dLogBuilder_t* builder, int value) {
 dLogBuilder_t* d_LogBuilder_AppendFloat(dLogBuilder_t* builder, float value, int decimals) {
     if (!builder) return builder;
 
-    d_AppendFloatToString(builder->buffer, value, decimals);
+    d_StringAppendFloat(builder->buffer, value, decimals);
     return builder;
 }
 
@@ -1717,7 +1717,7 @@ dLogBuilder_t* d_LogBuilder_AppendF(dLogBuilder_t* builder, const char* format, 
         char* temp_buffer = malloc(needed + 1);
         if (temp_buffer) {
             vsnprintf(temp_buffer, needed + 1, format, args);
-            d_AppendToString(builder->buffer, temp_buffer, 0);
+            d_StringAppend(builder->buffer, temp_buffer, 0);
             free(temp_buffer);
         }
     }
@@ -1734,12 +1734,12 @@ void d_LogBuilder_End(dLogBuilder_t* builder) {
 
     // Log the message
     d_LogEx(builder->level, builder->file, builder->line, builder->function,
-            d_PeekString(builder->buffer));
+            d_StringPeek(builder->buffer));
 
     builder->committed = true;
 
     // Cleanup
-    d_DestroyString(builder->buffer);
+    d_StringDestroy(builder->buffer);
     free(builder);
 }
 
@@ -1872,7 +1872,7 @@ void d_LogIfF(bool condition, dLogLevel_t level, const char* format, ...) {
 void d_FormatStringV(dString_t* sb, const char* format, va_list args) {
     if (!sb || !format) return;
 
-    d_ClearString(sb); // Clear the buffer for fresh use
+    d_StringClear(sb); // Clear the buffer for fresh use
 
     va_list args_copy;
     va_copy(args_copy, args);
@@ -1933,7 +1933,7 @@ void d_LogRateLimitedF(dLogRateLimitFlag_t flag, dLogLevel_t level, uint32_t max
 
     if (flag == D_LOG_RATE_LIMIT_FLAG_HASH_FINAL_MESSAGE) {
         d_FormatStringV(message_buffer, format, args);
-        message_hash = hash_message(d_PeekString(message_buffer));
+        message_hash = hash_message(d_StringPeek(message_buffer));
     } else {
         message_hash = hash_message(format);
     }
@@ -1980,6 +1980,6 @@ void d_LogRateLimitedF(dLogRateLimitFlag_t flag, dLogLevel_t level, uint32_t max
     MUTEX_UNLOCK(&rate_limit_mutex);      // ✨ WORKS IN ALL REALMS
 
     if (should_log) {
-        d_Log(level, d_PeekString(message_buffer));
+        d_Log(level, d_StringPeek(message_buffer));
     }
 }

@@ -524,7 +524,7 @@ size_t d_HashDString(const void* key, size_t key_size)
  * @brief Comparison function for dString_t objects.
  *
  * Compares the string content of two dString_t objects.
- * Uses the existing d_CompareStrings function internally.
+ * Uses the existing d_StringCompare function internally.
  *
  * @param key1 Pointer to first dString_t* (pointer to dString_t pointer)
  * @param key2 Pointer to second dString_t* (pointer to dString_t pointer)
@@ -543,7 +543,7 @@ int d_CompareDString(const void* key1, const void* key2, size_t key_size)
     const dString_t* dstr2 = *dstr2_ptr;
     
     // Use existing dString comparison function
-    return (d_CompareStrings(dstr1, dstr2) == 0) ? 0 : 1;
+    return (d_StringCompare(dstr1, dstr2) == 0) ? 0 : 1;
 }
 
 // =============================================================================
