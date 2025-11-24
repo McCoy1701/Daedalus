@@ -140,9 +140,9 @@ static void _d_GenerateEntryName(const dTableEntry_t* entry, char* name_buffer, 
  * @return A pointer to the newly initialized dTable_t instance, or NULL on failure
  *
  * Example:
- * `dTable_t* table = d_InitTable(sizeof(int), sizeof(char*), my_hash, my_compare, 16);`
+ * `dTable_t* table = d_TableInit(sizeof(int), sizeof(char*), my_hash, my_compare, 16);`
  */
-dTable_t* d_InitTable(size_t key_size, size_t value_size, dTableHashFunc hash_func,
+dTable_t* d_TableInit(size_t key_size, size_t value_size, dTableHashFunc hash_func,
                       dTableCompareFunc compare_func, size_t initial_num_buckets
                     )
 {
@@ -159,7 +159,7 @@ dTable_t* d_InitTable(size_t key_size, size_t value_size, dTableHashFunc hash_fu
     }
 
     // Allocate buckets array using dArray_t as per header definition
-    table->buckets = d_InitArray(initial_num_buckets, sizeof(dLinkedList_t*));
+    table->buckets = d_ArrayInit(initial_num_buckets, sizeof(dLinkedList_t*));
     if (!table->buckets) {
         d_LogError("Failed to allocate memory for hash table buckets array.");
         free(table);
@@ -169,7 +169,7 @@ dTable_t* d_InitTable(size_t key_size, size_t value_size, dTableHashFunc hash_fu
     // Initialize all bucket pointers to NULL
     for (size_t i = 0; i < initial_num_buckets; i++) {
         dLinkedList_t* null_ptr = NULL;
-        d_AppendDataToArray(table->buckets, &null_ptr);
+        d_ArrayAppend(table->buckets, &null_ptr);
     }
 
     // Initialize table fields
@@ -200,9 +200,9 @@ dTable_t* d_InitTable(size_t key_size, size_t value_size, dTableHashFunc hash_fu
  * @return 0 on success, 1 on failure
  *
  * Example:
- * `d_DestroyTable(&my_table); // my_table will be NULL after this`
+ * `d_TableDestroy(&my_table); // my_table will be NULL after this`
  */
-int d_DestroyTable(dTable_t** table)
+int d_TableDestroy(dTable_t** table)
 {
     if (!table || !*table) {
         d_LogError("Attempted to destroy NULL or invalid hash table.");
@@ -213,7 +213,7 @@ int d_DestroyTable(dTable_t** table)
 
     // Destroy all buckets and their entries
     for (size_t i = 0; i < t->num_buckets; i++) {
-        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(t->buckets, i);
+        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(t->buckets, i);
         if (bucket_ptr && *bucket_ptr) {
             // Manually destroy entries first, then the linked list structure
             dLinkedList_t* current = *bucket_ptr;
@@ -231,7 +231,7 @@ int d_DestroyTable(dTable_t** table)
     }
 
     // Free buckets array
-    d_DestroyArray(t->buckets);
+    d_ArrayDestroy(t->buckets);
 
     // Free table structure
     free(t);
@@ -262,9 +262,9 @@ int d_DestroyTable(dTable_t** table)
  * @return 0 on success, 1 on failure
  *
  * Example:
- * `int key = 42; char* value = "hello"; d_SetDataInTable(table, &key, &value);`
+ * `int key = 42; char* value = "hello"; d_TableSet(table, &key, &value);`
  */
-int d_SetDataInTable(dTable_t* table, const void* key, const void* value)
+int d_TableSet(dTable_t* table, const void* key, const void* value)
 {
     if (!table || !key || !value) {
         d_LogError("Invalid parameters for setting data to hash table.");
@@ -276,7 +276,7 @@ int d_SetDataInTable(dTable_t* table, const void* key, const void* value)
     size_t bucket_index = hash % table->num_buckets;
 
     // Get bucket pointer
-    dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(table->buckets, bucket_index);
+    dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(table->buckets, bucket_index);
     if (!bucket_ptr) {
         d_LogError("Failed to access bucket in hash table.");
         return 1;
@@ -339,8 +339,8 @@ int d_SetDataInTable(dTable_t* table, const void* key, const void* value)
                    current_load_factor, table->load_factor_threshold);
         
         // Auto-resize by doubling the number of buckets.
-        // d_RehashTable with 0 for the new size handles this automatically.
-        if (d_RehashTable(table, 0) != 0) {
+        // d_TableRehash with 0 for the new size handles this automatically.
+        if (d_TableRehash(table, 0) != 0) {
             d_LogError("Rehashing failed. Table performance may be degraded.");
             // The insertion was successful, but the table maintenance failed.
             // Return 1 to signal that a non-fatal error occurred.
@@ -364,9 +364,9 @@ int d_SetDataInTable(dTable_t* table, const void* key, const void* value)
  * @return A void* pointer to the internally stored value data if found, or NULL if not found
  *
  * Example:
- * `int key = 42; char** value = (char**)d_GetDataFromTable(table, &key);`
+ * `int key = 42; char** value = (char**)d_TableGet(table, &key);`
  */
-void* d_GetDataFromTable(dTable_t* table, const void* key)
+void* d_TableGet(dTable_t* table, const void* key)
 {
     if (!table || !key) {
         d_LogError("Invalid parameters for getting data from hash table.");
@@ -378,7 +378,7 @@ void* d_GetDataFromTable(dTable_t* table, const void* key)
     size_t bucket_index = hash % table->num_buckets;
 
     // Get bucket pointer
-    dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(table->buckets, bucket_index);
+    dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(table->buckets, bucket_index);
     if (!bucket_ptr) {
         d_LogError("Failed to access bucket in hash table.");
         return NULL;
@@ -410,9 +410,9 @@ void* d_GetDataFromTable(dTable_t* table, const void* key)
  * @return 0 on success, 1 on failure/key not found
  *
  * Example:
- * `int key = 42; d_RemoveDataFromTable(table, &key);`
+ * `int key = 42; d_TableRemove(table, &key);`
  */
-int d_RemoveDataFromTable(dTable_t* table, const void* key)
+int d_TableRemove(dTable_t* table, const void* key)
 {
     if (!table || !key) {
         d_LogError("Invalid parameters for removing data from hash table.");
@@ -424,7 +424,7 @@ int d_RemoveDataFromTable(dTable_t* table, const void* key)
     size_t bucket_index = hash % table->num_buckets;
 
     // Get bucket pointer
-    dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(table->buckets, bucket_index);
+    dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(table->buckets, bucket_index);
     if (!bucket_ptr) {
         d_LogError("Failed to access bucket in hash table.");
         return 1;
@@ -491,9 +491,9 @@ int d_RemoveDataFromTable(dTable_t* table, const void* key)
  * @return 0 if the key exists, 1 if not found or error occurred
  *
  * Example:
- * `int key = 42; if (d_CheckForKeyInTable(table, &key) == 0) { // key exists }`
+ * `int key = 42; if (d_TableHasKey(table, &key) == 0) { // key exists }`
  */
-int d_CheckForKeyInTable(const dTable_t* table, const void* key)
+int d_TableHasKey(const dTable_t* table, const void* key)
 {
     if (!table || !key) {
         d_LogError("Invalid parameters for checking key existence in hash table.");
@@ -505,7 +505,7 @@ int d_CheckForKeyInTable(const dTable_t* table, const void* key)
     size_t bucket_index = hash % table->num_buckets;
 
     // Get bucket pointer
-    dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(table->buckets, bucket_index);
+    dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(table->buckets, bucket_index);
     if (!bucket_ptr) {
         d_LogError("Failed to access bucket in hash table.");
         return 1;
@@ -533,9 +533,9 @@ int d_CheckForKeyInTable(const dTable_t* table, const void* key)
  * @return The total count of entries, or 0 if table is NULL
  *
  * Example:
- * `size_t count = d_GetCountInTable(table);`
+ * `size_t count = d_TableGetCount(table);`
  */
-size_t d_GetCountInTable(const dTable_t* table)
+size_t d_TableGetCount(const dTable_t* table)
 {
     if (!table) {
         d_LogError("Attempted to get count from NULL hash table.");
@@ -557,9 +557,9 @@ size_t d_GetCountInTable(const dTable_t* table)
  * @return 0 on success, 1 on failure
  *
  * Example:
- * `d_ClearTable(table); // Table is now empty but ready for reuse`
+ * `d_TableClear(table); // Table is now empty but ready for reuse`
  */
-int d_ClearTable(dTable_t* table)
+int d_TableClear(dTable_t* table)
 {
     if (!table) {
         d_LogError("Attempted to clear NULL hash table.");
@@ -568,7 +568,7 @@ int d_ClearTable(dTable_t* table)
 
     // Clear all buckets
     for (size_t i = 0; i < table->num_buckets; i++) {
-        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(table->buckets, i);
+        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(table->buckets, i);
         if (bucket_ptr && *bucket_ptr) {
             // Manually destroy entries first, then the linked list structure
             dLinkedList_t* current = *bucket_ptr;
@@ -613,10 +613,10 @@ int d_ClearTable(dTable_t* table)
  * @note All existing entries are preserved and redistributed based on their recalculated hashes
  *
  * Example:
- * `d_RehashTable(table, 32); // Rehash to 32 buckets`
- * `d_RehashTable(table, 0);  // Auto-resize to double current bucket count`
+ * `d_TableRehash(table, 32); // Rehash to 32 buckets`
+ * `d_TableRehash(table, 0);  // Auto-resize to double current bucket count`
  */
-int d_RehashTable(dTable_t* table, size_t new_num_buckets)
+int d_TableRehash(dTable_t* table, size_t new_num_buckets)
 {
     if (!table) {
         d_LogError("Attempted to rehash NULL hash table.");
@@ -638,7 +638,7 @@ int d_RehashTable(dTable_t* table, size_t new_num_buckets)
     }
 
     // Allocate new buckets array
-    dArray_t* new_buckets_array = d_InitArray(actual_new_num_buckets, sizeof(dLinkedList_t*));
+    dArray_t* new_buckets_array = d_ArrayInit(actual_new_num_buckets, sizeof(dLinkedList_t*));
     if (!new_buckets_array) {
         d_LogError("Failed to allocate new buckets array for rehashing.");
         return 1;
@@ -647,7 +647,7 @@ int d_RehashTable(dTable_t* table, size_t new_num_buckets)
     // Initialize all new bucket pointers to NULL
     for (size_t i = 0; i < actual_new_num_buckets; i++) {
         dLinkedList_t* null_ptr = NULL;
-        d_AppendDataToArray(new_buckets_array, &null_ptr);
+        d_ArrayAppend(new_buckets_array, &null_ptr);
     }
 
     // Preserve old table state
@@ -662,7 +662,7 @@ int d_RehashTable(dTable_t* table, size_t new_num_buckets)
 
     // Re-insert all existing entries into new buckets
     for (size_t i = 0; i < old_num_buckets; i++) {
-        dLinkedList_t** old_bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(old_buckets_array, i);
+        dLinkedList_t** old_bucket_ptr = (dLinkedList_t**)d_ArrayGet(old_buckets_array, i);
         if (!old_bucket_ptr || !*old_bucket_ptr) {
             continue; // Empty bucket
         }
@@ -678,7 +678,7 @@ int d_RehashTable(dTable_t* table, size_t new_num_buckets)
                 size_t new_bucket_index = new_hash % table->num_buckets;
 
                 // Get pointer to new bucket's head
-                dLinkedList_t** new_bucket_head_ptr = (dLinkedList_t**)d_IndexDataFromArray(table->buckets, new_bucket_index);
+                dLinkedList_t** new_bucket_head_ptr = (dLinkedList_t**)d_ArrayGet(table->buckets, new_bucket_index);
                 if (new_bucket_head_ptr) {
                     // Generate unique name for linked list storage
                     char temp_name[64];
@@ -699,7 +699,7 @@ int d_RehashTable(dTable_t* table, size_t new_num_buckets)
 
     // Cleanup old buckets - free linked list nodes without freeing entry data
     for (size_t i = 0; i < old_num_buckets; i++) {
-        dLinkedList_t** old_bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(old_buckets_array, i);
+        dLinkedList_t** old_bucket_ptr = (dLinkedList_t**)d_ArrayGet(old_buckets_array, i);
         if (old_bucket_ptr && *old_bucket_ptr) {
             dLinkedList_t* current_old_node = *old_bucket_ptr;
             while (current_old_node != NULL) {
@@ -714,7 +714,7 @@ int d_RehashTable(dTable_t* table, size_t new_num_buckets)
     }
 
     // Destroy old buckets array
-    d_DestroyArray(old_buckets_array);
+    d_ArrayDestroy(old_buckets_array);
 
     d_LogInfoF("Rehashed table from %zu to %zu buckets. Entries: %zu (expected: %zu).",
                old_num_buckets, actual_new_num_buckets, table->count, old_count);
@@ -733,16 +733,16 @@ int d_RehashTable(dTable_t* table, size_t new_num_buckets)
  *
  * @return A newly allocated dArray_t containing all keys, or NULL on failure
  *
- * @note The caller is responsible for destroying the returned array with d_DestroyArray
+ * @note The caller is responsible for destroying the returned array with d_ArrayDestroy
  * @note The keys are copied into the array, not referenced
  * @note If the table is empty, returns an empty array (not NULL)
  *
  * Example:
- * `dArray_t* keys = d_GetAllKeysFromTable(table);`
+ * `dArray_t* keys = d_TableGetAllKeys(table);`
  * `// Use keys array...`
- * `d_DestroyArray(keys);`
+ * `d_ArrayDestroy(keys);`
  */
-dArray_t* d_GetAllKeysFromTable(const dTable_t* table)
+dArray_t* d_TableGetAllKeys(const dTable_t* table)
 {
     if (!table) {
         d_LogError("Attempted to get keys from NULL hash table.");
@@ -751,7 +751,7 @@ dArray_t* d_GetAllKeysFromTable(const dTable_t* table)
 
     // Initialize result array with estimated capacity
     size_t initial_capacity = table->count > 0 ? table->count : 16;
-    dArray_t* all_keys_array = d_InitArray(initial_capacity, table->key_size);
+    dArray_t* all_keys_array = d_ArrayInit(initial_capacity, table->key_size);
     if (!all_keys_array) {
         d_LogError("Failed to allocate array for collecting hash table keys.");
         return NULL;
@@ -761,7 +761,7 @@ dArray_t* d_GetAllKeysFromTable(const dTable_t* table)
 
     // Iterate through all buckets
     for (size_t i = 0; i < table->num_buckets; i++) {
-        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(table->buckets, i);
+        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(table->buckets, i);
         if (!bucket_ptr || !*bucket_ptr) {
             continue; // Empty bucket
         }
@@ -771,9 +771,9 @@ dArray_t* d_GetAllKeysFromTable(const dTable_t* table)
             dTableEntry_t* entry = (dTableEntry_t*)current_node->data;
             if (entry && entry->key_data) {
                 // Append key data to result array
-                if (d_AppendDataToArray(all_keys_array, entry->key_data) != 0) {
+                if (d_ArrayAppend(all_keys_array, entry->key_data) != 0) {
                     d_LogErrorF("Failed to append key to result array at bucket %zu.", i);
-                    d_DestroyArray(all_keys_array);
+                    d_ArrayDestroy(all_keys_array);
                     return NULL;
                 }
                 keys_collected++;
@@ -797,16 +797,16 @@ dArray_t* d_GetAllKeysFromTable(const dTable_t* table)
  *
  * @return A newly allocated dArray_t containing all values, or NULL on failure
  *
- * @note The caller is responsible for destroying the returned array with d_DestroyArray
+ * @note The caller is responsible for destroying the returned array with d_ArrayDestroy
  * @note The values are copied into the array, not referenced
  * @note If the table is empty, returns an empty array (not NULL)
  *
  * Example:
- * `dArray_t* values = d_GetAllValuesFromTable(table);`
+ * `dArray_t* values = d_TableGetAllValues(table);`
  * `// Use values array...`
- * `d_DestroyArray(values);`
+ * `d_ArrayDestroy(values);`
  */
-dArray_t* d_GetAllValuesFromTable(const dTable_t* table)
+dArray_t* d_TableGetAllValues(const dTable_t* table)
 {
     if (!table) {
         d_LogError("Attempted to get values from NULL hash table.");
@@ -815,7 +815,7 @@ dArray_t* d_GetAllValuesFromTable(const dTable_t* table)
 
     // Initialize result array with estimated capacity
     size_t initial_capacity = table->count > 0 ? table->count : 16;
-    dArray_t* all_values_array = d_InitArray(initial_capacity, table->value_size);
+    dArray_t* all_values_array = d_ArrayInit(initial_capacity, table->value_size);
     if (!all_values_array) {
         d_LogError("Failed to allocate array for collecting hash table values.");
         return NULL;
@@ -825,7 +825,7 @@ dArray_t* d_GetAllValuesFromTable(const dTable_t* table)
 
     // Iterate through all buckets
     for (size_t i = 0; i < table->num_buckets; i++) {
-        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(table->buckets, i);
+        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(table->buckets, i);
         if (!bucket_ptr || !*bucket_ptr) {
             continue; // Empty bucket
         }
@@ -835,9 +835,9 @@ dArray_t* d_GetAllValuesFromTable(const dTable_t* table)
             dTableEntry_t* entry = (dTableEntry_t*)current_node->data;
             if (entry && entry->value_data) {
                 // Append value data to result array
-                if (d_AppendDataToArray(all_values_array, entry->value_data) != 0) {
+                if (d_ArrayAppend(all_values_array, entry->value_data) != 0) {
                     d_LogErrorF("Failed to append value to result array at bucket %zu.", i);
-                    d_DestroyArray(all_values_array);
+                    d_ArrayDestroy(all_values_array);
                     return NULL;
                 }
                 values_collected++;

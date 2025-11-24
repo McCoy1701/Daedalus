@@ -103,24 +103,24 @@ d_StringDestroy(path);
 ### Dynamic Arrays - Automatic Growth
 
 ```c
-dArray_t* enemies = d_InitArray(10, sizeof(Enemy));
+dArray_t* enemies = d_ArrayInit(10, sizeof(Enemy));
 Enemy goblin = {.health = 50, .type = GOBLIN};
-d_AppendDataToArray(enemies, &goblin);
-d_RemoveDataFromArray(enemies, 0);  // Remove first enemy
-d_DestroyArray(enemies);
+d_ArrayAppend(enemies, &goblin);
+d_ArrayRemove(enemies, 0);  // Remove first enemy
+d_ArrayDestroy(enemies);
 ```
 
 ### Hash Tables - Built-in Functions
 
 ```c
 // String-keyed configuration
-dTable_t* config = d_InitTable(sizeof(char*), sizeof(int),
+dTable_t* config = d_TableInit(sizeof(char*), sizeof(int),
                                d_HashString, d_CompareString, 16);
 
 char* key = "max_health";
 int value = 100;
-d_SetDataInTable(config, &key, &value);
-d_DestroyTable(&config);
+d_TableSet(config, &key, &value);
+d_TableDestroy(&config);
 ```
 
 ### Logging - Professional Output

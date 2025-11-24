@@ -23,7 +23,7 @@
  *
  * Example:
  * ```c
- * dTable_t* table = d_InitTable(sizeof(int), sizeof(char*), 
+ * dTable_t* table = d_TableInit(sizeof(int), sizeof(char*),
  *                               d_HashInt, d_CompareInt, 16);
  * ```
  */
@@ -48,7 +48,7 @@ size_t d_HashInt(const void* key, size_t key_size)
  *
  * Example:
  * ```c
- * dTable_t* table = d_InitTable(sizeof(char*), sizeof(int), 
+ * dTable_t* table = d_TableInit(sizeof(char*), sizeof(int),
  *                               d_HashString, d_CompareString, 16);
  * ```
  */
@@ -118,7 +118,7 @@ size_t d_HashStringLiteral(const void* key, size_t key_size)
  *
  * Example:
  * ```c
- * dTable_t* table = d_InitTable(sizeof(float), sizeof(int), 
+ * dTable_t* table = d_TableInit(sizeof(float), sizeof(int),
  *                               d_HashFloat, d_CompareFloat, 16);
  * ```
  */
@@ -184,7 +184,7 @@ size_t d_HashDouble(const void* key, size_t key_size)
  * Example:
  * ```c
  * typedef struct { int x, y; } Point;
- * dTable_t* table = d_InitTable(sizeof(Point), sizeof(int), 
+ * dTable_t* table = d_TableInit(sizeof(Point), sizeof(int),
  *                               d_HashBinary, d_CompareBinary, 16);
  * ```
  */
@@ -494,7 +494,7 @@ int d_CompareStringCaseInsensitive(const void* key1, const void* key2, size_t ke
  *
  * Example:
  * ```c
- * dTable_t* table = d_InitTable(sizeof(dString_t*), sizeof(int), 
+ * dTable_t* table = d_TableInit(sizeof(dString_t*), sizeof(int),
  *                               d_HashDString, d_CompareDString, 16);
  * ```
  */
@@ -564,7 +564,7 @@ int d_CompareDString(const void* key1, const void* key2, size_t key_size)
  *
  * Example:
  * ```c
- * dTable_t* table = d_InitTable(sizeof(dArray_t*), sizeof(int), 
+ * dTable_t* table = d_TableInit(sizeof(dArray_t*), sizeof(int),
  *                               d_HashBinary, d_CompareDArray, 16);
  * ```
  */
@@ -669,37 +669,37 @@ int d_CompareTable(const void* key1, const void* key2, size_t key_size)
     if (table1->count == 0) return 0;
     
     // Get all keys and values from table1
-    dArray_t* keys1 = d_GetAllKeysFromTable(table1);
-    dArray_t* values1 = d_GetAllValuesFromTable(table1);
-    
+    dArray_t* keys1 = d_TableGetAllKeys(table1);
+    dArray_t* values1 = d_TableGetAllValues(table1);
+
     if (!keys1 || !values1) {
-        if (keys1) d_DestroyArray(keys1);
-        if (values1) d_DestroyArray(values1);
+        if (keys1) d_ArrayDestroy(keys1);
+        if (values1) d_ArrayDestroy(values1);
         return 1; // Error occurred
     }
     
     // For each key-value pair in table1, check if it exists in table2 with the same value
     for (size_t i = 0; i < table1->count; i++) {
-        void* key_data = d_IndexDataFromArray(keys1, i);
-        void* value_data = d_IndexDataFromArray(values1, i);
-        void* corresponding_value = d_GetDataFromTable(table2, key_data);
+        void* key_data = d_ArrayGet(keys1, i);
+        void* value_data = d_ArrayGet(values1, i);
+        void* corresponding_value = d_TableGet(table2, key_data);
         if (!corresponding_value) {
             // Key not found in table2
-            d_DestroyArray(keys1);
-            d_DestroyArray(values1);
+            d_ArrayDestroy(keys1);
+            d_ArrayDestroy(values1);
             return 1;
         }
-        
+
         // Compare the values
         if (memcmp(value_data, corresponding_value, table1->value_size) != 0) {
-            d_DestroyArray(keys1);
-            d_DestroyArray(values1);
+            d_ArrayDestroy(keys1);
+            d_ArrayDestroy(values1);
             return 1;
         }
     }
-    
-    d_DestroyArray(keys1);
-    d_DestroyArray(values1);
+
+    d_ArrayDestroy(keys1);
+    d_ArrayDestroy(values1);
     return 0; // All key-value pairs match
 }
 
@@ -738,37 +738,37 @@ int d_CompareStaticTable(const void* key1, const void* key2, size_t key_size)
     if (table1->num_keys == 0) return 0;
     
     // Get all keys and values from table1
-    dArray_t* keys1 = d_GetAllKeysFromStaticTable(table1);
-    dArray_t* values1 = d_GetAllValuesFromStaticTable(table1);
-    
+    dArray_t* keys1 = d_StaticTableGetAllKeys(table1);
+    dArray_t* values1 = d_StaticTableGetAllValues(table1);
+
     if (!keys1 || !values1) {
-        if (keys1) d_DestroyArray(keys1);
-        if (values1) d_DestroyArray(values1);
+        if (keys1) d_ArrayDestroy(keys1);
+        if (values1) d_ArrayDestroy(values1);
         return 1; // Error occurred
     }
     
     // For each key-value pair in table1, check if it exists in table2 with the same value
     for (size_t i = 0; i < table1->num_keys; i++) {
-        void* key_data = d_IndexDataFromArray(keys1, i);
-        void* value_data = d_IndexDataFromArray(values1, i);
-        void* corresponding_value = d_GetValueInStaticTable(table2, key_data);
+        void* key_data = d_ArrayGet(keys1, i);
+        void* value_data = d_ArrayGet(values1, i);
+        void* corresponding_value = d_StaticTableGet(table2, key_data);
         if (!corresponding_value) {
             // Key not found in table2
-            d_DestroyArray(keys1);
-            d_DestroyArray(values1);
+            d_ArrayDestroy(keys1);
+            d_ArrayDestroy(values1);
             return 1;
         }
-        
+
         // Compare the values
         if (memcmp(value_data, corresponding_value, table1->value_size) != 0) {
-            d_DestroyArray(keys1);
-            d_DestroyArray(values1);
+            d_ArrayDestroy(keys1);
+            d_ArrayDestroy(values1);
             return 1;
         }
     }
-    
-    d_DestroyArray(keys1);
-    d_DestroyArray(values1);
+
+    d_ArrayDestroy(keys1);
+    d_ArrayDestroy(values1);
     return 0; // All key-value pairs match
 }
 

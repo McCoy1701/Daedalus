@@ -175,7 +175,7 @@ dStaticTable_t* d_InitStaticTable(size_t key_size, size_t value_size, dTableHash
     }
 
     // Allocate buckets array using dArray_t as per header definition
-    table->buckets = d_InitArray(num_buckets, sizeof(dLinkedList_t*));
+    table->buckets = d_ArrayInit(num_buckets, sizeof(dLinkedList_t*));
     if (!table->buckets) {
         d_LogError("Failed to allocate memory for static hash table buckets array.");
         free(table);
@@ -185,7 +185,7 @@ dStaticTable_t* d_InitStaticTable(size_t key_size, size_t value_size, dTableHash
     // Initialize all bucket pointers to NULL
     for (size_t i = 0; i < num_buckets; i++) {
         dLinkedList_t* null_ptr = NULL;
-        d_AppendDataToArray(table->buckets, &null_ptr);
+        d_ArrayAppend(table->buckets, &null_ptr);
     }
 
     // Initialize table fields
@@ -202,7 +202,7 @@ dStaticTable_t* d_InitStaticTable(size_t key_size, size_t value_size, dTableHash
         if (!keys[i] || !initial_values[i]) {
             d_LogErrorF("NULL key or value at index %zu during static table initialization.", i);
             // Cleanup and return failure
-            d_DestroyStaticTable(&table);
+            d_StaticTableDestroy(&table);
             return NULL;
         }
 
@@ -211,17 +211,17 @@ dStaticTable_t* d_InitStaticTable(size_t key_size, size_t value_size, dTableHash
         size_t bucket_index = hash % table->num_buckets;
 
         // Get bucket pointer
-        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(table->buckets, bucket_index);
+        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(table->buckets, bucket_index);
         if (!bucket_ptr) {
             d_LogError("Failed to access bucket during static table initialization.");
-            d_DestroyStaticTable(&table);
+            d_StaticTableDestroy(&table);
             return NULL;
         }
 
         // Check for duplicate keys
         if (_d_FindEntryInStaticBucket(*bucket_ptr, keys[i], table->key_size, table->compare_func)) {
             d_LogErrorF("Duplicate key detected at index %zu during static table initialization.", i);
-            d_DestroyStaticTable(&table);
+            d_StaticTableDestroy(&table);
             return NULL;
         }
 
@@ -230,7 +230,7 @@ dStaticTable_t* d_InitStaticTable(size_t key_size, size_t value_size, dTableHash
                                                               initial_values[i], table->value_size);
         if (!new_entry) {
             d_LogError("Failed to create entry during static table initialization.");
-            d_DestroyStaticTable(&table);
+            d_StaticTableDestroy(&table);
             return NULL;
         }
 
@@ -241,7 +241,7 @@ dStaticTable_t* d_InitStaticTable(size_t key_size, size_t value_size, dTableHash
         if (d_PushBackToLinkedList(bucket_ptr, new_entry, entry_name, sizeof(dTableEntry_t)) != 0) {
             d_LogErrorF("Failed to add entry to bucket %zu during static table initialization.", bucket_index);
             _d_DestroyStaticTableEntry(new_entry);
-            d_DestroyStaticTable(&table);
+            d_StaticTableDestroy(&table);
             return NULL;
         }
     }
@@ -267,9 +267,9 @@ dStaticTable_t* d_InitStaticTable(size_t key_size, size_t value_size, dTableHash
  * @return 0 on success, 1 on failure
  *
  * Example:
- * `d_DestroyStaticTable(&my_table); // my_table will be NULL after this`
+ * `d_StaticTableDestroy(&my_table); // my_table will be NULL after this`
  */
-int d_DestroyStaticTable(dStaticTable_t** table)
+int d_StaticTableDestroy(dStaticTable_t** table)
 {
     if (!table || !*table) {
         d_LogError("Attempted to destroy NULL or invalid static hash table.");
@@ -280,7 +280,7 @@ int d_DestroyStaticTable(dStaticTable_t** table)
 
     // Destroy all buckets and their entries
     for (size_t i = 0; i < t->num_buckets; i++) {
-        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(t->buckets, i);
+        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(t->buckets, i);
         if (bucket_ptr && *bucket_ptr) {
             // Manually destroy entries first, then the linked list structure
             dLinkedList_t* current = *bucket_ptr;
@@ -298,7 +298,7 @@ int d_DestroyStaticTable(dStaticTable_t** table)
     }
 
     // Free buckets array
-    d_DestroyArray(t->buckets);
+    d_ArrayDestroy(t->buckets);
 
     // Free table structure
     free(t);
@@ -329,7 +329,7 @@ int d_DestroyStaticTable(dStaticTable_t** table)
  * Example:
  * `int key = 42; char* new_value = "updated"; d_SetStaticTableValue(table, &key, &new_value);`
  */
-int d_SetValueInStaticTable(dStaticTable_t* table, const void* key, const void* new_value)
+int d_StaticTableSet(dStaticTable_t* table, const void* key, const void* new_value)
 {
     if (!table || !key || !new_value) {
         d_LogError("Invalid parameters for setting static table value.");
@@ -346,7 +346,7 @@ int d_SetValueInStaticTable(dStaticTable_t* table, const void* key, const void* 
     size_t bucket_index = hash % table->num_buckets;
 
     // Get bucket pointer
-    dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(table->buckets, bucket_index);
+    dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(table->buckets, bucket_index);
     if (!bucket_ptr) {
         d_LogError("Failed to access bucket in static hash table.");
         return 1;
@@ -390,9 +390,9 @@ int d_SetValueInStaticTable(dStaticTable_t* table, const void* key, const void* 
  * @return A void* pointer to the internally stored value data if found, or NULL if not found
  *
  * Example:
- * `int key = 42; char** value = (char**)d_GetValueInStaticTable(table, &key);`
+ * `int key = 42; char** value = (char**)d_StaticTableGet(table, &key);`
  */
-void* d_GetValueInStaticTable(const dStaticTable_t* table, const void* key)
+void* d_StaticTableGet(const dStaticTable_t* table, const void* key)
 {
     if (!table || !key) {
         d_LogError("Invalid parameters for getting static table value.");
@@ -409,7 +409,7 @@ void* d_GetValueInStaticTable(const dStaticTable_t* table, const void* key)
     size_t bucket_index = hash % table->num_buckets;
 
     // Get bucket pointer
-    dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(table->buckets, bucket_index);
+    dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(table->buckets, bucket_index);
     if (!bucket_ptr) {
         d_LogError("Failed to access bucket in static hash table.");
         return NULL;
@@ -440,9 +440,9 @@ void* d_GetValueInStaticTable(const dStaticTable_t* table, const void* key)
  * @return 0 if the key exists, 1 if not found or error occurred
  *
  * Example:
- * `int key = 42; if (d_CheckForKeyInStaticTable(table, &key) == 0) { // key exists }`
+ * `int key = 42; if (d_StaticTableHasKey(table, &key) == 0) { // key exists }`
  */
-int d_CheckForKeyInStaticTable(const dStaticTable_t* table, const void* key)
+int d_StaticTableHasKey(const dStaticTable_t* table, const void* key)
 {
     if (!table || !key) {
         d_LogError("Invalid parameters for checking key existence in static hash table.");
@@ -459,7 +459,7 @@ int d_CheckForKeyInStaticTable(const dStaticTable_t* table, const void* key)
     size_t bucket_index = hash % table->num_buckets;
 
     // Get bucket pointer
-    dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(table->buckets, bucket_index);
+    dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(table->buckets, bucket_index);
     if (!bucket_ptr) {
         d_LogError("Failed to access bucket in static hash table.");
         return 1;
@@ -485,9 +485,9 @@ int d_CheckForKeyInStaticTable(const dStaticTable_t* table, const void* key)
  * @return The total count of keys, or 0 if table is NULL or uninitialized
  *
  * Example:
- * `size_t key_count = d_GetKeyCountOfStaticTable(table);`
+ * `size_t key_count = d_StaticTableGetKeyCount(table);`
  */
-size_t d_GetKeyCountOfStaticTable(const dStaticTable_t* table)
+size_t d_StaticTableGetKeyCount(const dStaticTable_t* table)
 {
     if (!table) {
         d_LogError("Attempted to get key count from NULL static hash table.");
@@ -509,14 +509,14 @@ size_t d_GetKeyCountOfStaticTable(const dStaticTable_t* table)
  *
  * @return A newly allocated dArray_t containing all keys, or NULL on failure
  *
- * @note The caller is responsible for destroying the returned array with d_DestroyArray
+ * @note The caller is responsible for destroying the returned array with d_ArrayDestroy
  * @note The keys are copied into the array, not referenced
  *
  * Example:
- * `dArray_t* keys = d_GetAllKeysFromStaticTable(table);`
- * `d_DestroyArray(keys);`
+ * `dArray_t* keys = d_StaticTableGetAllKeys(table);`
+ * `d_ArrayDestroy(keys);`
  */
-dArray_t* d_GetAllKeysFromStaticTable(const dStaticTable_t* table)
+dArray_t* d_StaticTableGetAllKeys(const dStaticTable_t* table)
 {
     if (!table) {
         d_LogError("Attempted to get keys from NULL static hash table.");
@@ -529,7 +529,7 @@ dArray_t* d_GetAllKeysFromStaticTable(const dStaticTable_t* table)
     }
 
     // Initialize result array with exact capacity
-    dArray_t* all_keys_array = d_InitArray(table->num_keys, table->key_size);
+    dArray_t* all_keys_array = d_ArrayInit(table->num_keys, table->key_size);
     if (!all_keys_array) {
         d_LogError("Failed to allocate array for collecting static table keys.");
         return NULL;
@@ -539,7 +539,7 @@ dArray_t* d_GetAllKeysFromStaticTable(const dStaticTable_t* table)
 
     // Iterate through all buckets
     for (size_t i = 0; i < table->num_buckets; i++) {
-        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(table->buckets, i);
+        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(table->buckets, i);
         if (!bucket_ptr || !*bucket_ptr) {
             continue; // Empty bucket
         }
@@ -549,9 +549,9 @@ dArray_t* d_GetAllKeysFromStaticTable(const dStaticTable_t* table)
             dTableEntry_t* entry = (dTableEntry_t*)current_node->data;
             if (entry && entry->key_data) {
                 // Append key data to result array
-                if (d_AppendDataToArray(all_keys_array, entry->key_data) != 0) {
+                if (d_ArrayAppend(all_keys_array, entry->key_data) != 0) {
                     d_LogErrorF("Failed to append key to result array at bucket %zu.", i);
-                    d_DestroyArray(all_keys_array);
+                    d_ArrayDestroy(all_keys_array);
                     return NULL;
                 }
                 keys_collected++;
@@ -571,14 +571,14 @@ dArray_t* d_GetAllKeysFromStaticTable(const dStaticTable_t* table)
  *
  * @return A newly allocated dArray_t containing all values, or NULL on failure
  *
- * @note The caller is responsible for destroying the returned array with d_DestroyArray
+ * @note The caller is responsible for destroying the returned array with d_ArrayDestroy
  * @note The values are copied into the array, not referenced
  *
  * Example:
- * `dArray_t* values = d_GetAllValuesFromStaticTable(table);`
- * `d_DestroyArray(values);`
+ * `dArray_t* values = d_StaticTableGetAllValues(table);`
+ * `d_ArrayDestroy(values);`
  */
-dArray_t* d_GetAllValuesFromStaticTable(const dStaticTable_t* table)
+dArray_t* d_StaticTableGetAllValues(const dStaticTable_t* table)
 {
     if (!table) {
         d_LogError("Attempted to get values from NULL static hash table.");
@@ -591,7 +591,7 @@ dArray_t* d_GetAllValuesFromStaticTable(const dStaticTable_t* table)
     }
 
     // Initialize result array with exact capacity
-    dArray_t* all_values_array = d_InitArray(table->num_keys, table->value_size);
+    dArray_t* all_values_array = d_ArrayInit(table->num_keys, table->value_size);
     if (!all_values_array) {
         d_LogError("Failed to allocate array for collecting static table values.");
         return NULL;
@@ -601,7 +601,7 @@ dArray_t* d_GetAllValuesFromStaticTable(const dStaticTable_t* table)
 
     // Iterate through all buckets
     for (size_t i = 0; i < table->num_buckets; i++) {
-        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(table->buckets, i);
+        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(table->buckets, i);
         if (!bucket_ptr || !*bucket_ptr) {
             continue; // Empty bucket
         }
@@ -611,9 +611,9 @@ dArray_t* d_GetAllValuesFromStaticTable(const dStaticTable_t* table)
             dTableEntry_t* entry = (dTableEntry_t*)current_node->data;
             if (entry && entry->value_data) {
                 // Append value data to result array
-                if (d_AppendDataToArray(all_values_array, entry->value_data) != 0) {
+                if (d_ArrayAppend(all_values_array, entry->value_data) != 0) {
                     d_LogErrorF("Failed to append value to result array at bucket %zu.", i);
-                    d_DestroyArray(all_values_array);
+                    d_ArrayDestroy(all_values_array);
                     return NULL;
                 }
                 values_collected++;
@@ -646,9 +646,9 @@ dArray_t* d_GetAllValuesFromStaticTable(const dStaticTable_t* table)
  * @note To reuse the table, you must reinitialize it with keys
  *
  * Example:
- * `d_ClearStaticTable(table); // Table is now empty and uninitialized`
+ * `d_StaticTableClear(table); // Table is now empty and uninitialized`
  */
-int d_ClearStaticTable(dStaticTable_t* table)
+int d_StaticTableClear(dStaticTable_t* table)
 {
     if (!table) {
         d_LogError("Attempted to clear NULL static hash table.");
@@ -657,7 +657,7 @@ int d_ClearStaticTable(dStaticTable_t* table)
 
     // Clear all buckets
     for (size_t i = 0; i < table->num_buckets; i++) {
-        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(table->buckets, i);
+        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(table->buckets, i);
         if (bucket_ptr && *bucket_ptr) {
             // Manually destroy entries first, then the linked list structure
             dLinkedList_t* current = *bucket_ptr;
@@ -704,9 +704,9 @@ int d_ClearStaticTable(dStaticTable_t* table)
  *
  * Example:
  * `size_t min, max, empty; float avg;`
- * `d_GetStaticTableStats(table, &min, &max, &avg, &empty);`
+ * `d_StaticTableGetStats(table, &min, &max, &avg, &empty);`
  */
-int d_GetStaticTableStats(const dStaticTable_t* table, size_t* min_entries, 
+int d_StaticTableGetStats(const dStaticTable_t* table, size_t* min_entries, 
                           size_t* max_entries, float* avg_entries, size_t* empty_buckets)
 {
     if (!table) {
@@ -726,7 +726,7 @@ int d_GetStaticTableStats(const dStaticTable_t* table, size_t* min_entries,
 
     // Analyze each bucket
     for (size_t i = 0; i < table->num_buckets; i++) {
-        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(table->buckets, i);
+        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(table->buckets, i);
         size_t bucket_count = 0;
 
         if (bucket_ptr && *bucket_ptr) {
@@ -786,7 +786,7 @@ int d_GetStaticTableStats(const dStaticTable_t* table, size_t* min_entries,
  * Example:
  * `dStaticTable_t* optimized = d_RebucketStaticTable(original, 64);`
  * `// Use optimized table, destroy when done`
- * `d_DestroyStaticTable(&optimized);`
+ * `d_StaticTableDestroy(&optimized);`
  */
 dStaticTable_t* d_RebucketStaticTable(const dStaticTable_t* source_table, size_t new_num_buckets)
 {
@@ -806,16 +806,16 @@ dStaticTable_t* d_RebucketStaticTable(const dStaticTable_t* source_table, size_t
     }
 
     // Collect all current keys and values
-    dArray_t* all_keys = d_GetAllKeysFromStaticTable(source_table);
+    dArray_t* all_keys = d_StaticTableGetAllKeys(source_table);
     if (!all_keys) {
         d_LogError("Failed to collect keys for rebucketing.");
         return NULL;
     }
 
-    dArray_t* all_values = d_GetAllValuesFromStaticTable(source_table);
+    dArray_t* all_values = d_StaticTableGetAllValues(source_table);
     if (!all_values) {
         d_LogError("Failed to collect values for rebucketing.");
-        d_DestroyArray(all_keys);
+        d_ArrayDestroy(all_keys);
         return NULL;
     }
 
@@ -827,22 +827,22 @@ dStaticTable_t* d_RebucketStaticTable(const dStaticTable_t* source_table, size_t
         d_LogError("Failed to allocate pointer arrays for rebucketing.");
         free(key_ptrs);
         free(value_ptrs);
-        d_DestroyArray(all_keys);
-        d_DestroyArray(all_values);
+        d_ArrayDestroy(all_keys);
+        d_ArrayDestroy(all_values);
         return NULL;
     }
 
     // Set up pointer arrays - get pointers to the data in the arrays
     for (size_t i = 0; i < source_table->num_keys; i++) {
-        void* key_data = d_IndexDataFromArray(all_keys, i);
-        void* value_data = d_IndexDataFromArray(all_values, i);
+        void* key_data = d_ArrayGet(all_keys, i);
+        void* value_data = d_ArrayGet(all_values, i);
         
         if (!key_data || !value_data) {
             d_LogError("Failed to access array data during rebucketing.");
             free(key_ptrs);
             free(value_ptrs);
-            d_DestroyArray(all_keys);
-            d_DestroyArray(all_values);
+            d_ArrayDestroy(all_keys);
+            d_ArrayDestroy(all_values);
             return NULL;
         }
         
@@ -865,8 +865,8 @@ dStaticTable_t* d_RebucketStaticTable(const dStaticTable_t* source_table, size_t
     // Cleanup temporary arrays
     free(key_ptrs);
     free(value_ptrs);
-    d_DestroyArray(all_keys);
-    d_DestroyArray(all_values);
+    d_ArrayDestroy(all_keys);
+    d_ArrayDestroy(all_values);
 
     if (new_table) {
         d_LogInfoF("Successfully rebucketed static table from %zu to %zu buckets with %zu keys.",
@@ -889,14 +889,14 @@ dStaticTable_t* d_RebucketStaticTable(const dStaticTable_t* source_table, size_t
  *
  * @return A pointer to the newly created dStaticTable_t, or NULL on failure.
  *
- * @note The caller is responsible for destroying the new table with d_DestroyStaticTable.
+ * @note The caller is responsible for destroying the new table with d_StaticTableDestroy.
  * @note The source table remains unchanged.
  *
  * Example:
  * `dStaticTable_t* new_table = d_CloneStaticTable(original_table);`
  * `if (new_table) {`
  * `    // ... use the new table`
- * `    d_DestroyStaticTable(&new_table);`
+ * `    d_StaticTableDestroy(&new_table);`
  * `}`
  */
 dStaticTable_t* d_CloneStaticTable(const dStaticTable_t* source_table)
@@ -912,16 +912,16 @@ dStaticTable_t* d_CloneStaticTable(const dStaticTable_t* source_table)
     }
 
     // Use existing functions to extract all keys and values
-    dArray_t* all_keys = d_GetAllKeysFromStaticTable(source_table);
+    dArray_t* all_keys = d_StaticTableGetAllKeys(source_table);
     if (!all_keys) {
         d_LogError("Failed to collect keys for cloning.");
         return NULL;
     }
 
-    dArray_t* all_values = d_GetAllValuesFromStaticTable(source_table);
+    dArray_t* all_values = d_StaticTableGetAllValues(source_table);
     if (!all_values) {
         d_LogError("Failed to collect values for cloning.");
-        d_DestroyArray(all_keys);
+        d_ArrayDestroy(all_keys);
         return NULL;
     }
 
@@ -934,21 +934,21 @@ dStaticTable_t* d_CloneStaticTable(const dStaticTable_t* source_table)
         d_LogError("Failed to allocate pointer arrays for cloning operation.");
         free(key_ptrs); // It's safe to free NULL
         free(value_ptrs);
-        d_DestroyArray(all_keys);
-        d_DestroyArray(all_values);
+        d_ArrayDestroy(all_keys);
+        d_ArrayDestroy(all_values);
         return NULL;
     }
     
     // Populate the pointer arrays
     for (size_t i = 0; i < source_table->num_keys; i++) {
-        key_ptrs[i] = d_IndexDataFromArray(all_keys, i);
-        value_ptrs[i] = d_IndexDataFromArray(all_values, i);
+        key_ptrs[i] = d_ArrayGet(all_keys, i);
+        value_ptrs[i] = d_ArrayGet(all_values, i);
         if (!key_ptrs[i] || !value_ptrs[i]) {
              d_LogError("Failed to retrieve data from temporary arrays during cloning.");
              free(key_ptrs);
              free(value_ptrs);
-             d_DestroyArray(all_keys);
-             d_DestroyArray(all_values);
+             d_ArrayDestroy(all_keys);
+             d_ArrayDestroy(all_values);
              return NULL;
         }
     }
@@ -968,8 +968,8 @@ dStaticTable_t* d_CloneStaticTable(const dStaticTable_t* source_table)
     // Clean up all temporary allocations
     free(key_ptrs);
     free(value_ptrs);
-    d_DestroyArray(all_keys);
-    d_DestroyArray(all_values);
+    d_ArrayDestroy(all_keys);
+    d_ArrayDestroy(all_values);
 
     if (new_table) {
         d_LogInfoF("Successfully cloned static table with %zu keys.", source_table->num_keys);
@@ -1000,7 +1000,7 @@ dStaticTable_t* d_CloneStaticTable(const dStaticTable_t* source_table)
  *
  * @note The hash and compare functions cannot be saved and must be provided when loading
  */
-int d_SaveStaticTableToFile(const char* filename, const dStaticTable_t* table)
+int d_StaticTableSaveToFile(const char* filename, const dStaticTable_t* table)
 {
     if (!filename || !table) {
         d_LogError("Invalid parameters for saving static table to file.");
@@ -1047,7 +1047,7 @@ int d_SaveStaticTableToFile(const char* filename, const dStaticTable_t* table)
     // Write all key-value pairs
     size_t pairs_written = 0;
     for (size_t i = 0; i < table->num_buckets; i++) {
-        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(table->buckets, i);
+        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(table->buckets, i);
         if (!bucket_ptr || !*bucket_ptr) {
             continue; // Empty bucket
         }
@@ -1090,7 +1090,7 @@ int d_SaveStaticTableToFile(const char* filename, const dStaticTable_t* table)
 /**
  * @brief Load a static hash table from a binary file.
  *
- * Reads a file created by d_SaveStaticTableToFile() and reconstructs the static table.
+ * Reads a file created by d_StaticTableSaveToFile() and reconstructs the static table.
  * The hash and compare functions must be provided as they cannot be stored in the file.
  *
  * @param filename Path to the input file
@@ -1256,7 +1256,7 @@ cleanup_and_fail:
  * @param user_data Generic pointer passed to the callback for context
  * @return 0 on success, 1 on failure
  */
-int d_IterateStaticTable(const dStaticTable_t* table, dTableIteratorFunc callback, void* user_data)
+int d_StaticTableIterate(const dStaticTable_t* table, dTableIteratorFunc callback, void* user_data)
 {
     if (!table || !callback) {
         d_LogError("Invalid parameters for iterating static table.");
@@ -1272,7 +1272,7 @@ int d_IterateStaticTable(const dStaticTable_t* table, dTableIteratorFunc callbac
 
     // Iterate through all buckets
     for (size_t i = 0; i < table->num_buckets; i++) {
-        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_IndexDataFromArray(table->buckets, i);
+        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(table->buckets, i);
         if (!bucket_ptr || !*bucket_ptr) {
             continue; // Empty bucket
         }

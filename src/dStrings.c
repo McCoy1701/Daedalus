@@ -13,44 +13,72 @@
 
 static const size_t d_string_builder_min_size = 32;
 
-char* d_StringCreateFromFile(const char *filename)
+dString_t* d_StringCreateFromFile(const char *filename)
 {
   long fileSize;
-  char *fileString;
+  char *fileBuffer;
   FILE *file;
+  dString_t* result;
 
-  file = fopen( filename, "r" );
-  if ( file == NULL )
-  {
-    printf( "Error loading file: %s\n", filename );
+  if (filename == NULL) {
+    printf("Error: NULL filename provided\n");
     return NULL;
   }
 
-  fseek( file, 0, SEEK_END );
-  fileSize = ftell( file );
-  rewind( file );
-
-  fileString= ( char* )malloc( fileSize + 1 );
-  if ( fileString == NULL )
-  {
-    printf( "Error allocating memory for file string: %s\n", filename );
-    fclose( file );
+  file = fopen(filename, "rb");  // Binary mode for cross-platform compatibility
+  if (file == NULL) {
+    printf("Error loading file: %s\n", filename);
     return NULL;
   }
 
-  if ( fread( fileString, fileSize, 1, file ) != 1 )
-  {
-    printf("Failed to read vertex file: %s\n", filename);
+  // Get file size
+  fseek(file, 0, SEEK_END);
+  fileSize = ftell(file);
+  rewind(file);
+
+  // Check for empty file or error
+  if (fileSize < 0) {
+    printf("Error getting file size: %s\n", filename);
     fclose(file);
-    free(fileString);
+    return NULL;
+  }
+
+  // Allocate temporary buffer
+  fileBuffer = (char*)malloc(fileSize + 1);
+  if (fileBuffer == NULL) {
+    printf("Error allocating memory for file string: %s\n", filename);
+    fclose(file);
+    return NULL;
+  }
+
+  // Read file contents
+  if (fileSize > 0 && fread(fileBuffer, fileSize, 1, file) != 1) {
+    printf("Failed to read file: %s\n", filename);
+    fclose(file);
+    free(fileBuffer);
     return NULL;
   }
 
   fclose(file);
 
-  fileString[fileSize] = '\0';
+  // Null-terminate the buffer
+  fileBuffer[fileSize] = '\0';
 
-  return fileString;
+  // Create dString and set its content
+  result = d_StringInit();
+  if (result == NULL) {
+    printf("Failed to initialize dString for file: %s\n", filename);
+    free(fileBuffer);
+    return NULL;
+  }
+
+  // Use d_StringAppend to add the file contents
+  d_StringAppend(result, fileBuffer, fileSize);
+
+  // Free temporary buffer
+  free(fileBuffer);
+
+  return result;
 }
 
 /**

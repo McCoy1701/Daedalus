@@ -13,7 +13,7 @@ void d_FreeSplitStringArray(dArray_t* string_array) {
     // Iterate through the array and free each string builder.
     for (size_t i = 0; i < string_array->count; i++) {
         // Get the location of the dString_t* stored in the array's data.
-        dString_t** sb_ptr_location = (dString_t**)d_IndexDataFromArray(string_array, i);
+        dString_t** sb_ptr_location = (dString_t**)d_ArrayGet(string_array, i);
         if (sb_ptr_location != NULL && *sb_ptr_location != NULL) {
             // Dereference the location to get the actual dString_t* and destroy it.
             d_StringDestroy(*sb_ptr_location);
@@ -21,7 +21,7 @@ void d_FreeSplitStringArray(dArray_t* string_array) {
     }
 
     // Finally, destroy the array structure itself.
-    d_DestroyArray(string_array);
+    d_ArrayDestroy(string_array);
 }
 
 dArray_t* d_SplitString(const char* text, const char* delimiter) {
@@ -37,7 +37,7 @@ dArray_t* d_SplitString(const char* text, const char* delimiter) {
 
     // Initialize a dynamic array to hold the dString_t* pointers.
     // The element size is the size of a pointer to a dString_t.
-    dArray_t* result_array = d_InitArray(8, sizeof(dString_t*));
+    dArray_t* result_array = d_ArrayInit(8, sizeof(dString_t*));
     if (result_array == NULL) {
         return NULL; // Failed to create the array.
     }
@@ -58,14 +58,14 @@ dArray_t* d_SplitString(const char* text, const char* delimiter) {
 
         // Check if array is full and grow it if needed
         if (result_array->count >= result_array->capacity) {
-            if (d_GrowArray(result_array, 8 * result_array->element_size) != 0) {
+            if (d_ArrayGrow(result_array, 8 * result_array->element_size) != 0) {
                 d_StringDestroy(segment_sb);
                 d_FreeSplitStringArray(result_array);
                 return NULL;
             }
         }
 
-        d_AppendDataToArray(result_array, &segment_sb); // Append the pointer to the new string builder
+        d_ArrayAppend(result_array, &segment_sb); // Append the pointer to the new string builder
 
         // Move the position past the delimiter for the next search.
         current_pos = next_delim + delimiter_len;
@@ -81,14 +81,14 @@ dArray_t* d_SplitString(const char* text, const char* delimiter) {
 
     // Check if array is full and grow it if needed for final segment
     if (result_array->count >= result_array->capacity) {
-        if (d_GrowArray(result_array, 8 * result_array->element_size) != 0) {
+        if (d_ArrayGrow(result_array, 8 * result_array->element_size) != 0) {
             d_StringDestroy(final_segment_sb);
             d_FreeSplitStringArray(result_array);
             return NULL;
         }
     }
 
-    d_AppendDataToArray(result_array, &final_segment_sb);
+    d_ArrayAppend(result_array, &final_segment_sb);
 
     return result_array;
 }

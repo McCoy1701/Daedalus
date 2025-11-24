@@ -71,10 +71,10 @@ dStaticArray_t* d_InitStaticArray(size_t capacity, size_t element_size)
  * -- Frees data buffer first, then structure
  * -- After calling, the pointer becomes invalid
  * 
- * Example: `d_DestroyStaticArray(array);`
+ * Example: `d_StaticArrayDestroy(array);`
  * This destroys the static array and frees its memory.
  */
-int d_DestroyStaticArray(dStaticArray_t* array)
+int d_StaticArrayDestroy(dStaticArray_t* array)
 {
     if (!array) {
         return 1; // NULL pointer - considered failure
@@ -108,10 +108,10 @@ int d_DestroyStaticArray(dStaticArray_t* array)
  * -- Copies element_size bytes from data
  * -- Increments count on successful append
  * 
- * Example: `d_AppendDataToStaticArray(array, &data);`
+ * Example: `d_StaticArrayAppend(array, &data);`
  * This appends a pointer to a data element to the end of the static array.
  */
-int d_AppendDataToStaticArray(dStaticArray_t* array, void* data)
+int d_StaticArrayAppend(dStaticArray_t* array, void* data)
 {
     // Validate input parameters
     if (!array || !data) {
@@ -146,10 +146,10 @@ int d_AppendDataToStaticArray(dStaticArray_t* array, void* data)
  * -- Performs bounds checking for safety
  * -- Returned pointer is valid until array is modified or destroyed
  * 
- * Example: `void* data = d_IndexDataFromStaticArray(array, 0);`
+ * Example: `void* data = d_StaticArrayGet(array, 0);`
  * This retrieves the first element from the static array.
  */
-void* d_IndexDataFromStaticArray(dStaticArray_t* array, size_t index)
+void* d_StaticArrayGet(dStaticArray_t* array, size_t index)
 {
     // Validate input parameters
     if (!array || !array->data) {
@@ -177,10 +177,10 @@ void* d_IndexDataFromStaticArray(dStaticArray_t* array, size_t index)
  * -- Element data remains in buffer but is no longer active
  * -- Returned pointer becomes invalid after next append
  * 
- * Example: `void* data = d_PopDataFromStaticArray(array);`
+ * Example: `void* data = d_StaticArrayPop(array);`
  * This removes and returns the last element from the static array.
  */
-void* d_PopDataFromStaticArray(dStaticArray_t* array)
+void* d_StaticArrayPop(dStaticArray_t* array)
 {
     // Validate input parameters
     if (!array || !array->data) {
@@ -214,10 +214,10 @@ void* d_PopDataFromStaticArray(dStaticArray_t* array)
  * -- Returns capacity - count for valid arrays
  * -- Useful for checking if array can accept more elements before attempting append
  * 
- * Example: `size_t free_slots = d_GetFreeSpaceInStaticArray(array);`
+ * Example: `size_t free_slots = d_StaticArrayGetFreeSpace(array);`
  * This returns how many more elements can be added to the array.
  */
-size_t d_GetFreeSpaceInStaticArray(dStaticArray_t* array)
+size_t d_StaticArrayGetFreeSpace(dStaticArray_t* array)
 {
     // Input validation
     if (!array) {
@@ -248,10 +248,10 @@ size_t d_GetFreeSpaceInStaticArray(dStaticArray_t* array)
  * -- Sets array count to num_elements after successful fill
  * -- Overwrites existing data in the array
  * 
- * Example: `int value = 42; d_FillDataInStaticArray(array, &value, 5);`
+ * Example: `int value = 42; d_StaticArrayFill(array, &value, 5);`
  * This fills the first 5 positions of the array with the value 42.
  */
-int d_FillDataInStaticArray(dStaticArray_t* array, const void* value, size_t num_elements)
+int d_StaticArrayFill(dStaticArray_t* array, const void* value, size_t num_elements)
 {
     // Input validation
     if (!array || !value) {
@@ -293,10 +293,10 @@ int d_FillDataInStaticArray(dStaticArray_t* array, const void* value, size_t num
  * -- Use with caution - direct memory access bypasses safety checks
  * -- Primarily intended for advanced operations or serialization
  * 
- * Example: `void* raw_buffer = d_PeekRawMemoryOfStaticArray(array);`
+ * Example: `void* raw_buffer = d_StaticArrayPeekRawMemory(array);`
  * This returns a pointer to the entire data buffer of the array.
  */
-void* d_PeekRawMemoryOfStaticArray(dStaticArray_t* array)
+void* d_StaticArrayPeekRawMemory(dStaticArray_t* array)
 {
     // Input validation
     if (!array) {
@@ -332,7 +332,7 @@ void* d_PeekRawMemoryOfStaticArray(dStaticArray_t* array)
  * @param array Pointer to the static array to save
  * @return 0 on success, 1 on failure
  */
-int d_SaveStaticArrayToFile(const char* filename, const dStaticArray_t* array)
+int d_StaticArraySaveToFile(const char* filename, const dStaticArray_t* array)
 {
     // Input validation
     if (!filename || !array) {
@@ -495,7 +495,7 @@ dStaticArray_t* d_LoadStaticArrayFromFile(const char* filename)
     size_t total_data_size = capacity * element_size;
     if (fread(array->data, 1, total_data_size, file) != total_data_size) {
         d_LogErrorF("Failed to read array data from file: %s", filename);
-        d_DestroyStaticArray(array);
+        d_StaticArrayDestroy(array);
         fclose(file);
         return NULL;
     }
@@ -517,7 +517,7 @@ dStaticArray_t* d_LoadStaticArrayFromFile(const char* filename)
  * @param user_data Optional data to pass to the callback
  * @return 0 on success, 1 on failure
  */
-int d_IterateStaticArray(const dStaticArray_t* array, dStaticArrayIteratorFunc callback, void* user_data)
+int d_StaticArrayIterate(const dStaticArray_t* array, dStaticArrayIteratorFunc callback, void* user_data)
 {
     // Input validation
     if (!array || !callback) {

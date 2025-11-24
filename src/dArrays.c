@@ -23,15 +23,15 @@
  * 
  * @return A pointer to the new array, or NULL on error.
  * 
- * -- Must be destroyed with d_DestroyArray() to free memory
+ * -- Must be destroyed with d_ArrayDestroy() to free memory
  * -- Initial count is 0 even though capacity may be larger
  * -- Elements can be any type as long as element_size is correct
  * -- Capacity of 0 is allowed but array cannot store elements until resized
  * 
- * Example: `dArray_t* array = d_InitArray(10, sizeof(int));`
+ * Example: `dArray_t* array = d_ArrayInit(10, sizeof(int));`
  * This creates a new array with a capacity of 10 elements, each of size 4 bytes.
  */
-dArray_t* d_InitArray(size_t capacity, size_t element_size) {
+dArray_t* d_ArrayInit(size_t capacity, size_t element_size) {
     if (element_size == 0) return NULL;
 
     dArray_t* array = (dArray_t*)malloc(sizeof(dArray_t));
@@ -64,10 +64,10 @@ dArray_t* d_InitArray(size_t capacity, size_t element_size) {
  * -- Frees both the data buffer and the array structure itself
  * -- After calling this function, the pointer is invalid and should not be used
  * 
- * Example: `d_DestroyArray(array);`
+ * Example: `d_ArrayDestroy(array);`
  * This destroys the dynamic array and frees its memory.
  */
-int d_DestroyArray(dArray_t* array) {
+int d_ArrayDestroy(dArray_t* array) {
     if (!array) return 1;
     if (array->data) free(array->data);
     free(array);
@@ -100,14 +100,14 @@ int d_DestroyArray(dArray_t* array) {
  * contents.
  * @warning This function only affects the internal data buffer (`array->data`). The `dArray_t* array`
  * pointer itself remains valid and points to the same `dArray_t` structure.
- * Pointers obtained previously via `d_IndexDataFromArray` (or similar direct access)
+ * Pointers obtained previously via `d_ArrayGet` (or similar direct access)
  * will become invalid if the underlying `array->data` buffer is reallocated and moved.
  *
- * Example: `d_ResizeArray(myArray, 10 * sizeof(int));`
+ * Example: `d_ArrayResize(myArray, 10 * sizeof(int));`
  * This resizes the internal buffer of `myArray` to accommodate 10 integer elements.
  * If `myArray` previously held more than 10 elements, its `count` will be truncated.
  */
-int d_ResizeArray(dArray_t* array, size_t new_size_in_bytes) {
+int d_ArrayResize(dArray_t* array, size_t new_size_in_bytes) {
     if (!array) return 1;
 
     // If new size is 0, free the data and reset.
@@ -141,15 +141,15 @@ int d_ResizeArray(dArray_t* array, size_t new_size_in_bytes) {
  * 
  * @return 0 on success, 1 on failure.
  * 
- * -- Convenience function that calls d_ResizeArray() internally
+ * -- Convenience function that calls d_ArrayResize() internally
  * 
- * Example: `d_GrowArray(array, 10 * sizeof(int));`
+ * Example: `d_ArrayGrow(array, 10 * sizeof(int));`
  * This grows the dynamic array by 10 elements, each of size 4 bytes.
  */
-int d_GrowArray(dArray_t* array, size_t additional_bytes) {
+int d_ArrayGrow(dArray_t* array, size_t additional_bytes) {
     if (!array) return 1;
     size_t current_bytes = array->capacity * array->element_size;
-    return d_ResizeArray(array, current_bytes + additional_bytes);
+    return d_ArrayResize(array, current_bytes + additional_bytes);
 }
 
 // =============================================================================
@@ -175,10 +175,10 @@ int d_GrowArray(dArray_t* array, size_t additional_bytes) {
  * @note Copies `element_size` bytes from the `data` pointer into the array.
  * @note Increments the array's `count` on successful append.
  *
- * Example: `int my_value = 123; int result = d_AppendDataToArray(myArray, &my_value);`
+ * Example: `int my_value = 123; int result = d_ArrayAppend(myArray, &my_value);`
  * This appends an integer value to the end of `myArray`.
  */
- int d_AppendDataToArray( dArray_t* array, void* data )
+ int d_ArrayAppend( dArray_t* array, void* data )
  {
      if ( array == NULL || data == NULL )
      {
@@ -190,7 +190,7 @@ int d_GrowArray(dArray_t* array, size_t additional_bytes) {
          size_t new_capacity = array->capacity == 0 ? 1 : array->capacity * 2;
          size_t new_size = new_capacity * array->element_size;
 
-         if ( d_ResizeArray( array, new_size ) != 0 )
+         if ( d_ArrayResize( array, new_size ) != 0 )
          {
              return 1;
          }
@@ -214,13 +214,13 @@ int d_GrowArray(dArray_t* array, size_t additional_bytes) {
  * -- Returns NULL if array is NULL or index >= count
  * -- Returned pointer is valid until the array is modified or destroyed
  * -- Caller can read/write through the returned pointer safely
- * -- Use appropriate casting: int* ptr = (int*)d_IndexDataFromArray(array, 0)
+ * -- Use appropriate casting: int* ptr = (int*)d_ArrayGet(array, 0)
  * -- Index must be less than count, not capacity (only counts appended elements)
  * 
- * Example: `void* data = d_IndexDataFromArray(array, 0);`
+ * Example: `void* data = d_ArrayGet(array, 0);`
  * This retrieves the first element from the dynamic array.
  */
-void* d_IndexDataFromArray(dArray_t* array, size_t index) {
+void* d_ArrayGet(dArray_t* array, size_t index) {
     if (!array || index >= array->count) {
         return NULL;
     }
@@ -239,10 +239,10 @@ void* d_IndexDataFromArray(dArray_t* array, size_t index) {
  * -- Implements stack-like behavior for dynamic arrays
  * -- Memory is not reallocated, only the count is decremented for efficiency
  * 
- * Example: `void* data = d_PopDataFromArray(array);`
+ * Example: `void* data = d_ArrayPop(array);`
  * This removes and returns the last element from the dynamic array.
  */
-void* d_PopDataFromArray(dArray_t* array) {
+void* d_ArrayPop(dArray_t* array) {
     if (!array || array->count == 0) {
         return NULL;
     }
@@ -266,10 +266,10 @@ void* d_PopDataFromArray(dArray_t* array) {
  * -- Does nothing if array is already optimally sized
  * -- Useful after bulk removal operations to reclaim memory
  * 
- * Example: `d_TrimCapacityOfArray(array);`
+ * Example: `d_ArrayTrimCapacity(array);`
  * This trims the array's capacity to match its count, freeing memory if necessary.
  */
-int d_TrimCapacityOfArray(dArray_t* array) {
+int d_ArrayTrimCapacity(dArray_t* array) {
     if (!array) {
         d_LogError("Attempted to trim capacity of a NULL dynamic array.");
         return 1;
@@ -283,7 +283,7 @@ int d_TrimCapacityOfArray(dArray_t* array) {
         return 0;
     }
 
-    if (d_ResizeArray(array, required_bytes) != 0) {
+    if (d_ArrayResize(array, required_bytes) != 0) {
         d_LogError("Failed to reallocate memory for trimming dynamic array.");
         return 1;
     }
@@ -301,13 +301,13 @@ int d_TrimCapacityOfArray(dArray_t* array) {
  * 
  * -- Grows the array if current capacity is less than min_capacity
  * -- Uses exponential growth strategy to minimize reallocations
- * -- Never shrinks the array - use d_TrimCapacityOfArray for that
+ * -- Never shrinks the array - use d_ArrayTrimCapacity for that
  * -- Useful for pre-allocating space before bulk operations
  * 
- * Example: `d_EnsureCapacityOfArray(array, 100);`
+ * Example: `d_ArrayEnsureCapacity(array, 100);`
  * This ensures the array has at least 100 elements allocated, growing the array if needed.
  */
-int d_EnsureCapacityOfArray(dArray_t* array, size_t min_capacity) {
+int d_ArrayEnsureCapacity(dArray_t* array, size_t min_capacity) {
     if (!array) {
         d_LogError("Attempted to ensure capacity of a NULL dynamic array.");
         return 1;
@@ -329,7 +329,7 @@ int d_EnsureCapacityOfArray(dArray_t* array, size_t min_capacity) {
 
     size_t new_size_in_bytes = new_capacity * array->element_size;
 
-    if (d_ResizeArray(array, new_size_in_bytes) != 0) {
+    if (d_ArrayResize(array, new_size_in_bytes) != 0) {
         d_LogErrorF("Failed to resize array to ensure minimum capacity of %zu.", min_capacity);
         return 1;
     }
@@ -357,10 +357,10 @@ int d_EnsureCapacityOfArray(dArray_t* array, size_t min_capacity) {
  * -- index must be <= array->count (can insert at end)
  * -- Uses memmove for safe overlapping memory operations
  * 
- * Example: `d_InsertDataIntoArray(array, &value, 2);`
+ * Example: `d_ArrayInsert(array, &value, 2);`
  * This inserts a value at index 2, shifting existing elements to the right.
  */
-int d_InsertDataIntoArray(dArray_t* array, void* data, size_t index) {
+int d_ArrayInsert(dArray_t* array, void* data, size_t index) {
     if (!array || !data) {
         d_LogError("Invalid input: array or data is NULL for insert operation.");
         return 1;
@@ -376,7 +376,7 @@ int d_InsertDataIntoArray(dArray_t* array, void* data, size_t index) {
         size_t new_capacity = array->capacity == 0 ? 1 : array->capacity * 2;
         size_t new_size_in_bytes = new_capacity * array->element_size;
 
-        if (d_ResizeArray(array, new_size_in_bytes) != 0) {
+        if (d_ArrayResize(array, new_size_in_bytes) != 0) {
             d_LogErrorF("Failed to grow array for insert operation at index %zu.", index);
             return 1;
         }
@@ -406,14 +406,14 @@ int d_InsertDataIntoArray(dArray_t* array, void* data, size_t index) {
  * @return 0 on success, 1 on failure
  * 
  * -- Shifts existing elements to the left to fill the gap
- * -- Does not resize the array capacity (use d_TrimCapacityOfArray for that)
+ * -- Does not resize the array capacity (use d_ArrayTrimCapacity for that)
  * -- index must be < array->count
  * -- Uses memmove for safe overlapping memory operations
  * 
- * Example: `d_RemoveDataFromArray(array, 2);`
+ * Example: `d_ArrayRemove(array, 2);`
  * This removes the element at index 2, shifting remaining elements to the left.
  */
-int d_RemoveDataFromArray(dArray_t* array, size_t index) {
+int d_ArrayRemove(dArray_t* array, size_t index) {
     if (!array) {
         d_LogError("Invalid input: array is NULL for remove operation.");
         return 1;
@@ -449,10 +449,10 @@ int d_RemoveDataFromArray(dArray_t* array, size_t index) {
  * -- Does not zero memory or shrink capacity
  * -- Ideal for clearing collections that will be reused (hands, queues, temp buffers)
  *
- * Example: `d_ClearArray(array);`
+ * Example: `d_ArrayClear(array);`
  * This clears all elements from the array, resetting count to 0 while keeping capacity.
  */
-int d_ClearArray(dArray_t* array) {
+int d_ArrayClear(dArray_t* array) {
     if (!array) {
         d_LogError("Attempted to clear a NULL dynamic array.");
         return 1;

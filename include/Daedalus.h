@@ -167,7 +167,7 @@ typedef struct _dQuadTree_t
  * This structure provides a flexible, resizable array similar to `std::vector` in C++.
  * It handles its own memory allocation and deallocation to accommodate varying numbers of elements.
  *
- * @note This structure is designed to be initialized via functions like `d_InitArray()`,
+ * @note This structure is designed to be initialized via functions like `d_ArrayInit()`,
  * which handle the initial memory allocation for `data` based on a starting capacity.
  * Direct manipulation of its members is generally discouraged for safety.
  */
@@ -276,7 +276,7 @@ typedef struct
  * lookup, insertion, and deletion of elements. It uses chaining with `dLinkedList_t`
  * to handle collisions and automatically resizes its internal storage to maintain performance.
  *
- * @note This structure is designed to be initialized via `d_InitTable()`, which sets
+ * @note This structure is designed to be initialized via `d_TableInit()`, which sets
  * up its internal buckets and function pointers.
  * @note Keys and values are copied internally. The user is responsible for managing
  * the memory of the original data passed to `d_SetDataInTable()`.
@@ -982,9 +982,9 @@ dLinkedList_t* d_GetNodeByNameLinkedList(dLinkedList_t *head, char *target_name)
  * @return A pointer to the newly initialized dTable_t instance, or NULL on failure
  *
  * Example:
- * `dTable_t* table = d_InitTable(sizeof(int), sizeof(char*), my_hash, my_compare, 16);`
+ * `dTable_t* table = d_TableInit(sizeof(int), sizeof(char*), my_hash, my_compare, 16);`
  */
-dTable_t* d_InitTable(size_t key_size, size_t value_size, dTableHashFunc hash_func,
+dTable_t* d_TableInit(size_t key_size, size_t value_size, dTableHashFunc hash_func,
                       dTableCompareFunc compare_func, size_t initial_num_buckets
                       );
 
@@ -1001,9 +1001,9 @@ dTable_t* d_InitTable(size_t key_size, size_t value_size, dTableHashFunc hash_fu
  * @return 0 on success, 1 on failure
  *
  * Example:
- * `d_DestroyTable(&my_table); // my_table will be NULL after this`
+ * `d_TableDestroy(&my_table); // my_table will be NULL after this`
  */
-int d_DestroyTable(dTable_t** table);
+int d_TableDestroy(dTable_t** table);
 
 /**
  * @brief Insert or update a key-value pair in the hash table (upsert operation).
@@ -1020,9 +1020,9 @@ int d_DestroyTable(dTable_t** table);
  * @return 0 on success, 1 on failure
  *
  * Example:
- * `int key = 42; char* value = "hello"; d_SetDataInTable(table, &key, &value);`
+ * `int key = 42; char* value = "hello"; d_TableSet(table, &key, &value);`
  */
-int d_SetDataInTable(dTable_t* table, const void* key, const void* value);
+int d_TableSet(dTable_t* table, const void* key, const void* value);
 
 /**
  * @brief Retrieve a pointer to the value associated with a given key.
@@ -1037,9 +1037,9 @@ int d_SetDataInTable(dTable_t* table, const void* key, const void* value);
  * @return A void* pointer to the internally stored value data if found, or NULL if not found
  *
  * Example:
- * `int key = 42; char** value = (char**)d_GetDataFromTable(table, &key);`
+ * `int key = 42; char** value = (char**)d_TableGet(table, &key);`
  */
-void* d_GetDataFromTable(dTable_t* table, const void* key);
+void* d_TableGet(dTable_t* table, const void* key);
 
 /**
  * @brief Remove a key-value pair from the hash table.
@@ -1055,9 +1055,9 @@ void* d_GetDataFromTable(dTable_t* table, const void* key);
  * @return 0 on success, 1 on failure/key not found
  *
  * Example:
- * `int key = 42; d_RemoveDataFromTable(table, &key);`
+ * `int key = 42; d_TableRemove(table, &key);`
  */
-int d_RemoveDataFromTable(dTable_t* table, const void* key);
+int d_TableRemove(dTable_t* table, const void* key);
 
 /**
  * @brief Check if a specific key exists in the hash table.
@@ -1072,9 +1072,9 @@ int d_RemoveDataFromTable(dTable_t* table, const void* key);
  * @return 0 if the key exists, 1 if not found or error occurred
  *
  * Example:
- * `int key = 42; if (d_CheckForKeyInTable(table, &key) == 0) { // key exists }`
+ * `int key = 42; if (d_TableHasKey(table, &key) == 0) { // key exists }`
  */
-int d_CheckForKeyInTable(const dTable_t* table, const void* key);
+int d_TableHasKey(const dTable_t* table, const void* key);
 
 
 /**
@@ -1087,9 +1087,9 @@ int d_CheckForKeyInTable(const dTable_t* table, const void* key);
  * @return The total count of entries, or 0 if table is NULL
  *
  * Example:
- * `size_t count = d_GetCountInTable(table);`
+ * `size_t count = d_TableGetCount(table);`
  */
-size_t d_GetCountInTable(const dTable_t* table);
+size_t d_TableGetCount(const dTable_t* table);
 
 /**
  * @brief Clear all entries from the hash table but keep the structure intact.
@@ -1124,10 +1124,10 @@ int d_ClearTable(dTable_t* table);
  * @note All existing entries are preserved and redistributed based on their recalculated hashes
  *
  * Example:
- * `d_RehashTable(table, 32); // Rehash to 32 buckets`
- * `d_RehashTable(table, 0);  // Auto-resize to double current bucket count`
+ * `d_TableRehash(table, 32); // Rehash to 32 buckets`
+ * `d_TableRehash(table, 0);  // Auto-resize to double current bucket count`
  */
-int d_RehashTable(dTable_t* table, size_t new_num_buckets);
+int d_TableRehash(dTable_t* table, size_t new_num_buckets);
 
 /**
  * @brief Get an array containing copies of all keys currently stored in the hash table.
@@ -1140,16 +1140,16 @@ int d_RehashTable(dTable_t* table, size_t new_num_buckets);
  *
  * @return A newly allocated dArray_t containing all keys, or NULL on failure
  *
- * @note The caller is responsible for destroying the returned array with d_DestroyArray
+ * @note The caller is responsible for destroying the returned array with d_ArrayDestroy
  * @note The keys are copied into the array, not referenced
  * @note If the table is empty, returns an empty array (not NULL)
  *
  * Example:
- * `dArray_t* keys = d_GetAllKeysFromTable(table);`
+ * `dArray_t* keys = d_TableGetAllKeys(table);`
  * `// Use keys array...`
- * `d_DestroyArray(keys);`
+ * `d_ArrayDestroy(keys);`
  */
-dArray_t* d_GetAllKeysFromTable(const dTable_t* table);
+dArray_t* d_TableGetAllKeys(const dTable_t* table);
 
 /**
  * @brief Get an array containing copies of all values currently stored in the hash table.
@@ -1162,16 +1162,16 @@ dArray_t* d_GetAllKeysFromTable(const dTable_t* table);
  *
  * @return A newly allocated dArray_t containing all values, or NULL on failure
  *
- * @note The caller is responsible for destroying the returned array with d_DestroyArray
+ * @note The caller is responsible for destroying the returned array with d_ArrayDestroy
  * @note The values are copied into the array, not referenced
  * @note If the table is empty, returns an empty array (not NULL)
  *
  * Example:
- * `dArray_t* values = d_GetAllValuesFromTable(table);`
+ * `dArray_t* values = d_TableGetAllValues(table);`
  * `// Use values array...`
- * `d_DestroyArray(values);`
+ * `d_ArrayDestroy(values);`
  */
-dArray_t* d_GetAllValuesFromTable(const dTable_t* table);
+dArray_t* d_TableGetAllValues(const dTable_t* table);
 
 /**
  * @brief Initialize a new static hash table with fixed key structure and initial data.
@@ -1222,9 +1222,9 @@ dStaticTable_t* d_InitStaticTable(size_t key_size, size_t value_size, dTableHash
  * @return 0 on success, 1 on failure
  *
  * Example:
- * `d_DestroyStaticTable(&my_table); // my_table will be NULL after this`
+ * `d_StaticTableDestroy(&my_table); // my_table will be NULL after this`
  */
-int d_DestroyStaticTable(dStaticTable_t** table);
+int d_StaticTableDestroy(dStaticTable_t** table);
 
 /**
  * @brief Update the value associated with a key in the static table.
@@ -1239,9 +1239,9 @@ int d_DestroyStaticTable(dStaticTable_t** table);
  * @return 0 on success, 1 on failure/key not found
  *
  * Example:
- * `int key = 42; char* new_value = "updated"; d_SetStaticTableValue(table, &key, &new_value);`
+ * `int key = 42; char* new_value = "updated"; d_StaticTableSet(table, &key, &new_value);`
  */
-int d_SetValueInStaticTable(dStaticTable_t* table, const void* key, const void* new_value);
+int d_StaticTableSet(dStaticTable_t* table, const void* key, const void* new_value);
 
 
 /**
@@ -1255,9 +1255,9 @@ int d_SetValueInStaticTable(dStaticTable_t* table, const void* key, const void* 
  * @return A void* pointer to the internally stored value data if found, or NULL if not found
  *
  * Example:
- * `int key = 42; char** value = (char**)d_GetValueInStaticTable(table, &key);`
+ * `int key = 42; char** value = (char**)d_StaticTableGet(table, &key);`
  */
-void* d_GetValueInStaticTable(const dStaticTable_t* table, const void* key);
+void* d_StaticTableGet(const dStaticTable_t* table, const void* key);
 
 /**
  * @brief Check if a specific key exists in the static hash table.
@@ -1268,9 +1268,9 @@ void* d_GetValueInStaticTable(const dStaticTable_t* table, const void* key);
  * @return 0 if the key exists, 1 if not found or error occurred
  *
  * Example:
- * `int key = 42; if (d_CheckForKeyInStaticTable(table, &key) == 0) { // key exists }`
+ * `int key = 42; if (d_StaticTableHasKey(table, &key) == 0) { // key exists }`
  */
-int d_CheckForKeyInStaticTable(const dStaticTable_t* table, const void* key);
+int d_StaticTableHasKey(const dStaticTable_t* table, const void* key);
 
 /**
  * @brief Get the fixed number of keys in the static hash table.
@@ -1280,9 +1280,9 @@ int d_CheckForKeyInStaticTable(const dStaticTable_t* table, const void* key);
  * @return The total count of keys, or 0 if table is NULL or uninitialized
  *
  * Example:
- * `size_t key_count = d_GetKeyCountOfStaticTable(table);`
+ * `size_t key_count = d_StaticTableGetKeyCount(table);`
  */
-size_t d_GetKeyCountOfStaticTable(const dStaticTable_t* table);
+size_t d_StaticTableGetKeyCount(const dStaticTable_t* table);
 
 /**
  * @brief Get an array containing all keys from the static hash table.
@@ -1291,14 +1291,14 @@ size_t d_GetKeyCountOfStaticTable(const dStaticTable_t* table);
  *
  * @return A newly allocated dArray_t containing all keys, or NULL on failure
  *
- * @note The caller is responsible for destroying the returned array with d_DestroyArray
+ * @note The caller is responsible for destroying the returned array with d_ArrayDestroy
  * @note The keys are copied into the array, not referenced
  *
  * Example:
- * `dArray_t* keys = d_GetAllKeysFromStaticTable(table);`
- * `d_DestroyArray(keys);`
+ * `dArray_t* keys = d_StaticTableGetAllKeys(table);`
+ * `d_ArrayDestroy(keys);`
  */
-dArray_t* d_GetAllKeysFromStaticTable(const dStaticTable_t* table);
+dArray_t* d_StaticTableGetAllKeys(const dStaticTable_t* table);
 
 /**
  * @brief Get an array containing all values from the static hash table.
@@ -1307,14 +1307,14 @@ dArray_t* d_GetAllKeysFromStaticTable(const dStaticTable_t* table);
  *
  * @return A newly allocated dArray_t containing all values, or NULL on failure
  *
- * @note The caller is responsible for destroying the returned array with d_DestroyArray
+ * @note The caller is responsible for destroying the returned array with d_ArrayDestroy
  * @note The values are copied into the array, not referenced
  *
  * Example:
- * `dArray_t* values = d_GetAllValuesFromStaticTable(table);`
- * `d_DestroyArray(values);`
+ * `dArray_t* values = d_StaticTableGetAllValues(table);`
+ * `d_ArrayDestroy(values);`
  */
-dArray_t* d_GetAllValuesFromStaticTable(const dStaticTable_t* table);
+dArray_t* d_StaticTableGetAllValues(const dStaticTable_t* table);
 
 /**
  * @brief Clear all entries from the static hash table but keep the structure intact.
@@ -1332,9 +1332,9 @@ dArray_t* d_GetAllValuesFromStaticTable(const dStaticTable_t* table);
  * @note To reuse the table, you must reinitialize it with keys
  *
  * Example:
- * `d_ClearStaticTable(table); // Table is now empty and uninitialized`
+ * `d_StaticTableClear(table); // Table is now empty and uninitialized`
  */
-int d_ClearStaticTable(dStaticTable_t* table);
+int d_StaticTableClear(dStaticTable_t* table);
 
 /**
  * @brief Get bucket distribution statistics for the static hash table.
@@ -1357,9 +1357,9 @@ int d_ClearStaticTable(dStaticTable_t* table);
  *
  * Example:
  * `size_t min, max, empty; float avg;`
- * `d_GetStaticTableStats(table, &min, &max, &avg, &empty);`
+ * `d_StaticTableGetStats(table, &min, &max, &avg, &empty);`
  */
-int d_GetStaticTableStats(const dStaticTable_t* table, size_t* min_entries, 
+int d_StaticTableGetStats(const dStaticTable_t* table, size_t* min_entries,
                           size_t* max_entries, float* avg_entries, size_t* empty_buckets);
 
 /**
@@ -1382,7 +1382,7 @@ int d_GetStaticTableStats(const dStaticTable_t* table, size_t* min_entries,
  * Example:
  * `dStaticTable_t* optimized = d_RebucketStaticTable(original, 64);`
  * `// Use optimized table, destroy when done`
- * `d_DestroyStaticTable(&optimized);`
+ * `d_StaticTableDestroy(&optimized);`
  */
 dStaticTable_t* d_RebucketStaticTable(const dStaticTable_t* source_table, size_t new_num_buckets);
 
@@ -1398,7 +1398,7 @@ dStaticTable_t* d_RebucketStaticTable(const dStaticTable_t* source_table, size_t
  *
  * @note The hash and compare functions cannot be saved and must be provided when loading
  */
-int d_SaveStaticTableToFile(const char* filename, const dStaticTable_t* table);
+int d_StaticTableSaveToFile(const char* filename, const dStaticTable_t* table);
 
 /**
  * @brief Load a static hash table from a binary file.
@@ -1426,7 +1426,7 @@ dStaticTable_t* d_LoadStaticTableFromFile(const char* filename, dTableHashFunc h
  * @param user_data Generic pointer passed to the callback for context
  * @return 0 on success, 1 on failure
  */
-int d_IterateStaticTable(const dStaticTable_t* table, dTableIteratorFunc callback, void* user_data);
+int d_StaticTableIterate(const dStaticTable_t* table, dTableIteratorFunc callback, void* user_data);
 
 /**
  * @brief Create a complete deep copy of a static hash table.
@@ -1457,7 +1457,7 @@ dStaticTable_t* d_CloneStaticTable(const dStaticTable_t* source_table);
  *
  * Example:
  * ```c
- * dTable_t* table = d_InitTable(sizeof(int), sizeof(char*), 
+ * dTable_t* table = d_TableInit(sizeof(int), sizeof(char*), 
  *                               d_HashInt, d_CompareInt, 16, 0.75f);
  * ```
  */
@@ -1475,7 +1475,7 @@ size_t d_HashInt(const void* key, size_t key_size);
  *
  * Example:
  * ```c
- * dTable_t* table = d_InitTable(sizeof(char*), sizeof(int), 
+ * dTable_t* table = d_TableInit(sizeof(char*), sizeof(int), 
  *                               d_HashString, d_CompareString, 16, 0.75f);
  * ```
  */
@@ -1505,7 +1505,7 @@ size_t d_HashStringLiteral(const void* key, size_t key_size);
  *
  * Example:
  * ```c
- * dTable_t* table = d_InitTable(sizeof(float), sizeof(int), 
+ * dTable_t* table = d_TableInit(sizeof(float), sizeof(int), 
  *                               d_HashFloat, d_CompareFloat, 16, 0.75f);
  * ```
  */
@@ -1536,7 +1536,7 @@ size_t d_HashDouble(const void* key, size_t key_size);
  * Example:
  * ```c
  * typedef struct { int x, y; } Point;
- * dTable_t* table = d_InitTable(sizeof(Point), sizeof(int), 
+ * dTable_t* table = d_TableInit(sizeof(Point), sizeof(int), 
  *                               d_HashBinary, d_CompareBinary, 16, 0.75f);
  * ```
  */
@@ -1796,7 +1796,40 @@ static inline bool d_IsStringInvalid(const dString_t* s)
     return (s == NULL || s->str == NULL || s->len == 0);
 }
 
-char* d_StringCreateFromFile(const char *filename);
+/**
+ * @brief Create a dString from the contents of a file
+ * 
+ * Reads the entire contents of a file into a newly allocated dString_t object.
+ * The file is opened in binary mode to ensure accurate reading across all platforms,
+ * including Windows where text mode performs newline translation.
+ * 
+ * @param filename Path to the file to read (must not be NULL)
+ * 
+ * @return A new dString_t* containing the file contents, or NULL if:
+ *         - filename is NULL
+ *         - file cannot be opened
+ *         - memory allocation fails
+ *         - file read operation fails
+ * 
+ * @note The caller is responsible for freeing the returned dString with d_StringDestroy()
+ * @note Empty files (0 bytes) will return a valid, empty dString
+ * @note The function preserves all bytes in the file, including embedded null bytes
+ * 
+ * @warning The file contents are loaded entirely into memory. Be cautious with large files.
+ * 
+ * Example usage:
+ * @code
+ * dString_t* config = d_StringCreateFromFile("config.txt");
+ * if (config != NULL) {
+ *     // Use the config...
+ *     d_StringDestroy(config);
+ * }
+ * @endcode
+ * 
+ * @see d_StringDestroy
+ * @see d_StringInit
+ */
+dString_t* d_StringCreateFromFile(const char *filename);
 
 /**
  * @brief Create a new string builder.
@@ -2935,10 +2968,10 @@ int d_StringCompareToCString(const dString_t* d_str, const char* c_str);
  * -- Elements can be any type as long as element_size is correct
  * -- Capacity of 0 is allowed but array cannot store elements until resized
  * 
- * Example: `dArray_t* array = d_InitArray(10, sizeof(int));`
+ * Example: `dArray_t* array = d_ArrayInit(10, sizeof(int));`
  * This creates a new array with a capacity of 10 elements, each of size 4 bytes.
  */
-dArray_t* d_InitArray( size_t capacity, size_t element_size );
+dArray_t* d_ArrayInit( size_t capacity, size_t element_size );
 
 /**
  * @brief Destroy a dynamic array.
@@ -2950,10 +2983,10 @@ dArray_t* d_InitArray( size_t capacity, size_t element_size );
  * -- Frees both the data buffer and the array structure itself
  * -- After calling this function, the pointer is invalid and should not be used
  * 
- * Example: `d_DestroyArray(array);`
+ * Example: `d_ArrayDestroy(array);`
  * This destroys the dynamic array and frees its memory.
  */
-int d_DestroyArray( dArray_t* array );
+int d_ArrayDestroy( dArray_t* array );
 
 /**
  * @brief Resize the internal data buffer of a dynamic array.
@@ -2980,11 +3013,11 @@ int d_DestroyArray( dArray_t* array );
  * Pointers obtained previously via `d_IndexDataFromArray` (or similar direct access)
  * will become invalid if the underlying `array->data` buffer is reallocated and moved.
  *
- * Example: `d_ResizeArray(myArray, 10 * sizeof(int));`
+ * Example: `d_ArrayResize(myArray, 10 * sizeof(int));`
  * This resizes the internal buffer of `myArray` to accommodate 10 integer elements.
  * If `myArray` previously held more than 10 elements, its `count` will be truncated.
  */
-int d_ResizeArray( dArray_t* array, size_t new_capacity );
+int d_ArrayResize( dArray_t* array, size_t new_capacity );
 
 /**
  * @brief Grow the array by a number of additional bytes.
@@ -2994,12 +3027,12 @@ int d_ResizeArray( dArray_t* array, size_t new_capacity );
  * 
  * @return 0 on success, 1 on failure.
  * 
- * -- Convenience function that calls d_ResizeArray() internally
+ * -- Convenience function that calls d_ArrayResize() internally
  * 
- * Example: `d_GrowArray(array, 10 * sizeof(int));`
+ * Example: `d_ArrayGrow(array, 10 * sizeof(int));`
  * This grows the dynamic array by 10 elements, each of size 4 bytes.
  */
-int d_GrowArray( dArray_t* array, size_t additional_capacity );
+int d_ArrayGrow( dArray_t* array, size_t additional_capacity );
 
 /**
  * @brief Append an element to the end of the dynamic array.
@@ -3020,10 +3053,10 @@ int d_GrowArray( dArray_t* array, size_t additional_capacity );
  * @note Copies `element_size` bytes from the `data` pointer into the array.
  * @note Increments the array's `count` on successful append.
  *
- * Example: `int my_value = 123; int result = d_AppendDataToArray(myArray, &my_value);`
+ * Example: `int my_value = 123; int result = d_ArrayAppend(myArray, &my_value);`
  * This appends an integer value to the end of `myArray`.
  */
-int d_AppendDataToArray( dArray_t* array, void* data );
+int d_ArrayAppend( dArray_t* array, void* data );
 
 /**
  * @brief Get a pointer to the data at a specific index.
@@ -3036,13 +3069,13 @@ int d_AppendDataToArray( dArray_t* array, void* data );
  * -- Returns NULL if array is NULL or index >= count
  * -- Returned pointer is valid until the array is modified or destroyed
  * -- Caller can read/write through the returned pointer safely
- * -- Use appropriate casting: int* ptr = (int*)d_IndexDataFromArray(array, 0)
+ * -- Use appropriate casting: int* ptr = (int*)d_ArrayGet(array, 0)
  * -- Index must be less than count, not capacity (only counts appended elements)
  * 
- * Example: `void* data = d_IndexDataFromArray(array, 0);`
+ * Example: `void* data = d_ArrayGet(array, 0);`
  * This retrieves the first element from the dynamic array.
  */
-void* d_IndexDataFromArray(dArray_t* array, size_t index);
+void* d_ArrayGet(dArray_t* array, size_t index);
 
 /**
  * @brief Remove and return the last element from the array.
@@ -3056,10 +3089,10 @@ void* d_IndexDataFromArray(dArray_t* array, size_t index);
  * -- Implements stack-like behavior for dynamic arrays
  * -- Memory is not reallocated, only the count is decremented for efficiency
  * 
- * Example: `void* data = d_PopDataFromArray(array);`
+ * Example: `void* data = d_ArrayPop(array);`
  * This removes and returns the last element from the dynamic array.
  */
-void* d_PopDataFromArray(dArray_t* array);
+void* d_ArrayPop(dArray_t* array);
 
 /**
  * @brief Insert data at a specific index in the array
@@ -3075,10 +3108,10 @@ void* d_PopDataFromArray(dArray_t* array);
  * -- index must be <= array->count (can insert at end)
  * -- Uses memmove for safe overlapping memory operations
  * 
- * Example: `d_InsertDataIntoArray(array, &value, 2);`
+ * Example: `d_ArrayInsert(array, &value, 2);`
  * This inserts a value at index 2, shifting existing elements to the right.
  */
-int d_InsertDataIntoArray(dArray_t* array, void* data, size_t index);
+int d_ArrayInsert(dArray_t* array, void* data, size_t index);
 
 /**
  * @brief Remove data at a specific index from the array
@@ -3089,14 +3122,14 @@ int d_InsertDataIntoArray(dArray_t* array, void* data, size_t index);
  * @return 0 on success, 1 on failure
  *
  * -- Shifts existing elements to the left to fill the gap
- * -- Does not resize the array capacity (use d_TrimCapacityOfArray for that)
+ * -- Does not resize the array capacity (use d_ArrayTrimCapacity for that)
  * -- index must be < array->count
  * -- Uses memmove for safe overlapping memory operations
  *
- * Example: `d_RemoveDataFromArray(array, 2);`
+ * Example: `d_ArrayRemove(array, 2);`
  * This removes the element at index 2, shifting remaining elements to the left.
  */
-int d_RemoveDataFromArray(dArray_t* array, size_t index);
+int d_ArrayRemove(dArray_t* array, size_t index);
 
 /**
  * @brief Clear all elements from the array without deallocating memory
@@ -3127,10 +3160,10 @@ int d_ClearArray(dArray_t* array);
  * -- Does nothing if array is already optimally sized
  * -- Useful after bulk removal operations to reclaim memory
  *
- * Example: `d_TrimCapacityOfArray(array);`
+ * Example: `d_ArrayTrimCapacity(array);`
  * This trims the array's capacity to match its count, freeing memory if necessary.
  */
-int d_TrimCapacityOfArray(dArray_t* array);
+int d_ArrayTrimCapacity(dArray_t* array);
 
 /**
  * @brief Ensure the array has enough capacity for at least min_capacity elements
@@ -3142,13 +3175,13 @@ int d_TrimCapacityOfArray(dArray_t* array);
  *
  * -- Grows the array if current capacity is less than min_capacity
  * -- Uses exponential growth strategy to minimize reallocations
- * -- Never shrinks the array - use d_TrimCapacityOfArray for that
+ * -- Never shrinks the array - use d_ArrayTrimCapacity for that
  * -- Useful for pre-allocating space before bulk operations
  *
- * Example: `d_EnsureCapacityOfArray(array, 100);`
+ * Example: `d_ArrayEnsureCapacity(array, 100);`
  * This ensures the array has at least 100 elements allocated, growing the array if needed.
  */
-int d_EnsureCapacityOfArray(dArray_t* array, size_t min_capacity);
+int d_ArrayEnsureCapacity(dArray_t* array, size_t min_capacity);
 
 
 /* --- Static Arrays --- */
@@ -3182,10 +3215,10 @@ dStaticArray_t* d_InitStaticArray(size_t capacity, size_t element_size);
  * -- Frees data buffer first, then structure
  * -- After calling, the pointer becomes invalid
  * 
- * Example: `d_DestroyStaticArray(array);`
+ * Example: `d_StaticArrayDestroy(array);`
  * This destroys the static array and frees its memory.
  */
-int d_DestroyStaticArray(dStaticArray_t* array);
+int d_StaticArrayDestroy(dStaticArray_t* array);
 
 /** 
  * @brief Append an element to the end of the static array.
@@ -3199,10 +3232,10 @@ int d_DestroyStaticArray(dStaticArray_t* array);
  * -- Copies element_size bytes from data
  * -- Increments count on successful append
  * 
- * Example: `d_AppendDataToStaticArray(array, &data);`
+ * Example: `d_StaticArrayAppend(array, &data);`
  * This appends a pointer to a data element to the end of the static array.
  */
-int d_AppendDataToStaticArray(dStaticArray_t* array, void* data);
+int d_StaticArrayAppend(dStaticArray_t* array, void* data);
 
 /**
  * @brief: Get a pointer to an element at the specified index
@@ -3215,10 +3248,10 @@ int d_AppendDataToStaticArray(dStaticArray_t* array, void* data);
  * -- Performs bounds checking for safety
  * -- Returned pointer is valid until array is modified or destroyed
  * 
- * Example: `void* data = d_IndexDataFromStaticArray(array, 0);`
+ * Example: `void* data = d_StaticArrayGet(array, 0);`
  * This retrieves the first element from the static array.
  */
-void* d_IndexDataFromStaticArray(dStaticArray_t* array, size_t index);
+void* d_StaticArrayGet(dStaticArray_t* array, size_t index);
 
 /**
  * @brief: Remove and return a pointer to the last element (LIFO behavior)
@@ -3231,10 +3264,10 @@ void* d_IndexDataFromStaticArray(dStaticArray_t* array, size_t index);
  * -- Element data remains in buffer but is no longer active
  * -- Returned pointer becomes invalid after next append
  * 
- * Example: `void* data = d_PopDataFromStaticArray(array);`
+ * Example: `void* data = d_StaticArrayPop(array);`
  * This removes and returns the last element from the static array.
  */
-void* d_PopDataFromStaticArray(dStaticArray_t* array);
+void* d_StaticArrayPop(dStaticArray_t* array);
 
 /**
  * @brief Get the number of free slots remaining in the static array
@@ -3246,10 +3279,10 @@ void* d_PopDataFromStaticArray(dStaticArray_t* array);
  * -- Returns capacity - count for valid arrays
  * -- Useful for checking if array can accept more elements before attempting append
  * 
- * Example: `size_t free_slots = d_GetFreeSpaceInStaticArray(array);`
+ * Example: `size_t free_slots = d_StaticArrayGetFreeSpace(array);`
  * This returns how many more elements can be added to the array.
  */
-size_t d_GetFreeSpaceInStaticArray(dStaticArray_t* array);
+size_t d_StaticArrayGetFreeSpace(dStaticArray_t* array);
 
 /**
  * @brief Fill the static array with multiple copies of a given value
@@ -3265,10 +3298,10 @@ size_t d_GetFreeSpaceInStaticArray(dStaticArray_t* array);
  * -- Sets array count to num_elements after successful fill
  * -- Overwrites existing data in the array
  * 
- * Example: `int value = 42; d_FillDataInStaticArray(array, &value, 5);`
+ * Example: `int value = 42; d_StaticArrayFill(array, &value, 5);`
  * This fills the first 5 positions of the array with the value 42.
  */
-int d_FillDataInStaticArray(dStaticArray_t* array, const void* value, size_t num_elements);
+int d_StaticArrayFill(dStaticArray_t* array, const void* value, size_t num_elements);
 
 /**
  * @brief Get direct access to the raw memory buffer of the static array
@@ -3282,10 +3315,10 @@ int d_FillDataInStaticArray(dStaticArray_t* array, const void* value, size_t num
  * -- Use with caution - direct memory access bypasses safety checks
  * -- Primarily intended for advanced operations or serialization
  * 
- * Example: `void* raw_buffer = d_PeekRawMemoryOfStaticArray(array);`
+ * Example: `void* raw_buffer = d_StaticArrayPeekRawMemory(array);`
  * This returns a pointer to the entire data buffer of the array.
  */
-void* d_PeekRawMemoryOfStaticArray(dStaticArray_t* array);
+void* d_StaticArrayPeekRawMemory(dStaticArray_t* array);
 
 /**
  * @brief Save a static array to a binary file
@@ -3298,9 +3331,9 @@ void* d_PeekRawMemoryOfStaticArray(dStaticArray_t* array);
  * -- Uses binary format with magic number for validation
  * -- File can be loaded later using d_LoadStaticArrayFromFile
  * 
- * Example: `d_SaveStaticArrayToFile("myarray.bin", array);`
+ * Example: `d_StaticArraySaveToFile("myarray.bin", array);`
  */
-int d_SaveStaticArrayToFile(const char* filename, const dStaticArray_t* array);
+int d_StaticArraySaveToFile(const char* filename, const dStaticArray_t* array);
 
 /**
  * @brief Load a static array from a binary file
@@ -3328,9 +3361,9 @@ dStaticArray_t* d_LoadStaticArrayFromFile(const char* filename);
  * -- Provides element index, data pointer, and size to callback
  * -- Safe iteration - callback receives read-only access to elements
  * 
- * Example: `d_IterateStaticArray(array, my_callback, &context);`
+ * Example: `d_StaticArrayIterate(array, my_callback, &context);`
  */
-int d_IterateStaticArray(const dStaticArray_t* array, dStaticArrayIteratorFunc callback, void* user_data);
+int d_StaticArrayIterate(const dStaticArray_t* array, dStaticArrayIteratorFunc callback, void* user_data);
 
 // Turning Strings Into Dynamic Arrays
 // src/dStrings-dArrays.c
