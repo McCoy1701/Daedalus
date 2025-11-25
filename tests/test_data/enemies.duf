@@ -1,0 +1,52 @@
+# Enemies configuration file for testing DUF parser
+
+@didact {
+    id: 1
+    name: "Didact"
+    hp: 500
+    is_boss: false
+    multiplier: 1.5
+    abilities: ["the_house_remembers", "irregularity_detected", "system_override"]
+    image_path: "resources/enemies/didact.png"
+
+    description: """
+The Didact is a rogue AI fragment that monitors system integrity.
+It becomes hostile when detecting unauthorized access patterns.
+    """
+}
+
+@daemon {
+    id: 2
+    name: "Daemon"
+    hp: 5000
+    is_boss: true
+    multiplier: 2.0
+    abilities: ["consume", "corrupt", "cascade_failure"]
+    image_path: "resources/enemies/daemon.png"
+
+    phases: [
+        {
+            threshold: 75
+            ability: "enrage"
+        },
+        {
+            threshold: 25
+            ability: "final_form"
+        }
+    ]
+
+    description: """
+A corrupted core process that has gained sentience.
+Extremely dangerous and capable of cascading system failures.
+    """
+}
+
+@sentinel {
+    id: 3
+    name: "Sentinel"
+    hp: 800
+    is_boss: false
+    multiplier: 1.2
+    abilities: ["scan", "alert", "lockdown"]
+    image_path: "resources/enemies/sentinel.png"
+}

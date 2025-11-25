@@ -850,3 +850,70 @@ dArray_t* d_TableGetAllValues(const dTable_t* table)
     return all_values_array;
 }
 
+/**
+ * @brief Iterate over all entries in the hash table
+ *
+ * Calls the provided callback function for each key-value pair in the table.
+ * The iteration order is not guaranteed (depends on hash distribution).
+ *
+ * @param table The hash table to iterate
+ * @param callback Function to call for each entry
+ * @param user_data User-provided context pointer passed to callback
+ *
+ * Example:
+ * @code
+ * void print_entry(const void* key, size_t key_size,
+ *                  const void* value, size_t value_size, void* ctx) {
+ *     int* k = *(int**)key;
+ *     char** v = *(char***)value;
+ *     printf("Key: %d, Value: %s\n", *k, *v);
+ * }
+ * d_TableForEach(table, print_entry, NULL);
+ * @endcode
+ */
+void d_TableForEach(dTable_t* table, dTableIteratorFunc callback, void* user_data)
+{
+    if (table == NULL || callback == NULL) {
+        d_LogWarning("Cannot iterate: table or callback is NULL.");
+        return;
+    }
+
+    if (table->buckets == NULL) {
+        d_LogWarning("Cannot iterate: table buckets are NULL.");
+        return;
+    }
+
+    d_LogDebugF("Starting table iteration over %zu buckets.", table->num_buckets);
+
+    size_t entries_visited = 0;
+
+    // Iterate through each bucket
+    for (size_t i = 0; i < table->num_buckets; i++) {
+        dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(table->buckets, i);
+
+        if (bucket_ptr == NULL || *bucket_ptr == NULL) {
+            continue; // Empty bucket
+        }
+
+        dLinkedList_t* current_node = *bucket_ptr;
+
+        // Walk the linked list in this bucket
+        while (current_node != NULL) {
+            dTableEntry_t* entry = (dTableEntry_t*)current_node->data;
+
+            if (entry != NULL && entry->key_data != NULL && entry->value_data != NULL) {
+                // Call the callback with key and value pointers
+                callback(entry->key_data, table->key_size,
+                        entry->value_data, table->value_size,
+                        user_data);
+                entries_visited++;
+            }
+
+            current_node = current_node->next;
+        }
+    }
+
+    d_LogDebugF("Table iteration complete. Visited %zu entries (expected: %zu).",
+                entries_visited, table->count);
+}
+

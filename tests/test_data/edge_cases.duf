@@ -1,0 +1,172 @@
+# Comprehensive DUF test file - edge cases and stress testing
+
+@edge_cases {
+    # Numeric boundaries
+    max_int: 9223372036854775807
+    min_int: -9223372036854775808
+    zero: 0
+    negative: -42
+    float_zero: 0.0
+    small_float: 0.000001
+    large_float: 999999.999999
+
+    # String edge cases
+    empty_string: ""
+    escaped: "Quote: \"Hello\" Backslash: \\ Tab:\t Newline:\n"
+    single_char: "x"
+
+    # Empty collections
+    empty_array: []
+    empty_table: {}
+
+    # Boolean positions
+    bool_array: [true, false, true, false]
+
+    # Mixed nested structures
+    complex: {
+        level1: {
+            level2: {
+                level3: {
+                    deep_value: "nested"
+                    deep_array: [1, 2, 3]
+                }
+            }
+        }
+    }
+}
+
+@array_stress {
+    # Array of tables
+    configs: [
+        {
+            name: "config1"
+            value: 10
+        },
+        {
+            name: "config2"
+            value: 20
+        },
+        {
+            name: "config3"
+            value: 30
+        }
+    ]
+
+    # Array of arrays
+    matrix: [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9]
+    ]
+
+    # Large array
+    range: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+
+    # Single element
+    singleton: [42]
+}
+
+@multiline_strings {
+    simple: """
+This is a simple multi-line string.
+It has multiple lines.
+"""
+
+    with_quotes: """
+"Quoted text" and 'single quotes'
+Can appear without escaping in multi-line strings.
+"""
+
+    code_snippet: """
+function example() {
+    if (condition) {
+        return "value";
+    }
+}
+"""
+
+    formatted: """
+=== Header ===
+  - Bullet point
+  - Another point
+
+  Paragraph with blank line above.
+"""
+}
+
+@special_keys {
+    _underscore: "starts with underscore"
+    CAPS_KEY: "all caps"
+    mixedCase: "camelCase"
+    key_123: "ends with numbers"
+    key123abc: "mixed alphanumeric"
+}
+
+@realistic_enemy {
+    id: 999
+    name: "Glitch Hound"
+    hp: 1250
+    is_boss: false
+    multiplier: 1.75
+
+    stats: {
+        str: 12
+        dex: 18
+        int: 6
+        luck: 14
+    }
+
+    resistances: {
+        physical: 0.8
+        fire: 1.2
+        ice: 0.5
+        electric: 1.5
+    }
+
+    abilities: [
+        "byte_strike",
+        "data_corruption",
+        "memory_leak"
+    ]
+
+    loot_table: [
+        {
+            item: "scrap_metal"
+            weight: 50
+            min: 1
+            max: 5
+        },
+        {
+            item: "corrupted_chip"
+            weight: 30
+            min: 1
+            max: 3
+        },
+        {
+            item: "pristine_core"
+            weight: 5
+            min: 1
+            max: 1
+        }
+    ]
+
+    ai_behavior: {
+        aggro_range: 15.5
+        flee_threshold: 0.2
+        pack_size: 3
+        tactical: false
+    }
+
+    spawn_conditions: {
+        min_level: 10
+        zones: ["digital_wasteland", "corrupted_sector", "debug_hell"]
+        time_of_day: "any"
+    }
+
+    flavor_text: """
+Feral programs that hunt in packs through corrupted memory sectors.
+Their erratic behavior makes them unpredictable opponents.
+
+Created from failed antivirus routines, they now serve no master.
+    """
+}

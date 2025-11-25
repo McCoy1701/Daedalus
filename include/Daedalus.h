@@ -347,6 +347,66 @@ typedef struct          // dString_t
 } dString_t;
 
 // =============================================================================
+// DUF (DAEDALUS UNIVERSAL FORMAT) TYPES AND STRUCTURES
+// =============================================================================
+
+/**
+ * @brief DUF value types enumeration
+ *
+ * Represents all possible value types that can be stored in a DUF document.
+ */
+typedef enum {
+    D_DUF_NULL,      /**< Null/uninitialized value */
+    D_DUF_BOOL,      /**< Boolean value (true/false) */
+    D_DUF_INT,       /**< 64-bit signed integer */
+    D_DUF_FLOAT,     /**< Double-precision floating point */
+    D_DUF_STRING,    /**< String value (dString_t) */
+    D_DUF_ARRAY,     /**< Array of dDUFValue_t pointers */
+    D_DUF_TABLE      /**< Hash table (string keys to dDUFValue_t) */
+} dDUFType_t;
+
+/**
+ * @brief DUF value container
+ *
+ * A tagged union that can hold any DUF value type. This is the core
+ * data structure for representing parsed DUF documents.
+ */
+typedef struct dDUFValue_t {
+    dDUFType_t type;  /**< The type tag indicating which union member is valid */
+    union {
+        bool bool_val;           /**< Boolean value (D_DUF_BOOL) */
+        int64_t int_val;         /**< Integer value (D_DUF_INT) */
+        double float_val;        /**< Float value (D_DUF_FLOAT) */
+        dString_t* string_val;   /**< String value (D_DUF_STRING) */
+        dArray_t* array_val;     /**< Array of dDUFValue_t* (D_DUF_ARRAY) */
+        dTable_t* table_val;     /**< Table of string->dDUFValue_t* (D_DUF_TABLE) */
+    };
+} dDUFValue_t;
+
+/**
+ * @brief DUF parse error information
+ *
+ * Contains detailed information about parsing errors including location
+ * and descriptive message.
+ */
+typedef struct {
+    int line;              /**< Line number where error occurred (1-indexed) */
+    int column;            /**< Column number where error occurred (1-indexed) */
+    dString_t* message;    /**< Human-readable error message */
+} dDUFError_t;
+
+/**
+ * @brief Iterator callback for DUF table traversal
+ *
+ * Function signature for callbacks used with d_DUFTableForEach().
+ *
+ * @param key The string key from the table
+ * @param val The value associated with the key
+ * @param user_data User-provided context pointer
+ */
+typedef void (*dDUFIteratorFunc)(const char* key, dDUFValue_t* val, void* user_data);
+
+// =============================================================================
 // LOGGING SYSTEM TYPES AND STRUCTURES
 // =============================================================================
 
@@ -1172,6 +1232,38 @@ dArray_t* d_TableGetAllKeys(const dTable_t* table);
  * `d_ArrayDestroy(values);`
  */
 dArray_t* d_TableGetAllValues(const dTable_t* table);
+
+/**
+ * @brief Iterate over all entries in a hash table
+ *
+ * Calls the provided callback function for each key-value pair stored in the table.
+ * The iteration order is not guaranteed and depends on the internal hash distribution.
+ *
+ * @param table The hash table to iterate over
+ * @param callback Function pointer to call for each entry. Receives:
+ *                 - key: Pointer to the key data
+ *                 - key_size: Size of the key in bytes
+ *                 - value: Pointer to the value data
+ *                 - value_size: Size of the value in bytes
+ *                 - user_data: User-provided context pointer
+ * @param user_data Optional user context pointer passed to each callback invocation
+ *
+ * -- Does nothing if table or callback is NULL
+ * -- Callback is not called for empty buckets
+ * -- Safe to use during iteration (callback can read table data)
+ * -- DO NOT modify the table structure within the callback
+ *
+ * Example:
+ * @code
+ * void print_entry(const void* key, size_t ks, const void* val, size_t vs, void* ctx) {
+ *     int* k = *(int**)key;
+ *     char** v = *(char***)val;
+ *     printf("Key: %d, Value: %s\n", *k, *v);
+ * }
+ * d_TableForEach(table, print_entry, NULL);
+ * @endcode
+ */
+void d_TableForEach(dTable_t* table, dTableIteratorFunc callback, void* user_data);
 
 /**
  * @brief Initialize a new static hash table with fixed key structure and initial data.
@@ -3393,5 +3485,258 @@ dArray_t* d_SplitString(const char* text, const char* delimiter);
  * -- Must be called for every successful d_SplitString() call to prevent memory leaks.
  */
 void d_FreeSplitStringArray(dArray_t* string_array);
+
+// =============================================================================
+// DUF (DAEDALUS UNIVERSAL FORMAT) FUNCTIONS
+// =============================================================================
+
+// --- Parsing ---
+
+/**
+ * @brief Parse a DUF file into a value tree
+ *
+ * Reads and parses a DUF format file, returning the root value (typically a table
+ * containing all @entry blocks). If parsing fails, returns NULL and populates error.
+ *
+ * @param filename Path to the DUF file to parse
+ * @param out_value Pointer to store the parsed value tree (set to NULL on error)
+ * @return Error information, or NULL on success
+ *
+ * Example:
+ * @code
+ * dDUFValue_t* data = NULL;
+ * dDUFError_t* err = d_DUFParseFile("config.duf", &data);
+ * if (err != NULL) {
+ *     printf("Error at %d:%d - %s\n", err->line, err->column, d_StringPeek(err->message));
+ *     d_DUFErrorFree(err);
+ *     return -1;
+ * }
+ * // Use data...
+ * d_DUFFree(data);
+ * @endcode
+ */
+dDUFError_t* d_DUFParseFile(const char* filename, dDUFValue_t** out_value);
+
+/**
+ * @brief Parse a DUF string into a value tree
+ *
+ * Parses DUF format content from a string buffer.
+ *
+ * @param content Null-terminated string containing DUF content
+ * @param out_value Pointer to store the parsed value tree (set to NULL on error)
+ * @return Error information, or NULL on success
+ */
+dDUFError_t* d_DUFParseString(const char* content, dDUFValue_t** out_value);
+
+// --- Value Creation ---
+
+/**
+ * @brief Create a new DUF table value
+ *
+ * @return Newly allocated table value, or NULL on allocation failure
+ */
+dDUFValue_t* d_DUFCreateTable(void);
+
+/**
+ * @brief Create a new DUF array value
+ *
+ * @return Newly allocated array value, or NULL on allocation failure
+ */
+dDUFValue_t* d_DUFCreateArray(void);
+
+/**
+ * @brief Create a new DUF integer value
+ *
+ * @param val The integer value to store
+ * @return Newly allocated integer value, or NULL on allocation failure
+ */
+dDUFValue_t* d_DUFCreateInt(int64_t val);
+
+/**
+ * @brief Create a new DUF float value
+ *
+ * @param val The floating-point value to store
+ * @return Newly allocated float value, or NULL on allocation failure
+ */
+dDUFValue_t* d_DUFCreateFloat(double val);
+
+/**
+ * @brief Create a new DUF boolean value
+ *
+ * @param val The boolean value to store
+ * @return Newly allocated boolean value, or NULL on allocation failure
+ */
+dDUFValue_t* d_DUFCreateBool(bool val);
+
+/**
+ * @brief Create a new DUF string value
+ *
+ * Creates a string value by copying the provided C string.
+ *
+ * @param str The string to copy (must not be NULL)
+ * @return Newly allocated string value, or NULL on allocation failure
+ */
+dDUFValue_t* d_DUFCreateString(const char* str);
+
+// --- Type Inspection ---
+
+/**
+ * @brief Get the type of a DUF value
+ *
+ * @param val The value to inspect
+ * @return The type tag, or D_DUF_NULL if val is NULL
+ */
+dDUFType_t d_DUFGetType(dDUFValue_t* val);
+
+// --- Path-Based Access ---
+
+/**
+ * @brief Get a value using path notation
+ *
+ * Navigates the value tree using dot notation and bracket indexing.
+ * Examples: "player.health", "enemies[0].name", "config.graphics.resolution"
+ *
+ * @param root The root value to search from
+ * @param path The path string (e.g., "key.subkey[0]")
+ * @return The value at the path, or NULL if not found
+ */
+dDUFValue_t* d_DUFGet(dDUFValue_t* root, const char* path);
+
+/**
+ * @brief Get an integer value using path notation
+ *
+ * @param root The root value to search from
+ * @param path The path string
+ * @param fallback Value to return if path not found or wrong type
+ * @return The integer value, or fallback
+ */
+int64_t d_DUFGetInt(dDUFValue_t* root, const char* path, int64_t fallback);
+
+/**
+ * @brief Get a float value using path notation
+ *
+ * @param root The root value to search from
+ * @param path The path string
+ * @param fallback Value to return if path not found or wrong type
+ * @return The float value, or fallback
+ */
+double d_DUFGetFloat(dDUFValue_t* root, const char* path, double fallback);
+
+/**
+ * @brief Get a boolean value using path notation
+ *
+ * @param root The root value to search from
+ * @param path The path string
+ * @param fallback Value to return if path not found or wrong type
+ * @return The boolean value, or fallback
+ */
+bool d_DUFGetBool(dDUFValue_t* root, const char* path, bool fallback);
+
+/**
+ * @brief Get a string value using path notation
+ *
+ * @param root The root value to search from
+ * @param path The path string
+ * @param fallback Value to return if path not found or wrong type
+ * @return Pointer to internal string (do not free), or fallback
+ */
+const char* d_DUFGetString(dDUFValue_t* root, const char* path, const char* fallback);
+
+// --- Direct Table Access ---
+
+/**
+ * @brief Get a value from a table by key
+ *
+ * Direct table lookup without path parsing.
+ *
+ * @param table The table value
+ * @param key The key string
+ * @return The value, or NULL if key not found or table is not a table
+ */
+dDUFValue_t* d_DUFTableGet(dDUFValue_t* table, const char* key);
+
+/**
+ * @brief Set a value in a table
+ *
+ * @param table The table value
+ * @param key The key string
+ * @param val The value to store (ownership transferred to table)
+ */
+void d_DUFTableSet(dDUFValue_t* table, const char* key, dDUFValue_t* val);
+
+// --- Array Access ---
+
+/**
+ * @brief Get the length of an array
+ *
+ * @param array The array value
+ * @return Number of elements, or 0 if not an array or NULL
+ */
+size_t d_DUFArrayLength(dDUFValue_t* array);
+
+/**
+ * @brief Get an element from an array by index
+ *
+ * @param array The array value
+ * @param index Zero-based index
+ * @return The element, or NULL if out of bounds or not an array
+ */
+dDUFValue_t* d_DUFArrayGet(dDUFValue_t* array, size_t index);
+
+// --- Iteration ---
+
+/**
+ * @brief Iterate over all entries in a table
+ *
+ * Calls the callback function for each key-value pair in the table.
+ *
+ * @param table The table value to iterate
+ * @param callback Function to call for each entry
+ * @param user_data Context pointer passed to callback
+ */
+void d_DUFTableForEach(dDUFValue_t* table, dDUFIteratorFunc callback, void* user_data);
+
+// --- Serialization ---
+
+/**
+ * @brief Write a DUF value tree to a file
+ *
+ * Serializes the value tree to DUF format and writes to file.
+ *
+ * @param root The root value to serialize
+ * @param filename Path to output file
+ * @return 0 on success, -1 on failure
+ */
+int d_DUFWriteFile(dDUFValue_t* root, const char* filename);
+
+/**
+ * @brief Serialize a DUF value tree to a string
+ *
+ * @param root The root value to serialize
+ * @return Newly allocated dString_t, or NULL on failure (caller must free)
+ */
+dString_t* d_DUFToString(dDUFValue_t* root);
+
+// --- Cleanup ---
+
+/**
+ * @brief Recursively free a DUF value and all children
+ *
+ * Frees all memory associated with the value, including nested structures.
+ * Safe to call with NULL pointer.
+ *
+ * @param val The value to free
+ */
+void d_DUFFree(dDUFValue_t* val);
+
+/**
+ * @brief Free a DUF error structure
+ *
+ * Frees the error message and the error structure itself.
+ * Safe to call with NULL pointer.
+ *
+ * @param err The error to free
+ */
+void d_DUFErrorFree(dDUFError_t* err);
 
 #endif

@@ -24,6 +24,11 @@ native: $(BIN_DIR)/debug
 NATIVE_OBJS = \
 							$(OBJ_DIR)/main.o\
 							$(OBJ_DIR)/dArrays.o\
+							$(OBJ_DIR)/dDUFIO.o\
+							$(OBJ_DIR)/dDUFLexer.o\
+							$(OBJ_DIR)/dDUFParser.o\
+							$(OBJ_DIR)/dDUFQuery.o\
+							$(OBJ_DIR)/dDUFValue.o\
 							$(OBJ_DIR)/dFunctions.o\
 							$(OBJ_DIR)/dKinematicBody.o\
 							$(OBJ_DIR)/dLinkedList.o\
@@ -48,6 +53,11 @@ shared: $(BIN_DIR)/libDaedalus
 
 SHARED_OBJS = \
 							$(SHA_DIR)/dArrays.o\
+							$(SHA_DIR)/dDUFIO.o\
+							$(SHA_DIR)/dDUFLexer.o\
+							$(SHA_DIR)/dDUFParser.o\
+							$(SHA_DIR)/dDUFQuery.o\
+							$(SHA_DIR)/dDUFValue.o\
 							$(SHA_DIR)/dFunctions.o\
 							$(SHA_DIR)/dKinematicBody.o\
 							$(SHA_DIR)/dLinkedList.o\
@@ -72,6 +82,11 @@ EM: $(BIN_DIR)/libDaedalus.a
 
 EMS_OBJS = \
 							$(EMS_DIR)/dArrays.o\
+							$(EMS_DIR)/dDUFIO.o\
+							$(EMS_DIR)/dDUFLexer.o\
+							$(EMS_DIR)/dDUFParser.o\
+							$(EMS_DIR)/dDUFQuery.o\
+							$(EMS_DIR)/dDUFValue.o\
 							$(EMS_DIR)/dFunctions.o\
 							$(EMS_DIR)/dKinematicBody.o\
 							$(EMS_DIR)/dLinkedList.o\
@@ -127,9 +142,53 @@ bear:
 bearclean:
 	rm compile_commands.json
 
+.PHONY: verify
+verify:
+	./verify_architecture.sh
+
 .PHONY: always
 always:
 	mkdir -p $(BIN_DIR) $(OBJ_DIR) $(LIB_DIR)
 
 .PHONY: all
 all: shared
+
+# Test target for DUF parser
+.PHONY: test_duf
+test_duf: $(BIN_DIR)/test_duf $(BIN_DIR)/test_edge_cases
+	$(BIN_DIR)/test_duf
+	$(BIN_DIR)/test_edge_cases
+
+TEST_DUF_OBJS = \
+							$(OBJ_DIR)/dArrays.o\
+							$(OBJ_DIR)/dDUFIO.o\
+							$(OBJ_DIR)/dDUFLexer.o\
+							$(OBJ_DIR)/dDUFParser.o\
+							$(OBJ_DIR)/dDUFQuery.o\
+							$(OBJ_DIR)/dDUFValue.o\
+							$(OBJ_DIR)/dFunctions.o\
+							$(OBJ_DIR)/dKinematicBody.o\
+							$(OBJ_DIR)/dLinkedList.o\
+							$(OBJ_DIR)/dLogs.o\
+							$(OBJ_DIR)/dMatrixMath.o\
+							$(OBJ_DIR)/dStaticArrays.o\
+							$(OBJ_DIR)/dStaticTables.o\
+							$(OBJ_DIR)/dStrings-dArrays.o\
+							$(OBJ_DIR)/dStrings.o\
+							$(OBJ_DIR)/dTables.o\
+							$(OBJ_DIR)/dVectorMath.o\
+
+$(BIN_DIR)/test_duf: tests/test_duf.c $(TEST_DUF_OBJS) | $(BIN_DIR)
+	$(CC) $^ -ggdb $(CINC) $(CFLAGS) -o $@
+
+# Test target for DUF edge cases
+.PHONY: test_edge_cases
+test_edge_cases: $(BIN_DIR)/test_edge_cases
+	$(BIN_DIR)/test_edge_cases
+
+$(BIN_DIR)/test_edge_cases: tests/test_edge_cases.c $(TEST_DUF_OBJS) | $(BIN_DIR)
+	$(CC) $^ -ggdb $(CINC) $(CFLAGS) -o $@
+
+# Run all DUF tests
+.PHONY: test_duf_all
+test_duf_all: test_duf test_edge_cases
