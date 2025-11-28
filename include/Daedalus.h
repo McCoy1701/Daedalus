@@ -366,21 +366,23 @@ typedef enum {
 } dDUFType_t;
 
 /**
- * @brief DUF value container
+ * @brief DUF value node (AUF-style linked list structure)
  *
- * A tagged union that can hold any DUF value type. This is the core
- * data structure for representing parsed DUF documents.
+ * A node structure that holds DUF values. Nodes are organized as linked
+ * lists with next/prev/child pointers for simple traversal (no union).
+ * Inspired by AUF's aAUFNode_t design.
  */
 typedef struct dDUFValue_t {
-    dDUFType_t type;  /**< The type tag indicating which union member is valid */
-    union {
-        bool bool_val;           /**< Boolean value (D_DUF_BOOL) */
-        int64_t int_val;         /**< Integer value (D_DUF_INT) */
-        double float_val;        /**< Float value (D_DUF_FLOAT) */
-        dString_t* string_val;   /**< String value (D_DUF_STRING) */
-        dArray_t* array_val;     /**< Array of dDUFValue_t* (D_DUF_ARRAY) */
-        dTable_t* table_val;     /**< Table of string->dDUFValue_t* (D_DUF_TABLE) */
-    };
+    struct dDUFValue_t* next;    /**< Next sibling node in list */
+    struct dDUFValue_t* prev;    /**< Previous sibling node in list */
+    struct dDUFValue_t* child;   /**< First child node (for arrays/tables) */
+
+    int type;                     /**< Type from dDUFType_t enum */
+
+    char* string;                 /**< Key name (for table entries) or NULL */
+    char* value_string;           /**< String value (D_DUF_STRING) or NULL */
+    int64_t value_int;            /**< Integer value (D_DUF_INT) */
+    double value_double;          /**< Float value (D_DUF_FLOAT) */
 } dDUFValue_t;
 
 /**
@@ -394,17 +396,6 @@ typedef struct {
     int column;            /**< Column number where error occurred (1-indexed) */
     dString_t* message;    /**< Human-readable error message */
 } dDUFError_t;
-
-/**
- * @brief Iterator callback for DUF table traversal
- *
- * Function signature for callbacks used with d_DUFTableForEach().
- *
- * @param key The string key from the table
- * @param val The value associated with the key
- * @param user_data User-provided context pointer
- */
-typedef void (*dDUFIteratorFunc)(const char* key, dDUFValue_t* val, void* user_data);
 
 // =============================================================================
 // LOGGING SYSTEM TYPES AND STRUCTURES
@@ -3171,20 +3162,37 @@ void* d_ArrayGet(dArray_t* array, size_t index);
 
 /**
  * @brief Remove and return the last element from the array.
- * 
+ *
  * @param array The array to pop from.
- * 
+ *
  * @return A pointer to the last element's data, or NULL if array is empty.
- * 
+ *
  * -- Decrements count but does not free memory (element data remains in buffer)
  * -- Returned pointer becomes invalid after next append or array modification
  * -- Implements stack-like behavior for dynamic arrays
  * -- Memory is not reallocated, only the count is decremented for efficiency
- * 
+ *
  * Example: `void* data = d_ArrayPop(array);`
  * This removes and returns the last element from the dynamic array.
  */
 void* d_ArrayPop(dArray_t* array);
+
+/**
+ * @brief Clear all elements from the array (sets count to 0).
+ *
+ * @param array The array to clear.
+ *
+ * @return 0 on success, 1 on error.
+ *
+ * -- Sets count to 0 but does not free memory or reduce capacity
+ * -- Element data remains in buffer but is considered removed
+ * -- More efficient than destroying and recreating the array
+ * -- Can reuse the cleared array immediately with d_ArrayAppend
+ *
+ * Example: `d_ArrayClear(array);`
+ * This removes all elements from the array without deallocating memory.
+ */
+int d_ArrayClear(dArray_t* array);
 
 /**
  * @brief Insert data at a specific index in the array
@@ -3588,113 +3596,25 @@ dDUFValue_t* d_DUFCreateString(const char* str);
  */
 dDUFType_t d_DUFGetType(dDUFValue_t* val);
 
-// --- Path-Based Access ---
+// --- Node Access (AUF-style API) ---
 
 /**
- * @brief Get a value using path notation
+ * @brief Get a child node by key (AUF-style)
  *
- * Navigates the value tree using dot notation and bracket indexing.
- * Examples: "player.health", "enemies[0].name", "config.graphics.resolution"
+ * Searches through the node's children for a matching key.
+ * Similar to AUF's a_AUFGetObjectItem().
  *
- * @param root The root value to search from
- * @param path The path string (e.g., "key.subkey[0]")
- * @return The value at the path, or NULL if not found
+ * @param node The parent node to search in
+ * @param key The key string to search for
+ * @return The child node with matching key, or NULL if not found
+ *
+ * Example:
+ *   dDUFValue_t* hp_node = d_DUFGetObjectItem(root, "hp");
+ *   if (hp_node != NULL) {
+ *       enemy->hp = hp_node->value_int;
+ *   }
  */
-dDUFValue_t* d_DUFGet(dDUFValue_t* root, const char* path);
-
-/**
- * @brief Get an integer value using path notation
- *
- * @param root The root value to search from
- * @param path The path string
- * @param fallback Value to return if path not found or wrong type
- * @return The integer value, or fallback
- */
-int64_t d_DUFGetInt(dDUFValue_t* root, const char* path, int64_t fallback);
-
-/**
- * @brief Get a float value using path notation
- *
- * @param root The root value to search from
- * @param path The path string
- * @param fallback Value to return if path not found or wrong type
- * @return The float value, or fallback
- */
-double d_DUFGetFloat(dDUFValue_t* root, const char* path, double fallback);
-
-/**
- * @brief Get a boolean value using path notation
- *
- * @param root The root value to search from
- * @param path The path string
- * @param fallback Value to return if path not found or wrong type
- * @return The boolean value, or fallback
- */
-bool d_DUFGetBool(dDUFValue_t* root, const char* path, bool fallback);
-
-/**
- * @brief Get a string value using path notation
- *
- * @param root The root value to search from
- * @param path The path string
- * @param fallback Value to return if path not found or wrong type
- * @return Pointer to internal string (do not free), or fallback
- */
-const char* d_DUFGetString(dDUFValue_t* root, const char* path, const char* fallback);
-
-// --- Direct Table Access ---
-
-/**
- * @brief Get a value from a table by key
- *
- * Direct table lookup without path parsing.
- *
- * @param table The table value
- * @param key The key string
- * @return The value, or NULL if key not found or table is not a table
- */
-dDUFValue_t* d_DUFTableGet(dDUFValue_t* table, const char* key);
-
-/**
- * @brief Set a value in a table
- *
- * @param table The table value
- * @param key The key string
- * @param val The value to store (ownership transferred to table)
- */
-void d_DUFTableSet(dDUFValue_t* table, const char* key, dDUFValue_t* val);
-
-// --- Array Access ---
-
-/**
- * @brief Get the length of an array
- *
- * @param array The array value
- * @return Number of elements, or 0 if not an array or NULL
- */
-size_t d_DUFArrayLength(dDUFValue_t* array);
-
-/**
- * @brief Get an element from an array by index
- *
- * @param array The array value
- * @param index Zero-based index
- * @return The element, or NULL if out of bounds or not an array
- */
-dDUFValue_t* d_DUFArrayGet(dDUFValue_t* array, size_t index);
-
-// --- Iteration ---
-
-/**
- * @brief Iterate over all entries in a table
- *
- * Calls the callback function for each key-value pair in the table.
- *
- * @param table The table value to iterate
- * @param callback Function to call for each entry
- * @param user_data Context pointer passed to callback
- */
-void d_DUFTableForEach(dDUFValue_t* table, dDUFIteratorFunc callback, void* user_data);
+dDUFValue_t* d_DUFGetObjectItem(dDUFValue_t* node, const char* key);
 
 // --- Serialization ---
 

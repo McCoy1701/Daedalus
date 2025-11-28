@@ -1,4 +1,6 @@
-/* test_duf.c - Test program for DUF parser */
+/* test_duf.c - Test program for DUF parser (AUF-style API) */
+
+#define _POSIX_C_SOURCE 200809L
 
 #include "Daedalus.h"
 #include <stdio.h>
@@ -17,7 +19,7 @@ void test_parse_enemies(void)
                err->line, err->column, d_StringPeek(err->message));
         fflush(stdout);
         d_DUFErrorFree(err);
-        return; // Don't assert, just return
+        return;
     }
 
     if (data == NULL) {
@@ -28,69 +30,99 @@ void test_parse_enemies(void)
 
     printf("  ✓ Parse successful\n");
 
+    // Get didact entry
+    dDUFValue_t* didact = d_DUFGetObjectItem(data, "didact");
+    assert(didact != NULL);
+
     // Test basic integer access
-    int64_t didact_hp = d_DUFGetInt(data, "didact.hp", 0);
-    printf("  Didact HP: %lld\n", (long long)didact_hp);
-    assert(didact_hp == 500);
+    dDUFValue_t* hp_node = d_DUFGetObjectItem(didact, "hp");
+    assert(hp_node != NULL);
+    printf("  Didact HP: %lld\n", (long long)hp_node->value_int);
+    assert(hp_node->value_int == 500);
     printf("  ✓ Integer access works\n");
 
     // Test boolean access
-    bool didact_is_boss = d_DUFGetBool(data, "didact.is_boss", true);
-    printf("  Didact is boss: %s\n", didact_is_boss ? "true" : "false");
-    assert(didact_is_boss == false);
+    dDUFValue_t* is_boss_node = d_DUFGetObjectItem(didact, "is_boss");
+    assert(is_boss_node != NULL);
+    printf("  Didact is boss: %s\n", is_boss_node->value_int ? "true" : "false");
+    assert(is_boss_node->value_int == 0);  // false
     printf("  ✓ Boolean access works\n");
 
     // Test float access
-    double didact_multiplier = d_DUFGetFloat(data, "didact.multiplier", 0.0);
-    printf("  Didact multiplier: %g\n", didact_multiplier);
-    assert(didact_multiplier == 1.5);
+    dDUFValue_t* mult_node = d_DUFGetObjectItem(didact, "multiplier");
+    assert(mult_node != NULL);
+    printf("  Didact multiplier: %g\n", mult_node->value_double);
+    assert(mult_node->value_double == 1.5);
     printf("  ✓ Float access works\n");
 
     // Test string access
-    const char* didact_name = d_DUFGetString(data, "didact.name", "");
-    printf("  Didact name: %s\n", didact_name);
-    assert(strcmp(didact_name, "Didact") == 0);
+    dDUFValue_t* name_node = d_DUFGetObjectItem(didact, "name");
+    assert(name_node != NULL);
+    printf("  Didact name: %s\n", name_node->value_string);
+    assert(strcmp(name_node->value_string, "Didact") == 0);
     printf("  ✓ String access works\n");
 
     // Test array access
-    const char* ability = d_DUFGetString(data, "didact.abilities[0]", "");
-    printf("  First ability: %s\n", ability);
-    assert(strcmp(ability, "the_house_remembers") == 0);
+    dDUFValue_t* abilities_node = d_DUFGetObjectItem(didact, "abilities");
+    assert(abilities_node != NULL);
+    assert(abilities_node->type == D_DUF_ARRAY);
+
+    // Get first ability
+    dDUFValue_t* first_ability = abilities_node->child;
+    assert(first_ability != NULL);
+    printf("  First ability: %s\n", first_ability->value_string);
+    assert(strcmp(first_ability->value_string, "the_house_remembers") == 0);
     printf("  ✓ Array access works\n");
 
-    // Test nested table access
-    int64_t threshold = d_DUFGetInt(data, "daemon.phases[0].threshold", 0);
-    printf("  First phase threshold: %lld\n", (long long)threshold);
-    assert(threshold == 75);
+    // Test nested table/array access
+    dDUFValue_t* daemon = d_DUFGetObjectItem(data, "daemon");
+    assert(daemon != NULL);
+
+    dDUFValue_t* phases_node = d_DUFGetObjectItem(daemon, "phases");
+    assert(phases_node != NULL);
+    assert(phases_node->type == D_DUF_ARRAY);
+
+    // Get first phase
+    dDUFValue_t* first_phase = phases_node->child;
+    assert(first_phase != NULL);
+
+    dDUFValue_t* threshold_node = d_DUFGetObjectItem(first_phase, "threshold");
+    assert(threshold_node != NULL);
+    printf("  First phase threshold: %lld\n", (long long)threshold_node->value_int);
+    assert(threshold_node->value_int == 75);
     printf("  ✓ Nested table access works\n");
 
-    // Test fallback values
-    int64_t nonexistent = d_DUFGetInt(data, "nonexistent.path", -1);
-    assert(nonexistent == -1);
-    printf("  ✓ Fallback values work\n");
+    // Test NULL checks (fallback values)
+    dDUFValue_t* nonexistent = d_DUFGetObjectItem(data, "nonexistent");
+    assert(nonexistent == NULL);
+    printf("  ✓ NULL checks work\n");
 
-    // Test boss status for daemon
-    bool daemon_is_boss = d_DUFGetBool(data, "daemon.is_boss", false);
-    assert(daemon_is_boss == true);
+    // Test daemon boss status
+    dDUFValue_t* daemon_boss = d_DUFGetObjectItem(daemon, "is_boss");
+    assert(daemon_boss != NULL);
+    assert(daemon_boss->value_int == 1);  // true
     printf("  ✓ Daemon boss status correct\n");
 
-    // Test array length
-    dDUFValue_t* abilities = d_DUFGet(data, "didact.abilities");
-    size_t ability_count = d_DUFArrayLength(abilities);
-    printf("  Didact has %zu abilities\n", ability_count);
+    // Test array length (AUF-style)
+    int ability_count = 0;
+    dDUFValue_t* ability_item = abilities_node->child;
+    while (ability_item != NULL) {
+        ability_count++;
+        ability_item = ability_item->next;
+    }
+    printf("  Didact has %d abilities\n", ability_count);
     assert(ability_count == 3);
     printf("  ✓ Array length works\n");
 
-    // Test table iteration
+    // Test table iteration (AUF-style)
     printf("  Enemy list:\n");
     int enemy_count = 0;
-    void count_enemies(const char* key, dDUFValue_t* val, void* ctx) {
-        (void)val;
-        int* count = (int*)ctx;
-        (*count)++;
-        printf("    - %s\n", key);
+    dDUFValue_t* enemy = data->child;
+    while (enemy != NULL) {
+        enemy_count++;
+        printf("    - %s\n", enemy->string);
+        enemy = enemy->next;
     }
-    d_DUFTableForEach(data, count_enemies, &enemy_count);
     assert(enemy_count == 3);
     printf("  ✓ Table iteration works (%d enemies)\n", enemy_count);
 
@@ -102,21 +134,67 @@ void test_serialization(void)
 {
     printf("Testing DUF serialization...\n");
 
-    // Create a simple structure
+    // Create a simple structure (AUF-style)
     dDUFValue_t* root = d_DUFCreateTable();
     dDUFValue_t* player = d_DUFCreateTable();
 
-    d_DUFTableSet(player, "name", d_DUFCreateString("Hero"));
-    d_DUFTableSet(player, "level", d_DUFCreateInt(5));
-    d_DUFTableSet(player, "health", d_DUFCreateFloat(100.5));
-    d_DUFTableSet(player, "alive", d_DUFCreateBool(true));
+    // Set player name
+    player->string = strdup("player");
 
+    // Add name
+    dDUFValue_t* name = d_DUFCreateString("Hero");
+    name->string = strdup("name");
+    if (player->child == NULL) {
+        player->child = name;
+    } else {
+        dDUFValue_t* last = player->child;
+        while (last->next != NULL) last = last->next;
+        last->next = name;
+        name->prev = last;
+    }
+
+    // Add level
+    dDUFValue_t* level = d_DUFCreateInt(5);
+    level->string = strdup("level");
+    dDUFValue_t* last = player->child;
+    while (last->next != NULL) last = last->next;
+    last->next = level;
+    level->prev = last;
+
+    // Add health
+    dDUFValue_t* health = d_DUFCreateFloat(100.5);
+    health->string = strdup("health");
+    last = player->child;
+    while (last->next != NULL) last = last->next;
+    last->next = health;
+    health->prev = last;
+
+    // Add alive
+    dDUFValue_t* alive = d_DUFCreateBool(true);
+    alive->string = strdup("alive");
+    last = player->child;
+    while (last->next != NULL) last = last->next;
+    last->next = alive;
+    alive->prev = last;
+
+    // Add items array
     dDUFValue_t* items = d_DUFCreateArray();
-    d_ArrayAppend(items->array_val, &(dDUFValue_t*){d_DUFCreateString("sword")});
-    d_ArrayAppend(items->array_val, &(dDUFValue_t*){d_DUFCreateString("shield")});
-    d_DUFTableSet(player, "items", items);
+    items->string = strdup("items");
 
-    d_DUFTableSet(root, "player", player);
+    dDUFValue_t* sword = d_DUFCreateString("sword");
+    items->child = sword;
+
+    dDUFValue_t* shield = d_DUFCreateString("shield");
+    sword->next = shield;
+    shield->prev = sword;
+
+    last = player->child;
+    while (last->next != NULL) last = last->next;
+    last->next = items;
+    items->prev = last;
+
+    // Add player to root
+    root->child = player;
 
     // Serialize to string
     dString_t* output = d_DUFToString(root);
@@ -140,11 +218,16 @@ void test_serialization(void)
     }
 
     // Verify data
-    const char* name = d_DUFGetString(loaded, "player.name", "");
-    assert(strcmp(name, "Hero") == 0);
+    dDUFValue_t* loaded_player = d_DUFGetObjectItem(loaded, "player");
+    assert(loaded_player != NULL);
 
-    int64_t level = d_DUFGetInt(loaded, "player.level", 0);
-    assert(level == 5);
+    dDUFValue_t* loaded_name = d_DUFGetObjectItem(loaded_player, "name");
+    assert(loaded_name != NULL);
+    assert(strcmp(loaded_name->value_string, "Hero") == 0);
+
+    dDUFValue_t* loaded_level = d_DUFGetObjectItem(loaded_player, "level");
+    assert(loaded_level != NULL);
+    assert(loaded_level->value_int == 5);
 
     printf("  ✓ Round-trip serialization works\n\n");
 
@@ -159,16 +242,25 @@ void test_error_handling(void)
     // Test invalid file
     dDUFValue_t* data = NULL;
     dDUFError_t* err = d_DUFParseFile("nonexistent.duf", &data);
-    assert(err != NULL);
-    printf("  ✓ Invalid file error: %s\n", d_StringPeek(err->message));
-    d_DUFErrorFree(err);
+
+    if (err != NULL) {
+        printf("  ✓ Invalid file error: %s\n", d_StringPeek(err->message));
+        d_DUFErrorFree(err);
+    } else {
+        printf("  ERROR: Should have failed!\n");
+        assert(0);
+    }
 
     // Test malformed DUF
-    const char* bad_duf = "@test { key: }";  // Missing value
+    const char* bad_duf = "@test { value 42 }";  // Missing colon
     err = d_DUFParseString(bad_duf, &data);
+
     if (err != NULL) {
         printf("  ✓ Malformed DUF error: %s\n", d_StringPeek(err->message));
         d_DUFErrorFree(err);
+    } else {
+        printf("  ERROR: Should have failed!\n");
+        assert(0);
     }
 
     printf("\n");
@@ -176,7 +268,7 @@ void test_error_handling(void)
 
 int main(void)
 {
-    printf("=== DUF Parser Test Suite ===\n\n");
+    printf("=== DUF Parser Tests (AUF-style API) ===\n\n");
 
     test_parse_enemies();
     test_serialization();

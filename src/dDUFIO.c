@@ -1,4 +1,4 @@
-/* dDUFIO.c - DUF serialization and file I/O */
+/* dDUFIO.c - DUF serialization and file I/O (AUF-style) */
 
 #include "Daedalus.h"
 #include <stdlib.h>
@@ -62,49 +62,42 @@ static void serialize_array(dDUFValue_t* array, dString_t* out, int indent_level
 {
     d_StringAppendChar(out, '[');
 
-    size_t len = d_DUFArrayLength(array);
-    for (size_t i = 0; i < len; i++) {
-        dDUFValue_t* elem = d_DUFArrayGet(array, i);
-        if (elem != NULL) {
-            serialize_value(elem, out, indent_level);
+    // Iterate over children
+    dDUFValue_t* child = array->child;
+    while (child != NULL) {
+        serialize_value(child, out, indent_level);
 
-            if (i < len - 1) {
-                d_StringAppend(out, ", ", 0);
-            }
+        if (child->next != NULL) {
+            d_StringAppend(out, ", ", 0);
         }
+
+        child = child->next;
     }
 
     d_StringAppendChar(out, ']');
-}
-
-// Helper context for table serialization
-typedef struct {
-    dString_t* out;
-    int indent_level;
-    bool first;
-} SerializeTableContext_t;
-
-static void serialize_table_entry(const char* key, dDUFValue_t* val, void* user_data)
-{
-    SerializeTableContext_t* ctx = (SerializeTableContext_t*)user_data;
-
-    write_indent(ctx->out, ctx->indent_level);
-    d_StringAppend(ctx->out, key, 0);
-    d_StringAppend(ctx->out, ": ", 0);
-    serialize_value(val, ctx->out, ctx->indent_level);
-    d_StringAppendChar(ctx->out, '\n');
 }
 
 static void serialize_table(dDUFValue_t* table, dString_t* out, int indent_level)
 {
     d_StringAppend(out, "{\n", 0);
 
-    SerializeTableContext_t ctx;
-    ctx.out = out;
-    ctx.indent_level = indent_level + 1;
-    ctx.first = true;
+    // Iterate over children
+    dDUFValue_t* child = table->child;
+    while (child != NULL) {
+        write_indent(out, indent_level + 1);
 
-    d_DUFTableForEach(table, serialize_table_entry, &ctx);
+        // Write key
+        if (child->string != NULL) {
+            d_StringAppend(out, child->string, 0);
+            d_StringAppend(out, ": ", 0);
+        }
+
+        // Write value
+        serialize_value(child, out, indent_level + 1);
+        d_StringAppendChar(out, '\n');
+
+        child = child->next;
+    }
 
     write_indent(out, indent_level);
     d_StringAppendChar(out, '}');
@@ -123,20 +116,20 @@ static void serialize_value(dDUFValue_t* val, dString_t* out, int indent_level)
             break;
 
         case D_DUF_BOOL:
-            d_StringAppend(out, val->bool_val ? "true" : "false", 0);
+            d_StringAppend(out, val->value_int ? "true" : "false", 0);
             break;
 
         case D_DUF_INT:
-            d_StringFormat(out, "%lld", (long long)val->int_val);
+            d_StringFormat(out, "%lld", (long long)val->value_int);
             break;
 
         case D_DUF_FLOAT:
-            d_StringFormat(out, "%g", val->float_val);
+            d_StringFormat(out, "%g", val->value_double);
             break;
 
         case D_DUF_STRING:
-            if (val->string_val != NULL) {
-                serialize_string(d_StringPeek(val->string_val), out);
+            if (val->value_string != NULL) {
+                serialize_string(val->value_string, out);
             } else {
                 d_StringAppend(out, "\"\"", 0);
             }
@@ -150,27 +143,6 @@ static void serialize_value(dDUFValue_t* val, dString_t* out, int indent_level)
             serialize_table(val, out, indent_level);
             break;
     }
-}
-
-// Helper context for root table serialization (entries with @)
-typedef struct {
-    dString_t* out;
-} SerializeRootContext_t;
-
-static void serialize_root_entry(const char* key, dDUFValue_t* val, void* user_data)
-{
-    SerializeRootContext_t* ctx = (SerializeRootContext_t*)user_data;
-
-    d_StringAppendChar(ctx->out, '@');
-    d_StringAppend(ctx->out, key, 0);
-    d_StringAppend(ctx->out, " ", 0);
-
-    // Serialize the table value
-    if (val != NULL && val->type == D_DUF_TABLE) {
-        serialize_table(val, ctx->out, 0);
-    }
-
-    d_StringAppend(ctx->out, "\n\n", 0);
 }
 
 // =============================================================================
@@ -188,11 +160,25 @@ dString_t* d_DUFToString(dDUFValue_t* root)
         return NULL;
     }
 
-    // If root is a table, serialize each entry with @ prefix
+    // If root is a table, serialize each child with @ prefix
     if (root->type == D_DUF_TABLE) {
-        SerializeRootContext_t ctx;
-        ctx.out = out;
-        d_DUFTableForEach(root, serialize_root_entry, &ctx);
+        dDUFValue_t* child = root->child;
+        while (child != NULL) {
+            d_StringAppendChar(out, '@');
+            if (child->string != NULL) {
+                d_StringAppend(out, child->string, 0);
+            }
+            d_StringAppend(out, " ", 0);
+
+            // Serialize the table value
+            if (child->type == D_DUF_TABLE) {
+                serialize_table(child, out, 0);
+            }
+
+            d_StringAppend(out, "\n\n", 0);
+
+            child = child->next;
+        }
     } else {
         // Single value (not typical for DUF files)
         serialize_value(root, out, 0);

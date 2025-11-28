@@ -1,0 +1,2655 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Daedalus API Reference</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Inter', sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            margin-bottom: 48px;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 24px;
+        }
+        h1 {
+            font-size: 2.5em;
+            font-weight: 600;
+            color: #f0f6fc;
+            margin-bottom: 8px;
+            letter-spacing: -0.03em;
+        }
+        .subtitle {
+            font-size: 1.1em;
+            color: #8b949e;
+            font-weight: 400;
+        }
+        .function {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: border-color 0.2s;
+        }
+        .function:hover {
+            border-color: #58a6ff;
+        }
+        .function-signature {
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            font-size: 1.1em;
+            color: #79c0ff;
+            margin-bottom: 16px;
+            padding: 16px;
+            background: #0d1117;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            overflow-x: auto;
+        }
+        .return-type {
+            color: #ff7b72;
+        }
+        .function-name {
+            color: #d2a8ff;
+            font-weight: 600;
+        }
+        .param {
+            color: #ffa657;
+        }
+        .brief {
+            font-size: 1.05em;
+            color: #c9d1d9;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        .section-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #8b949e;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
+        .param-list {
+            list-style: none;
+        }
+        .param-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #21262d;
+        }
+        .param-item:last-child {
+            border-bottom: none;
+        }
+        .param-name {
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            color: #ffa657;
+            font-weight: 600;
+        }
+        .param-desc {
+            color: #8b949e;
+            margin-left: 8px;
+        }
+        .returns {
+            color: #8b949e;
+            padding: 12px;
+            background: #0d1117;
+            border-radius: 6px;
+            border-left: 3px solid #58a6ff;
+        }
+        .note {
+            color: #8b949e;
+            padding: 12px;
+            background: #0d1117;
+            border-radius: 6px;
+            border-left: 3px solid #d29922;
+            font-style: italic;
+        }
+        .stats {
+            margin-top: 48px;
+            padding: 24px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .stats-title {
+            font-size: 1.1em;
+            color: #f0f6fc;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .stats-value {
+            font-size: 2em;
+            color: #58a6ff;
+            font-weight: 700;
+        }
+        .footer {
+            margin-top: 16px;
+            color: #6e7681;
+            font-size: 0.9em;
+        }
+        .category {
+            margin-bottom: 48px;
+        }
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #30363d;
+        }
+        .category-title {
+            font-size: 1.8em;
+            font-weight: 600;
+            color: #f0f6fc;
+        }
+        .category-count {
+            background: #30363d;
+            color: #8b949e;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 500;
+        }
+        .category-emoji {
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 Daedalus API Reference</h1>
+            <div class="subtitle">Complete function documentation • Grouped by object type</div>
+        </header>
+
+        <div class="category">
+            <div class="category-header">
+                <span class="category-emoji">🔄</span>
+                <span class="category-title">Array (Dynamic)</span>
+                <span class="category-count">16 functions</span>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_ArrayAppend</span>(<span class="param">dArray_t* array, void* data</span>)</div>
+                <div class="brief">Append an element to the end of the dynamic array.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">array</span>
+                        <span class="param-desc">A pointer to the dynamic array to append to.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">data</span>
+                        <span class="param-desc">A pointer to the element data to copy into the array.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure.</div>
+                <div class="section-title">Note</div>
+                <div class="note">Increments the array's `count` on successful append.
+Example: `int my_value = 123; int result = d_ArrayAppend(myArray, &my_value);`
+This appends an integer value to the end of `myArray`.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_ArrayDestroy</span>(<span class="param">dArray_t* array</span>)</div>
+                <div class="brief">Destroy a dynamic array.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">array</span>
+                        <span class="param-desc">The array to destroy.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">@return: 0 on success, 1 on failure.
+-- Frees both the data buffer and the array structure itself
+-- After calling this function, the pointer is invalid and should not be used
+Example: `d_ArrayDestroy(array);`
+This destroys the dynamic array and frees its memory.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_ArrayEnsureCapacity</span>(<span class="param">dArray_t* array, size_t min_capacity</span>)</div>
+                <div class="brief">Ensure the array has enough capacity for at least min_capacity elements</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">array</span>
+                        <span class="param-desc">The array to ensure capacity for</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">min_capacity</span>
+                        <span class="param-desc">Minimum number of elements the array should accommodate</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure
+-- Grows the array if current capacity is less than min_capacity
+-- Uses exponential growth strategy to minimize reallocations
+-- Never shrinks the array - use d_ArrayTrimCapacity for that
+-- Useful for pre-allocating space before bulk operations
+Example: `d_ArrayEnsureCapacity(array, 100);`
+This ensures the array has at least 100 elements allocated, growing the array if needed.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void*</span> <span class="function-name">d_ArrayGet</span>(<span class="param">dArray_t* array, size_t index</span>)</div>
+                <div class="brief">Get a pointer to the data at a specific index.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">array</span>
+                        <span class="param-desc">The array to get data from.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">index</span>
+                        <span class="param-desc">The index of the element to get.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">A pointer to the element data, or NULL if index is out of bounds.
+-- Returns NULL if array is NULL or index >= count
+-- Returned pointer is valid until the array is modified or destroyed
+-- Caller can read/write through the returned pointer safely
+-- Use appropriate casting: int* ptr = (int*)d_ArrayGet(array, 0)
+-- Index must be less than count, not capacity (only counts appended elements)
+Example: `void* data = d_ArrayGet(array, 0);`
+This retrieves the first element from the dynamic array.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_ArrayGrow</span>(<span class="param">dArray_t* array, size_t additional_capacity</span>)</div>
+                <div class="brief">Grow the array by a number of additional bytes.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">array</span>
+                        <span class="param-desc">The array to grow.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">additional_bytes</span>
+                        <span class="param-desc">The number of bytes to add.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure.
+-- Convenience function that calls d_ArrayResize() internally
+Example: `d_ArrayGrow(array, 10 * sizeof(int));`
+This grows the dynamic array by 10 elements, each of size 4 bytes.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dArray_t*</span> <span class="function-name">d_ArrayInit</span>(<span class="param">size_t capacity, size_t element_size</span>)</div>
+                <div class="brief">Initialize a Dynamic Array.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">capacity</span>
+                        <span class="param-desc">The initial capacity of the array in elements.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">element_size</span>
+                        <span class="param-desc">The size of each element in bytes.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">A pointer to the new array, or NULL on error.
+-- Must be destroyed with d_DestroyArray() to free memory
+-- Initial count is 0 even though capacity may be larger
+-- Elements can be any type as long as element_size is correct
+-- Capacity of 0 is allowed but array cannot store elements until resized
+Example: `dArray_t* array = d_ArrayInit(10, sizeof(int));`
+This creates a new array with a capacity of 10 elements, each of size 4 bytes.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_ArrayInsert</span>(<span class="param">dArray_t* array, void* data, size_t index</span>)</div>
+                <div class="brief">Insert data at a specific index in the array</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">array</span>
+                        <span class="param-desc">The array to insert into</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">data</span>
+                        <span class="param-desc">Pointer to the data to insert</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">index</span>
+                        <span class="param-desc">The index where to insert the data</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure
+-- Shifts existing elements to the right to make space
+-- Grows the array capacity if needed
+-- index must be <= array->count (can insert at end)
+-- Uses memmove for safe overlapping memory operations
+Example: `d_ArrayInsert(array, &value, 2);`
+This inserts a value at index 2, shifting existing elements to the right.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void*</span> <span class="function-name">d_ArrayPop</span>(<span class="param">dArray_t* array</span>)</div>
+                <div class="brief">Remove and return the last element from the array.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">array</span>
+                        <span class="param-desc">The array to pop from.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">A pointer to the last element's data, or NULL if array is empty.
+-- Decrements count but does not free memory (element data remains in buffer)
+-- Returned pointer becomes invalid after next append or array modification
+-- Implements stack-like behavior for dynamic arrays
+-- Memory is not reallocated, only the count is decremented for efficiency
+Example: `void* data = d_ArrayPop(array);`
+This removes and returns the last element from the dynamic array.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_ArrayRemove</span>(<span class="param">dArray_t* array, size_t index</span>)</div>
+                <div class="brief">Remove data at a specific index from the array</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">array</span>
+                        <span class="param-desc">The array to remove from</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">index</span>
+                        <span class="param-desc">The index of the element to remove</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure
+-- Shifts existing elements to the left to fill the gap
+-- Does not resize the array capacity (use d_ArrayTrimCapacity for that)
+-- index must be < array->count
+-- Uses memmove for safe overlapping memory operations
+Example: `d_ArrayRemove(array, 2);`
+This removes the element at index 2, shifting remaining elements to the left.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_ArrayResize</span>(<span class="param">dArray_t* array, size_t new_capacity</span>)</div>
+                <div class="brief">Resize the internal data buffer of a dynamic array.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">array</span>
+                        <span class="param-desc">A pointer to the dynamic array whose internal buffer is to be resized.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">new_size_in_bytes</span>
+                        <span class="param-desc">The desired new total size of the internal data buffer in bytes.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure.</div>
+                <div class="section-title">Note</div>
+                <div class="note">If `new_size_in_bytes` is smaller than the current allocated size, the data buffer
+is truncated. If the current `count` of elements exceeds the new capacity, `count`
+will be adjusted down to match the new capacity, effectively truncating the array's
+contents.
+@warning This function only affects the internal data buffer (`array->data`). The `dArray_t* array`
+pointer itself remains valid and points to the same `dArray_t` structure.
+Pointers obtained previously via `d_IndexDataFromArray` (or similar direct access)
+will become invalid if the underlying `array->data` buffer is reallocated and moved.
+Example: `d_ArrayResize(myArray, 10 * sizeof(int));`
+This resizes the internal buffer of `myArray` to accommodate 10 integer elements.
+If `myArray` previously held more than 10 elements, its `count` will be truncated.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_ArrayTrimCapacity</span>(<span class="param">dArray_t* array</span>)</div>
+                <div class="brief">Optimize memory usage by shrinking the array's capacity to match its count</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">array</span>
+                        <span class="param-desc">The array to trim</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure
+-- Reduces allocated memory to exactly match the number of elements
+-- If array is empty, frees the data buffer
+-- Does nothing if array is already optimally sized
+-- Useful after bulk removal operations to reclaim memory
+Example: `d_ArrayTrimCapacity(array);`
+This trims the array's capacity to match its count, freeing memory if necessary.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_ClearArray</span>(<span class="param">dArray_t* array</span>)</div>
+                <div class="brief">Clear all elements from the array without deallocating memory</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">array</span>
+                        <span class="param-desc">The array to clear</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure
+-- Sets count to 0, preserving capacity for efficient reuse
+-- O(1) operation - no memory operations performed
+-- Does not zero memory or shrink capacity
+-- Ideal for clearing collections that will be reused (hands, queues, temp buffers)
+Example: `d_ClearArray(array);`
+This clears all elements from the array, resetting count to 0 while keeping capacity.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_CompareDArray</span>(<span class="param">const void* array1, const void* array2, size_t unused</span>)</div>
+                <div class="brief">Comparison function for dArray_t objects.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">array1</span>
+                        <span class="param-desc">Pointer to first dArray_t* (pointer to dArray_t pointer)</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">array2</span>
+                        <span class="param-desc">Pointer to second dArray_t* (pointer to dArray_t pointer)</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">unused</span>
+                        <span class="param-desc">Size parameter (unused for arrays)</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 if equal, non-zero if different
+Example:
+```c
+dArray_t *arr1, *arr2;
+if (d_CompareDArray(&arr1, &arr2, 0) == 0) {
+    // Arrays are identical
+}
+```</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dDUFValue_t*</span> <span class="function-name">d_DUFArrayGet</span>(<span class="param">dDUFValue_t* array, size_t index</span>)</div>
+                <div class="brief">Get an element from an array by index</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">array</span>
+                        <span class="param-desc">The array value</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">index</span>
+                        <span class="param-desc">Zero-based index</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">The element, or NULL if out of bounds or not an array</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">size_t</span> <span class="function-name">d_DUFArrayLength</span>(<span class="param">dDUFValue_t* array</span>)</div>
+                <div class="brief">Get the length of an array</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">array</span>
+                        <span class="param-desc">The array value</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Number of elements, or 0 if not an array or NULL</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dDUFValue_t*</span> <span class="function-name">d_DUFCreateArray</span>(<span class="param">void</span>)</div>
+                <div class="brief">Create a new DUF array value</div>
+                <div class="section-title">Returns</div>
+                <div class="returns">Newly allocated array value, or NULL on allocation failure</div>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-header">
+                <span class="category-emoji">📦</span>
+                <span class="category-title">Array (Static)</span>
+                <span class="category-count">12 functions</span>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_CompareStaticArray</span>(<span class="param">const void* array1, const void* array2, size_t unused</span>)</div>
+                <div class="brief">Comparison function for dStaticArray_t objects.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">array1</span>
+                        <span class="param-desc">Pointer to first dStaticArray_t* (pointer to dStaticArray_t pointer)</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">array2</span>
+                        <span class="param-desc">Pointer to second dStaticArray_t* (pointer to dStaticArray_t pointer)</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">unused</span>
+                        <span class="param-desc">Size parameter (unused for arrays)</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 if equal, non-zero if different
+Example:
+```c
+dStaticArray_t *arr1, *arr2;
+if (d_CompareStaticArray(&arr1, &arr2, 0) == 0) {
+    // Arrays are identical
+}
+```</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dStaticArray_t*</span> <span class="function-name">d_InitStaticArray</span>(<span class="param">size_t capacity, size_t element_size</span>)</div>
+                <div class="brief">Initialize a new static array with fixed capacity</div>
+                <div class="section-title">Returns</div>
+                <div class="returns">@return: Pointer to new static array, or NULL on allocation failure
+-- Allocates memory for both the structure and the data buffer
+-- Data buffer size = capacity * element_size
+-- count is initialized to 0
+-- capacity and element_size are fixed for the lifetime of the array
+Example: `dStaticArray_t* array = d_InitStaticArray(10, sizeof(int));`
+This creates a new static array with a capacity of 10 elements, each of size 4 bytes.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dStaticArray_t*</span> <span class="function-name">d_LoadStaticArrayFromFile</span>(<span class="param">const char* filename</span>)</div>
+                <div class="brief">Load a static array from a binary file</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">filename</span>
+                        <span class="param-desc">Path to the file containing the saved array</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Pointer to new static array, or NULL on failure
+-- Validates file format and magic number
+-- Allocates new array with original capacity and data
+-- Returns NULL if file format is invalid or allocation fails
+Example: `dStaticArray_t* array = d_LoadStaticArrayFromFile("myarray.bin");`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_StaticArrayAppend</span>(<span class="param">dStaticArray_t* array, void* data</span>)</div>
+                <div class="brief">Append an element to the end of the static array.</div>
+                <div class="section-title">Returns</div>
+                <div class="returns">@return: 0 on success, 1 on failure
+-- Fails if array is at maximum capacity
+-- Fails if array or data is NULL
+-- Copies element_size bytes from data
+-- Increments count on successful append
+Example: `d_StaticArrayAppend(array, &data);`
+This appends a pointer to a data element to the end of the static array.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_StaticArrayDestroy</span>(<span class="param">dStaticArray_t* array</span>)</div>
+                <div class="brief">: Destroy a static array and free all associated memory</div>
+                <div class="section-title">Returns</div>
+                <div class="returns">@return: 0 on success, 1 on failure
+-- Safe to call with NULL pointer
+-- Frees data buffer first, then structure
+-- After calling, the pointer becomes invalid
+Example: `d_StaticArrayDestroy(array);`
+This destroys the static array and frees its memory.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_StaticArrayFill</span>(<span class="param">dStaticArray_t* array, const void* value, size_t num_elements</span>)</div>
+                <div class="brief">Fill the static array with multiple copies of a given value</div>
+                <div class="section-title">Returns</div>
+                <div class="returns">@return: 0 on success, 1 on failure
+-- Fails if array or value is NULL
+-- Fails if num_elements exceeds array capacity
+-- Copies element_size bytes from value to each position
+-- Sets array count to num_elements after successful fill
+-- Overwrites existing data in the array
+Example: `int value = 42; d_StaticArrayFill(array, &value, 5);`
+This fills the first 5 positions of the array with the value 42.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void*</span> <span class="function-name">d_StaticArrayGet</span>(<span class="param">dStaticArray_t* array, size_t index</span>)</div>
+                <div class="brief">: Get a pointer to an element at the specified index</div>
+                <div class="section-title">Returns</div>
+                <div class="returns">@return: Pointer to element data, or NULL if out of bounds
+-- Returns NULL if array is NULL or index >= count
+-- Performs bounds checking for safety
+-- Returned pointer is valid until array is modified or destroyed
+Example: `void* data = d_StaticArrayGet(array, 0);`
+This retrieves the first element from the static array.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">size_t</span> <span class="function-name">d_StaticArrayGetFreeSpace</span>(<span class="param">dStaticArray_t* array</span>)</div>
+                <div class="brief">Get the number of free slots remaining in the static array</div>
+                <div class="section-title">Returns</div>
+                <div class="returns">@return: Number of elements that can still be added, or 0 if array is NULL/full
+-- Returns 0 if array is NULL (no space available)
+-- Returns capacity - count for valid arrays
+-- Useful for checking if array can accept more elements before attempting append
+Example: `size_t free_slots = d_StaticArrayGetFreeSpace(array);`
+This returns how many more elements can be added to the array.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_StaticArrayIterate</span>(<span class="param">const dStaticArray_t* array, dStaticArrayIteratorFunc callback, void* user_data</span>)</div>
+                <div class="brief">Iterate over all elements in a static array</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">array</span>
+                        <span class="param-desc">Pointer to the static array to iterate</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">callback</span>
+                        <span class="param-desc">Function to call for each element</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">user_data</span>
+                        <span class="param-desc">Optional data to pass to the callback</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure
+-- Calls callback function for each element in the array (up to count)
+-- Provides element index, data pointer, and size to callback
+-- Safe iteration - callback receives read-only access to elements
+Example: `d_StaticArrayIterate(array, my_callback, &context);`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void*</span> <span class="function-name">d_StaticArrayPeekRawMemory</span>(<span class="param">dStaticArray_t* array</span>)</div>
+                <div class="brief">Get direct access to the raw memory buffer of the static array</div>
+                <div class="section-title">Returns</div>
+                <div class="returns">@return: Pointer to the start of the raw data buffer, or NULL on error
+-- Returns NULL if array is NULL or data buffer is NULL
+-- Provides access to entire allocated buffer regardless of current count
+-- Returned pointer is valid until array is destroyed
+-- Use with caution - direct memory access bypasses safety checks
+-- Primarily intended for advanced operations or serialization
+Example: `void* raw_buffer = d_StaticArrayPeekRawMemory(array);`
+This returns a pointer to the entire data buffer of the array.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void*</span> <span class="function-name">d_StaticArrayPop</span>(<span class="param">dStaticArray_t* array</span>)</div>
+                <div class="brief">: Remove and return a pointer to the last element (LIFO behavior)</div>
+                <div class="section-title">Returns</div>
+                <div class="returns">@return: Pointer to last element data, or NULL if empty
+-- Returns NULL if array is NULL or empty
+-- Decrements count but doesn't free memory
+-- Element data remains in buffer but is no longer active
+-- Returned pointer becomes invalid after next append
+Example: `void* data = d_StaticArrayPop(array);`
+This removes and returns the last element from the static array.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_StaticArraySaveToFile</span>(<span class="param">const char* filename, const dStaticArray_t* array</span>)</div>
+                <div class="brief">Save a static array to a binary file</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">filename</span>
+                        <span class="param-desc">Path to the file where the array should be saved</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">array</span>
+                        <span class="param-desc">Pointer to the static array to save</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure
+-- Saves array metadata (capacity, count, element_size) and data
+-- Uses binary format with magic number for validation
+-- File can be loaded later using d_LoadStaticArrayFromFile
+Example: `d_StaticArraySaveToFile("myarray.bin", array);`</div>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-header">
+                <span class="category-emoji">🗂️</span>
+                <span class="category-title">Table (Dynamic)</span>
+                <span class="category-count">16 functions</span>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_ClearTable</span>(<span class="param">dTable_t* table</span>)</div>
+                <div class="brief">Clear all entries from the hash table but keep the structure intact.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">A pointer to the hash table to clear</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure
+Example:
+`d_ClearTable(table); // Table is now empty but ready for reuse`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_CompareTable</span>(<span class="param">const void* table1, const void* table2, size_t unused</span>)</div>
+                <div class="brief">Comparison function for dTable_t objects.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table1</span>
+                        <span class="param-desc">Pointer to first dTable_t* (pointer to dTable_t pointer)</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">table2</span>
+                        <span class="param-desc">Pointer to second dTable_t* (pointer to dTable_t pointer)</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">unused</span>
+                        <span class="param-desc">Size parameter (unused for tables)</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 if equal, non-zero if different
+Example:
+```c
+dTable_t *table1, *table2;
+if (d_CompareTable(&table1, &table2, 0) == 0) {
+    // Tables have identical structure and contents
+}
+```</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dDUFValue_t*</span> <span class="function-name">d_DUFCreateTable</span>(<span class="param">void</span>)</div>
+                <div class="brief">Create a new DUF table value</div>
+                <div class="section-title">Returns</div>
+                <div class="returns">Newly allocated table value, or NULL on allocation failure</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void</span> <span class="function-name">d_DUFTableForEach</span>(<span class="param">dDUFValue_t* table, dDUFIteratorFunc callback, void* user_data</span>)</div>
+                <div class="brief">Iterate over all entries in a table</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">The table value to iterate</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">callback</span>
+                        <span class="param-desc">Function to call for each entry</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">user_data</span>
+                        <span class="param-desc">Context pointer passed to callback</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dDUFValue_t*</span> <span class="function-name">d_DUFTableGet</span>(<span class="param">dDUFValue_t* table, const char* key</span>)</div>
+                <div class="brief">Get a value from a table by key</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">The table value</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key</span>
+                        <span class="param-desc">The key string</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">The value, or NULL if key not found or table is not a table</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void</span> <span class="function-name">d_DUFTableSet</span>(<span class="param">dDUFValue_t* table, const char* key, dDUFValue_t* val</span>)</div>
+                <div class="brief">Set a value in a table</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">The table value</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key</span>
+                        <span class="param-desc">The key string</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">val</span>
+                        <span class="param-desc">The value to store (ownership transferred to table)</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_TableDestroy</span>(<span class="param">dTable_t** table</span>)</div>
+                <div class="brief">Destroy a hash table and free all associated memory.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">A pointer to the pointer of the hash table to destroy</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure
+Example:
+`d_TableDestroy(&my_table); // my_table will be NULL after this`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void</span> <span class="function-name">d_TableForEach</span>(<span class="param">dTable_t* table, dTableIteratorFunc callback, void* user_data</span>)</div>
+                <div class="brief">Iterate over all entries in a hash table</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">The hash table to iterate over</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">callback</span>
+                        <span class="param-desc">Function pointer to call for each entry. Receives:</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">user_data</span>
+                        <span class="param-desc">Optional user context pointer passed to each callback invocation</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void*</span> <span class="function-name">d_TableGet</span>(<span class="param">dTable_t* table, const void* key</span>)</div>
+                <div class="brief">Retrieve a pointer to the value associated with a given key.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">A pointer to the hash table</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key</span>
+                        <span class="param-desc">A pointer to the key data to search for</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">A void* pointer to the internally stored value data if found, or NULL if not found
+Example:
+`int key = 42; char** value = (char**)d_TableGet(table, &key);`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dArray_t*</span> <span class="function-name">d_TableGetAllKeys</span>(<span class="param">const dTable_t* table</span>)</div>
+                <div class="brief">Get an array containing copies of all keys currently stored in the hash table.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">A pointer to the hash table</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">A newly allocated dArray_t containing all keys, or NULL on failure</div>
+                <div class="section-title">Note</div>
+                <div class="note">If the table is empty, returns an empty array (not NULL)
+Example:
+`dArray_t* keys = d_TableGetAllKeys(table);`
+`// Use keys array...`
+`d_ArrayDestroy(keys);`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dArray_t*</span> <span class="function-name">d_TableGetAllValues</span>(<span class="param">const dTable_t* table</span>)</div>
+                <div class="brief">Get an array containing copies of all values currently stored in the hash table.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">A pointer to the hash table</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">A newly allocated dArray_t containing all values, or NULL on failure</div>
+                <div class="section-title">Note</div>
+                <div class="note">If the table is empty, returns an empty array (not NULL)
+Example:
+`dArray_t* values = d_TableGetAllValues(table);`
+`// Use values array...`
+`d_ArrayDestroy(values);`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">size_t</span> <span class="function-name">d_TableGetCount</span>(<span class="param">const dTable_t* table</span>)</div>
+                <div class="brief">Get the current number of key-value pairs in the hash table.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">A pointer to the hash table</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">The total count of entries, or 0 if table is NULL
+Example:
+`size_t count = d_TableGetCount(table);`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_TableHasKey</span>(<span class="param">const dTable_t* table, const void* key</span>)</div>
+                <div class="brief">Check if a specific key exists in the hash table.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">A pointer to the hash table</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key</span>
+                        <span class="param-desc">A pointer to the key data to check for</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 if the key exists, 1 if not found or error occurred
+Example:
+`int key = 42; if (d_TableHasKey(table, &key) == 0) { // key exists }`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_TableRehash</span>(<span class="param">dTable_t* table, size_t new_num_buckets</span>)</div>
+                <div class="brief">Rehash the table with a new number of buckets to optimize performance.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">A pointer to the hash table to rehash</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">new_num_buckets</span>
+                        <span class="param-desc">The new number of buckets (0 for auto-sizing to double current)</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure</div>
+                <div class="section-title">Note</div>
+                <div class="note">All existing entries are preserved and redistributed based on their recalculated hashes
+Example:
+`d_TableRehash(table, 32); // Rehash to 32 buckets`
+`d_TableRehash(table, 0);  // Auto-resize to double current bucket count`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_TableRemove</span>(<span class="param">dTable_t* table, const void* key</span>)</div>
+                <div class="brief">Remove a key-value pair from the hash table.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">A pointer to the hash table</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key</span>
+                        <span class="param-desc">A pointer to the key data to remove</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure/key not found
+Example:
+`int key = 42; d_TableRemove(table, &key);`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_TableSet</span>(<span class="param">dTable_t* table, const void* key, const void* value</span>)</div>
+                <div class="brief">Insert or update a key-value pair in the hash table (upsert operation).</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">A pointer to the hash table</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key</span>
+                        <span class="param-desc">A pointer to the key data to set</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">value</span>
+                        <span class="param-desc">A pointer to the value data to set</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure
+Example:
+`int key = 42; char* value = "hello"; d_TableSet(table, &key, &value);`</div>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-header">
+                <span class="category-emoji">🗄️</span>
+                <span class="category-title">Table (Static)</span>
+                <span class="category-count">14 functions</span>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dStaticTable_t*</span> <span class="function-name">d_CloneStaticTable</span>(<span class="param">const dStaticTable_t* source_table</span>)</div>
+                <div class="brief">Create a complete deep copy of a static hash table.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">source_table</span>
+                        <span class="param-desc">Pointer to the source static table to clone</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Pointer to the newly created static table, or NULL on failure</div>
+                <div class="section-title">Note</div>
+                <div class="note">The caller is responsible for destroying the returned table</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_CompareStaticTable</span>(<span class="param">const void* table1, const void* table2, size_t unused</span>)</div>
+                <div class="brief">Comparison function for dStaticTable_t objects.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table1</span>
+                        <span class="param-desc">Pointer to first dStaticTable_t* (pointer to dStaticTable_t pointer)</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">table2</span>
+                        <span class="param-desc">Pointer to second dStaticTable_t* (pointer to dStaticTable_t pointer)</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">unused</span>
+                        <span class="param-desc">Size parameter (unused for tables)</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 if equal, non-zero if different
+Example:
+```c
+dStaticTable_t *table1, *table2;
+if (d_CompareStaticTable(&table1, &table2, 0) == 0) {
+    // Tables have identical structure and contents
+}
+```</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dStaticTable_t*</span> <span class="function-name">d_LoadStaticTableFromFile</span>(<span class="param">const char* filename, dTableHashFunc hash_func, dTableCompareFunc compare_func</span>)</div>
+                <div class="brief">Load a static hash table from a binary file.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">filename</span>
+                        <span class="param-desc">Path to the input file</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">hash_func</span>
+                        <span class="param-desc">Hash function to use (must match the original table)</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">compare_func</span>
+                        <span class="param-desc">Compare function to use (must match the original table)</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Pointer to the loaded static table, or NULL on failure</div>
+                <div class="section-title">Note</div>
+                <div class="note">The caller is responsible for destroying the returned table</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dStaticTable_t*</span> <span class="function-name">d_RebucketStaticTable</span>(<span class="param">const dStaticTable_t* source_table, size_t new_num_buckets</span>)</div>
+                <div class="brief">Create a copy of the static hash table with a different bucket count.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">source_table</span>
+                        <span class="param-desc">A pointer to the source static hash table</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">new_num_buckets</span>
+                        <span class="param-desc">The number of buckets for the new table</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">A pointer to the newly created static table, or NULL on failure</div>
+                <div class="section-title">Note</div>
+                <div class="note">Useful for performance optimization without modifying original table
+Example:
+`dStaticTable_t* optimized = d_RebucketStaticTable(original, 64);`
+`// Use optimized table, destroy when done`
+`d_StaticTableDestroy(&optimized);`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_StaticTableClear</span>(<span class="param">dStaticTable_t* table</span>)</div>
+                <div class="brief">Clear all entries from the static hash table but keep the structure intact.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">A pointer to the static hash table to clear</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure</div>
+                <div class="section-title">Note</div>
+                <div class="note">To reuse the table, you must reinitialize it with keys
+Example:
+`d_StaticTableClear(table); // Table is now empty and uninitialized`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_StaticTableDestroy</span>(<span class="param">dStaticTable_t** table</span>)</div>
+                <div class="brief">Destroy a static hash table and free all associated memory.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">A pointer to the pointer of the static hash table to destroy</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure
+Example:
+`d_StaticTableDestroy(&my_table); // my_table will be NULL after this`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void*</span> <span class="function-name">d_StaticTableGet</span>(<span class="param">const dStaticTable_t* table, const void* key</span>)</div>
+                <div class="brief">Retrieve a pointer to the value associated with a given key.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">A pointer to the static hash table</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key</span>
+                        <span class="param-desc">A pointer to the key data to search for</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">A void* pointer to the internally stored value data if found, or NULL if not found
+Example:
+`int key = 42; char** value = (char**)d_StaticTableGet(table, &key);`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dArray_t*</span> <span class="function-name">d_StaticTableGetAllKeys</span>(<span class="param">const dStaticTable_t* table</span>)</div>
+                <div class="brief">Get an array containing all keys from the static hash table.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">A pointer to the static hash table</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">A newly allocated dArray_t containing all keys, or NULL on failure</div>
+                <div class="section-title">Note</div>
+                <div class="note">The keys are copied into the array, not referenced
+Example:
+`dArray_t* keys = d_StaticTableGetAllKeys(table);`
+`d_ArrayDestroy(keys);`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dArray_t*</span> <span class="function-name">d_StaticTableGetAllValues</span>(<span class="param">const dStaticTable_t* table</span>)</div>
+                <div class="brief">Get an array containing all values from the static hash table.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">A pointer to the static hash table</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">A newly allocated dArray_t containing all values, or NULL on failure</div>
+                <div class="section-title">Note</div>
+                <div class="note">The values are copied into the array, not referenced
+Example:
+`dArray_t* values = d_StaticTableGetAllValues(table);`
+`d_ArrayDestroy(values);`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">size_t</span> <span class="function-name">d_StaticTableGetKeyCount</span>(<span class="param">const dStaticTable_t* table</span>)</div>
+                <div class="brief">Get the fixed number of keys in the static hash table.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">A pointer to the static hash table</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">The total count of keys, or 0 if table is NULL or uninitialized
+Example:
+`size_t key_count = d_StaticTableGetKeyCount(table);`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_StaticTableHasKey</span>(<span class="param">const dStaticTable_t* table, const void* key</span>)</div>
+                <div class="brief">Check if a specific key exists in the static hash table.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">A pointer to the static hash table</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key</span>
+                        <span class="param-desc">A pointer to the key data to check for</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 if the key exists, 1 if not found or error occurred
+Example:
+`int key = 42; if (d_StaticTableHasKey(table, &key) == 0) { // key exists }`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_StaticTableIterate</span>(<span class="param">const dStaticTable_t* table, dTableIteratorFunc callback, void* user_data</span>)</div>
+                <div class="brief">Iterate over all key-value pairs in a static hash table.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">Pointer to the static table to iterate over</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">callback</span>
+                        <span class="param-desc">Function to call for each key-value pair</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">user_data</span>
+                        <span class="param-desc">Generic pointer passed to the callback for context</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_StaticTableSaveToFile</span>(<span class="param">const char* filename, const dStaticTable_t* table</span>)</div>
+                <div class="brief">Save a static hash table to a binary file.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">filename</span>
+                        <span class="param-desc">Path to the output file</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">Pointer to the static table to save</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure</div>
+                <div class="section-title">Note</div>
+                <div class="note">The hash and compare functions cannot be saved and must be provided when loading</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_StaticTableSet</span>(<span class="param">dStaticTable_t* table, const void* key, const void* new_value</span>)</div>
+                <div class="brief">Update the value associated with a key in the static table.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">table</span>
+                        <span class="param-desc">A pointer to the static hash table</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key</span>
+                        <span class="param-desc">A pointer to the key data to update</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">new_value</span>
+                        <span class="param-desc">A pointer to the new value data</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure/key not found
+Example:
+`int key = 42; char* new_value = "updated"; d_StaticTableSet(table, &key, &new_value);`</div>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-header">
+                <span class="category-emoji">📝</span>
+                <span class="category-title">String</span>
+                <span class="category-count">23 functions</span>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_CompareDString</span>(<span class="param">const void* key1, const void* key2, size_t key_size</span>)</div>
+                <div class="brief">Comparison function for dString_t objects.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">key1</span>
+                        <span class="param-desc">Pointer to first dString_t* (pointer to dString_t pointer)</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key2</span>
+                        <span class="param-desc">Pointer to second dString_t* (pointer to dString_t pointer)</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key_size</span>
+                        <span class="param-desc">Size parameter (unused for dString_t)</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 if equal, non-zero if different</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_CompareString</span>(<span class="param">const void* key1, const void* key2, size_t key_size</span>)</div>
+                <div class="brief">Comparison function for null-terminated strings.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">key1</span>
+                        <span class="param-desc">Pointer to first string pointer (char**)</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key2</span>
+                        <span class="param-desc">Pointer to second string pointer (char**)</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key_size</span>
+                        <span class="param-desc">Size parameter (unused for null-terminated strings)</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 if equal, non-zero if different</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_CompareStringCaseInsensitive</span>(<span class="param">const void* key1, const void* key2, size_t key_size</span>)</div>
+                <div class="brief">Comparison function for case-insensitive strings.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">key1</span>
+                        <span class="param-desc">Pointer to first string pointer (char**)</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key2</span>
+                        <span class="param-desc">Pointer to second string pointer (char**)</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key_size</span>
+                        <span class="param-desc">Size parameter (unused for null-terminated strings)</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 if equal, non-zero if different</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_CompareStringLiteral</span>(<span class="param">const void* key1, const void* key2, size_t key_size</span>)</div>
+                <div class="brief">Comparison function for string literals (const char*).</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">key1</span>
+                        <span class="param-desc">Pointer to first string (char*)</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key2</span>
+                        <span class="param-desc">Pointer to second string (char*)</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key_size</span>
+                        <span class="param-desc">Length to compare (0 for full null-terminated comparison)</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 if equal, non-zero if different</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dDUFValue_t*</span> <span class="function-name">d_DUFCreateString</span>(<span class="param">const char* str</span>)</div>
+                <div class="brief">Create a new DUF string value</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">str</span>
+                        <span class="param-desc">The string to copy (must not be NULL)</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Newly allocated string value, or NULL on allocation failure</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dDUFError_t*</span> <span class="function-name">d_DUFParseString</span>(<span class="param">const char* content, dDUFValue_t** out_value</span>)</div>
+                <div class="brief">Parse a DUF string into a value tree</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">content</span>
+                        <span class="param-desc">Null-terminated string containing DUF content</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">out_value</span>
+                        <span class="param-desc">Pointer to store the parsed value tree (set to NULL on error)</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Error information, or NULL on success</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dString_t*</span> <span class="function-name">d_DUFToString</span>(<span class="param">dDUFValue_t* root</span>)</div>
+                <div class="brief">Serialize a DUF value tree to a string</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">root</span>
+                        <span class="param-desc">The root value to serialize</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Newly allocated dString_t, or NULL on failure (caller must free)</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">size_t</span> <span class="function-name">d_HashString</span>(<span class="param">const void* key, size_t key_size</span>)</div>
+                <div class="brief">Hash function for null-terminated strings using FNV-1a algorithm.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">key</span>
+                        <span class="param-desc">Pointer to null-terminated string</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key_size</span>
+                        <span class="param-desc">Size parameter (can be 0 for null-terminated strings)</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Hash value
+Example:
+```c
+dTable_t* table = d_TableInit(sizeof(char*), sizeof(int),
+                              d_HashString, d_CompareString, 16, 0.75f);
+```</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">size_t</span> <span class="function-name">d_HashStringCaseInsensitive</span>(<span class="param">const void* key, size_t key_size</span>)</div>
+                <div class="brief">Hash function for case-insensitive strings.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">key</span>
+                        <span class="param-desc">Pointer to string pointer (char**)</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key_size</span>
+                        <span class="param-desc">Size parameter (unused for null-terminated strings)</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Hash value</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">size_t</span> <span class="function-name">d_HashStringLiteral</span>(<span class="param">const void* key, size_t key_size</span>)</div>
+                <div class="brief">Hash function for string literals (const char*).</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">key</span>
+                        <span class="param-desc">Pointer to string (char*)</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key_size</span>
+                        <span class="param-desc">Length of the string (can be 0 for null-terminated)</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Hash value</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void</span> <span class="function-name">d_StringAppend</span>(<span class="param">dString_t* sb, const char* str, size_t len</span>)</div>
+                <div class="brief">Add a C string to the string builder.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">sb</span>
+                        <span class="param-desc">The string builder to append to.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">str</span>
+                        <span class="param-desc">The string to append (must be null-terminated if len is 0).</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">len</span>
+                        <span class="param-desc">The length of string to append, or 0 to use strlen().</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">@return: Success/failure indicator.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void</span> <span class="function-name">d_StringAppendChar</span>(<span class="param">dString_t* sb, char c</span>)</div>
+                <div class="brief">Add a single character to the string builder.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">sb</span>
+                        <span class="param-desc">The string builder to append to.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">c</span>
+                        <span class="param-desc">The character to append.</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void</span> <span class="function-name">d_StringAppendFloat</span>(<span class="param">dString_t* sb, float val, int decimals</span>)</div>
+                <div class="brief">Add a floating-point number to the string builder.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">sb</span>
+                        <span class="param-desc">The string builder to append to.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">val</span>
+                        <span class="param-desc">The floating-point value to append.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">decimals</span>
+                        <span class="param-desc">The number of decimal places to show (0-10).</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Success/failure indicator.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void</span> <span class="function-name">d_StringAppendInt</span>(<span class="param">dString_t* sb, int val</span>)</div>
+                <div class="brief">Add an integer to the string builder as a decimal string.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">sb</span>
+                        <span class="param-desc">The string builder to append to.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">val</span>
+                        <span class="param-desc">The integer value to append.</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void</span> <span class="function-name">d_StringAppendN</span>(<span class="param">dString_t* sb, const char* str, size_t max_len</span>)</div>
+                <div class="brief">Negatively Append, removing content from the end of the string.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">sb</span>
+                        <span class="param-desc">The string builder to remove from.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">count</span>
+                        <span class="param-desc">The number of characters to remove.</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void</span> <span class="function-name">d_StringClear</span>(<span class="param">dString_t* sb</span>)</div>
+                <div class="brief">Clear the string builder content.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">sb</span>
+                        <span class="param-desc">The string builder to clear.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Success/failure indicator.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dString_t*</span> <span class="function-name">d_StringClone</span>(<span class="param">const dString_t* source</span>)</div>
+                <div class="brief">Create a new string builder with the same content as another string.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">source</span>
+                        <span class="param-desc">The string to copy content from.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">A new string builder with the same content as the source, or NULL on error.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dString_t*</span> <span class="function-name">d_StringCreateFromFile</span>(<span class="param">const char *filename</span>)</div>
+                <div class="brief">Create a dString from the contents of a file</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">filename</span>
+                        <span class="param-desc">Path to the file to read (must not be NULL)</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">A new dString_t* containing the file contents, or NULL if:
+        - filename is NULL
+        - file cannot be opened
+        - memory allocation fails
+        - file read operation fails</div>
+                <div class="section-title">Note</div>
+                <div class="note">The function preserves all bytes in the file, including embedded null bytes
+@warning The file contents are loaded entirely into memory. Be cautious with large files.
+Example usage:
+@code
+dString_t* config = d_StringCreateFromFile("config.txt");
+if (config != NULL) {
+    // Use the config...
+    d_StringDestroy(config);
+}
+@endcode
+@see d_StringDestroy
+@see d_StringInit</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void</span> <span class="function-name">d_StringDestroy</span>(<span class="param">dString_t* sb</span>)</div>
+                <div class="brief">Destroy a string builder and free its memory.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">sb</span>
+                        <span class="param-desc">The string builder to destroy.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">@return: Success/failure indicator.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void</span> <span class="function-name">d_StringFormat</span>(<span class="param">dString_t* sb, const char* format, ...</span>)</div>
+                <div class="brief">Append formatted text to string builder using printf-style format specifiers</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">sb</span>
+                        <span class="param-desc">String builder to append to</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">format</span>
+                        <span class="param-desc">Format string with %s, %d, %f, etc.</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_StringSet</span>(<span class="param">dString_t* string, const char* content, int flags</span>)</div>
+                <div class="brief">Set the content of an existing dString_t to a new value.</div>
+                <div class="section-title">Returns</div>
+                <div class="returns">@return: Success/failure indicator.</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void</span> <span class="function-name">d_StringSlice</span>(<span class="param">dString_t* sb, const char* text, int start, int end</span>)</div>
+                <div class="brief">Slice text and append a substring slice with Python-style indexing</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">sb</span>
+                        <span class="param-desc">String builder to append result to</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">text</span>
+                        <span class="param-desc">Source text to slice</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">start</span>
+                        <span class="param-desc">Start index (negative counts from end)</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">end</span>
+                        <span class="param-desc">End index, exclusive (negative counts from end)</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void</span> <span class="function-name">d_StringTemplate</span>(<span class="param">dString_t* sb, const char* tmplt, const char* keys[], const char* values[], int count</span>)</div>
+                <div class="brief">Perform template string substitution replacing {key} placeholders with values</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">sb</span>
+                        <span class="param-desc">String builder to append result to</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">tmplt</span>
+                        <span class="param-desc">Template string containing {key} placeholders</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">keys</span>
+                        <span class="param-desc">Array of key strings to match</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">values</span>
+                        <span class="param-desc">Array of replacement values</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">count</span>
+                        <span class="param-desc">Number of key-value pairs</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-header">
+                <span class="category-emoji">🔗</span>
+                <span class="category-title">Linked List</span>
+                <span class="category-count">15 functions</span>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_CheckForNameInLinkedList</span>(<span class="param">dLinkedList_t *head, char *target_name</span>)</div>
+                <div class="brief">Check if a linked list contains a node with the specified name.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">head</span>
+                        <span class="param-desc">A pointer to the head node of the linked list.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">target_name</span>
+                        <span class="param-desc">A C-string representing the name to search for.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 if the name is found, 1 if not found or on error.</div>
+                <div class="section-title">Note</div>
+                <div class="note">This function is optimized for existence checking and returns
+immediately upon finding the first match.
+Example:
+`int exists = d_CheckForNameInLinkedList(myList, "user_config");`
+`if (exists == 0) { // Name found in list }`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_DestroyLinkedList</span>(<span class="param">dLinkedList_t **head</span>)</div>
+                <div class="brief">Destroys a linked list and frees all its associated memory.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">head</span>
+                        <span class="param-desc">A pointer to the pointer of the head of the linked list (`dLinkedList_t**`).</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure (e.g., if head pointer is NULL).</div>
+                <div class="section-title">Note</div>
+                <div class="note">This function handles freeing the `data` stored inside each node,
+assuming the data was allocated via `malloc` and is owned by the node.
+If `data` points to external, unowned memory, it should not be freed here.
+Example:
+`dLinkedList_t* myList = d_InitLinkedList(...);`
+`// ... use myList ...`
+`d_DestroyLinkedList(&myList);`
+`// myList is now NULL`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void*</span> <span class="function-name">d_FindDataFromLinkedList</span>(<span class="param">dLinkedList_t *head, char *name</span>)</div>
+                <div class="brief">Finds and retrieves a pointer to the data stored in a linked list node by its name.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">head</span>
+                        <span class="param-desc">A pointer to the head node of the linked list.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">name</span>
+                        <span class="param-desc">A C-string (char array) representing the name of the node whose data is to be retrieved.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">A pointer to the data of the element with the matching name,
+or `NULL` if the list is empty, the `name` is NULL, or no node with the given name is found.</div>
+                <div class="section-title">Note</div>
+                <div class="note">The returned pointer points directly to the data owned by the linked list node.
+It remains valid as long as the node itself is not removed or the list is not destroyed.
+Example:
+`MyStruct* s_ptr = (MyStruct*)d_FindDataFromLinkedList(myList, "player_data");`
+`if (s_ptr) { // Use s_ptr }`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">size_t</span> <span class="function-name">d_GetLengthOfLinkedList</span>(<span class="param">dLinkedList_t *head</span>)</div>
+                <div class="brief">Calculates and returns the number of nodes (length) in the linked list.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">head</span>
+                        <span class="param-desc">A pointer to the head node of the linked list.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">The total number of nodes in the linked list. Returns 0 if the list is empty.</div>
+                <div class="section-title">Note</div>
+                <div class="note">The return type is `size_t` for consistency with array counts and to
+support potentially very large lists.
+Example:
+`size_t list_length = d_GetLengthOfLinkedList(myList);`
+`d_LogInfoF("Linked List Length: %zu", list_length);`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dLinkedList_t*</span> <span class="function-name">d_GetNodeByNameLinkedList</span>(<span class="param">dLinkedList_t *head, char *target_name</span>)</div>
+                <div class="brief">Get a direct pointer to the node (not just data) with the specified name.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">head</span>
+                        <span class="param-desc">A pointer to the head node of the linked list.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">target_name</span>
+                        <span class="param-desc">A C-string representing the name of the node to retrieve.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">A pointer to the dLinkedList_t node that matches the target_name,
+or NULL if not found or on error.</div>
+                <div class="section-title">Note</div>
+                <div class="note">Use this function when you need access to the entire node structure,
+not just the data it contains.
+Example:
+`dLinkedList_t* node = d_GetNodeByNameLinkedList(myList, "config_node");`
+`if (node) { // Direct access to node->data, node->buffer, node->next }`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void*</span> <span class="function-name">d_IndexDataFromLinkedList</span>(<span class="param">dLinkedList_t *head, int index</span>)</div>
+                <div class="brief">Retrieves a pointer to the data stored in a linked list node at a specific index.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">head</span>
+                        <span class="param-desc">A pointer to the head node of the linked list.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">index</span>
+                        <span class="param-desc">The zero-based index of the node whose data is to be retrieved.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">A pointer to the data of the element at the specified index,
+or `NULL` if the list is empty or the index is out of bounds.</div>
+                <div class="section-title">Note</div>
+                <div class="note">The `index` must be less than the total number of nodes in the list.
+Example:
+`int* value_ptr = (int*)d_IndexDataFromLinkedList(myList, 0);`
+`if (value_ptr) { int first_value = *value_ptr; }`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dLinkedList_t*</span> <span class="function-name">d_InitLinkedList</span>(<span class="param">void *data, char *name, size_t size</span>)</div>
+                <div class="brief">Initializes a new linked list with its first node.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">data</span>
+                        <span class="param-desc">A pointer to the data to be stored in the first node. The data</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">name</span>
+                        <span class="param-desc">A C-string (char array) representing the name to be associated</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">size</span>
+                        <span class="param-desc">The size in bytes of the data to be copied from `data`.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">A pointer to the head of the new `dLinkedList_t`, or `NULL` if
+memory allocation fails.</div>
+                <div class="section-title">Note</div>
+                <div class="note">The returned list must be eventually freed using `d_ClearLinkedList` to prevent memory leaks.
+Example:
+`int my_int = 42;`
+`dLinkedList_t* myList = d_InitLinkedList(&my_int, "first_item", sizeof(int));`
+`if (myList == NULL) { d_LogError("Failed to initialize linked list!"); }`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void*</span> <span class="function-name">d_PopBackFromLinkedList</span>(<span class="param">dLinkedList_t **head</span>)</div>
+                <div class="brief">Removes and returns the data from the last node of the linked list.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">head</span>
+                        <span class="param-desc">A pointer to the pointer of the head of the linked list (`dLinkedList_t**`).</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">A pointer to the data from the removed tail node, or `NULL` if
+the list is empty or an error occurs.</div>
+                <div class="section-title">Note</div>
+                <div class="note">The memory for the removed node itself (and its internal `data` buffer)
+is freed by this function. The caller is responsible for managing the returned
+`void* data` if they need it after this function call.
+Example:
+`int* last_int_ptr = (int*)d_PopBackFromLinkedList(&myList);`
+`if (last_int_ptr) { printf("Popped: %d\n", *last_int_ptr); free(last_int_ptr); }`
+`else { d_LogWarning("List was empty or pop failed."); }`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void*</span> <span class="function-name">d_PopFrontFromLinkedList</span>(<span class="param">dLinkedList_t **head</span>)</div>
+                <div class="brief">Removes and returns the data from the first node (head) of the linked list.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">head</span>
+                        <span class="param-desc">A pointer to the pointer of the head of the linked list (`dLinkedList_t**`).</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">A pointer to the data from the removed head node, or `NULL` if
+the list is empty or an error occurs.</div>
+                <div class="section-title">Note</div>
+                <div class="note">The memory for the removed node itself (and its internal `data` buffer)
+is freed by this function. The caller is responsible for managing the returned
+`void* data` if they need it after this function call.
+Example:
+`char* first_name_ptr = (char*)d_PopFrontFromLinkedList(&myList);`
+`if (first_name_ptr) { printf("Popped: %s\n", first_name_ptr); free(first_name_ptr); }`
+`else { d_LogWarning("List was empty or pop failed."); }`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void</span> <span class="function-name">d_PrintLinkedList</span>(<span class="param">dLinkedList_t *head</span>)</div>
+                <div class="brief">Prints the names of all nodes in the linked list to standard output.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">head</span>
+                        <span class="param-desc">A pointer to the head node of the linked list.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Note</div>
+                <div class="note">Only the `name` (buffer) of each node is printed, not the generic `data` itself.
+Example:
+`d_PrintLinkedList(myList);`
+`// Possible output:`
+`// Linked List Contents:`
+`//   - Node: item1`
+`//   - Node: item2`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_PushBackToLinkedList</span>(<span class="param">dLinkedList_t **head, void *data, char *name, size_t size</span>)</div>
+                <div class="brief">Adds a new node to the end of the linked list.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">head</span>
+                        <span class="param-desc">A pointer to the pointer of the head of the linked list (`dLinkedList_t**`).</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">data</span>
+                        <span class="param-desc">A pointer to the data to be copied into the new node.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">name</span>
+                        <span class="param-desc">A C-string representing the name for the new node.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">size</span>
+                        <span class="param-desc">The size in bytes of the data to be copied.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure (e.g., if memory allocation fails).</div>
+                <div class="section-title">Note</div>
+                <div class="note">If `*head` is `NULL` (empty list), the new node becomes the head.
+Example:
+`dLinkedList_t* myList = NULL; // Start with an empty list`
+`int value1 = 10;`
+`d_PushBackToLinkedList(&myList, &value1, "item1", sizeof(int));`
+`int value2 = 20;`
+`d_PushBackToLinkedList(&myList, &value2, "item2", sizeof(int));`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_PushFrontToLinkedList</span>(<span class="param">dLinkedList_t **head, void *data, char *name, size_t size</span>)</div>
+                <div class="brief">Adds a new node to the beginning of the linked list.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">head</span>
+                        <span class="param-desc">A pointer to the pointer of the head of the linked list (`dLinkedList_t**`).</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">data</span>
+                        <span class="param-desc">A pointer to the data to be copied into the new node.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">name</span>
+                        <span class="param-desc">A C-string representing the name for the new node.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">size</span>
+                        <span class="param-desc">The size in bytes of the data to be copied.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure (e.g., if memory allocation fails).</div>
+                <div class="section-title">Note</div>
+                <div class="note">The `*head` pointer will always be updated to point to the newly added node.
+Example:
+`dLinkedList_t* myList = d_InitLinkedList(...); // Assume list is already initialized`
+`int new_value = 5;`
+`d_PushFrontToLinkedList(&myList, &new_value, "new_item", sizeof(int));`
+`// new_item is now the first element in myList`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_RemoveDataFromLinkedList</span>(<span class="param">dLinkedList_t **head, char *name</span>)</div>
+                <div class="brief">Removes the first node from the linked list that matches the specified name.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">head</span>
+                        <span class="param-desc">A pointer to the pointer of the head of the linked list (`dLinkedList_t**`).</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">name</span>
+                        <span class="param-desc">A C-string (char array) representing the name of the node to remove.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure (e.g., NULL list, NULL name, name not found).</div>
+                <div class="section-title">Note</div>
+                <div class="note">This function frees the `data` stored within the node. If the `data`
+points to external memory that should *not* be freed by the list,
+the caller must handle that memory's lifecycle externally.
+Example:
+`int result = d_RemoveDataFromLinkedList(&myList, "old_item");`
+`if (result != 0) { d_LogError("Failed to remove node by name."); }`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_RemoveIndexFromLinkedList</span>(<span class="param">dLinkedList_t **head, int index</span>)</div>
+                <div class="brief">Removes the node at a specific index from the linked list.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">head</span>
+                        <span class="param-desc">A pointer to the pointer of the head of the linked list (`dLinkedList_t**`).</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">index</span>
+                        <span class="param-desc">The zero-based index of the node to remove.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, 1 on failure (e.g., NULL list, invalid index).</div>
+                <div class="section-title">Note</div>
+                <div class="note">This function frees the `data` stored within the node. If the `data`
+points to external memory that should *not* be freed by the list,
+the caller must handle that memory's lifecycle externally, or a
+more advanced design with a custom `free_data_func` would be needed.
+Example:
+`int result = d_RemoveIndexFromLinkedList(&myList, 0); // Removes the first element`
+`if (result != 0) { d_LogError("Failed to remove node at index."); }`</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_UpdateDataByNameLinkedList</span>(<span class="param">dLinkedList_t **head, void *new_data, char *target_name, size_t new_size</span>)</div>
+                <div class="brief">Update existing data by name or insert new node if name not found (upsert operation).</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">head</span>
+                        <span class="param-desc">A pointer to the pointer of the head of the linked list (dLinkedList_t**).</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">new_data</span>
+                        <span class="param-desc">A pointer to the new data to store or update.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">target_name</span>
+                        <span class="param-desc">A C-string representing the name of the node to update or create.</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">new_size</span>
+                        <span class="param-desc">The size in bytes of the new data.</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success (either update or insert), 1 on failure.</div>
+                <div class="section-title">Note</div>
+                <div class="note">If the list is empty and a new node is created, it becomes the head.
+Example:
+`PlayerStats stats = {level: 5, health: 100};`
+`int result = d_UpdateDataByNameLinkedList(&gameData, &stats, "player1", sizeof(PlayerStats));`
+`// Updates existing player1 data or creates new player1 node`</div>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-header">
+                <span class="category-emoji">📋</span>
+                <span class="category-title">DUF (Data Format)</span>
+                <span class="category-count">12 functions</span>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dDUFValue_t*</span> <span class="function-name">d_DUFCreateBool</span>(<span class="param">bool val</span>)</div>
+                <div class="brief">Create a new DUF boolean value</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">val</span>
+                        <span class="param-desc">The boolean value to store</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Newly allocated boolean value, or NULL on allocation failure</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dDUFValue_t*</span> <span class="function-name">d_DUFCreateFloat</span>(<span class="param">double val</span>)</div>
+                <div class="brief">Create a new DUF float value</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">val</span>
+                        <span class="param-desc">The floating-point value to store</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Newly allocated float value, or NULL on allocation failure</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dDUFValue_t*</span> <span class="function-name">d_DUFCreateInt</span>(<span class="param">int64_t val</span>)</div>
+                <div class="brief">Create a new DUF integer value</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">val</span>
+                        <span class="param-desc">The integer value to store</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Newly allocated integer value, or NULL on allocation failure</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void</span> <span class="function-name">d_DUFErrorFree</span>(<span class="param">dDUFError_t* err</span>)</div>
+                <div class="brief">Free a DUF error structure</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">err</span>
+                        <span class="param-desc">The error to free</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">void</span> <span class="function-name">d_DUFFree</span>(<span class="param">dDUFValue_t* val</span>)</div>
+                <div class="brief">Recursively free a DUF value and all children</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">val</span>
+                        <span class="param-desc">The value to free</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dDUFValue_t*</span> <span class="function-name">d_DUFGet</span>(<span class="param">dDUFValue_t* root, const char* path</span>)</div>
+                <div class="brief">Get a value using path notation</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">root</span>
+                        <span class="param-desc">The root value to search from</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">path</span>
+                        <span class="param-desc">The path string (e.g., "key.subkey[0]")</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">The value at the path, or NULL if not found</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">bool</span> <span class="function-name">d_DUFGetBool</span>(<span class="param">dDUFValue_t* root, const char* path, bool fallback</span>)</div>
+                <div class="brief">Get a boolean value using path notation</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">root</span>
+                        <span class="param-desc">The root value to search from</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">path</span>
+                        <span class="param-desc">The path string</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">fallback</span>
+                        <span class="param-desc">Value to return if path not found or wrong type</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">The boolean value, or fallback</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">double</span> <span class="function-name">d_DUFGetFloat</span>(<span class="param">dDUFValue_t* root, const char* path, double fallback</span>)</div>
+                <div class="brief">Get a float value using path notation</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">root</span>
+                        <span class="param-desc">The root value to search from</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">path</span>
+                        <span class="param-desc">The path string</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">fallback</span>
+                        <span class="param-desc">Value to return if path not found or wrong type</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">The float value, or fallback</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int64_t</span> <span class="function-name">d_DUFGetInt</span>(<span class="param">dDUFValue_t* root, const char* path, int64_t fallback</span>)</div>
+                <div class="brief">Get an integer value using path notation</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">root</span>
+                        <span class="param-desc">The root value to search from</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">path</span>
+                        <span class="param-desc">The path string</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">fallback</span>
+                        <span class="param-desc">Value to return if path not found or wrong type</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">The integer value, or fallback</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dDUFType_t</span> <span class="function-name">d_DUFGetType</span>(<span class="param">dDUFValue_t* val</span>)</div>
+                <div class="brief">Get the type of a DUF value</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">val</span>
+                        <span class="param-desc">The value to inspect</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">The type tag, or D_DUF_NULL if val is NULL</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">dDUFError_t*</span> <span class="function-name">d_DUFParseFile</span>(<span class="param">const char* filename, dDUFValue_t** out_value</span>)</div>
+                <div class="brief">Parse a DUF file into a value tree</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">filename</span>
+                        <span class="param-desc">Path to the DUF file to parse</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">out_value</span>
+                        <span class="param-desc">Pointer to store the parsed value tree (set to NULL on error)</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Error information, or NULL on success
+Example:
+@code
+dDUFValue_t* data = NULL;
+dDUFError_t* err = d_DUFParseFile("config.duf", &data);
+if (err != NULL) {
+    printf("Error at %d:%d - %s\n", err->line, err->column, d_StringPeek(err->message));
+    d_DUFErrorFree(err);
+    return -1;
+}
+// Use data...
+d_DUFFree(data);
+@endcode</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_DUFWriteFile</span>(<span class="param">dDUFValue_t* root, const char* filename</span>)</div>
+                <div class="brief">Write a DUF value tree to a file</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">root</span>
+                        <span class="param-desc">The root value to serialize</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">filename</span>
+                        <span class="param-desc">Path to output file</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 on success, -1 on failure</div>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-header">
+                <span class="category-emoji">🛠️</span>
+                <span class="category-title">Utility Functions</span>
+                <span class="category-count">11 functions</span>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_CompareBinary</span>(<span class="param">const void* key1, const void* key2, size_t key_size</span>)</div>
+                <div class="brief">Comparison function for binary data using memcmp.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">key1</span>
+                        <span class="param-desc">Pointer to first data block</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key2</span>
+                        <span class="param-desc">Pointer to second data block</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key_size</span>
+                        <span class="param-desc">Size of data blocks in bytes</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 if equal, non-zero if different</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_CompareDouble</span>(<span class="param">const void* key1, const void* key2, size_t key_size</span>)</div>
+                <div class="brief">Comparison function for double-precision floating-point numbers.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">key1</span>
+                        <span class="param-desc">Pointer to first double</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key2</span>
+                        <span class="param-desc">Pointer to second double</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key_size</span>
+                        <span class="param-desc">Size of keys (should be sizeof(double))</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 if equal, non-zero if different</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_CompareFloat</span>(<span class="param">const void* key1, const void* key2, size_t key_size</span>)</div>
+                <div class="brief">Comparison function for floating-point numbers.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">key1</span>
+                        <span class="param-desc">Pointer to first float</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key2</span>
+                        <span class="param-desc">Pointer to second float</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key_size</span>
+                        <span class="param-desc">Size of keys (should be sizeof(float))</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 if equal, non-zero if different</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_CompareInt</span>(<span class="param">const void* key1, const void* key2, size_t key_size</span>)</div>
+                <div class="brief">Comparison function for 32-bit integers.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">key1</span>
+                        <span class="param-desc">Pointer to first integer</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key2</span>
+                        <span class="param-desc">Pointer to second integer</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key_size</span>
+                        <span class="param-desc">Size of keys (should be sizeof(int))</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 if equal, non-zero if different</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">int</span> <span class="function-name">d_ComparePointer</span>(<span class="param">const void* key1, const void* key2, size_t key_size</span>)</div>
+                <div class="brief">Comparison function for pointers (memory addresses).</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">key1</span>
+                        <span class="param-desc">Pointer to first pointer value</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key2</span>
+                        <span class="param-desc">Pointer to second pointer value</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key_size</span>
+                        <span class="param-desc">Size of pointer (should be sizeof(void*))</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">0 if equal, non-zero if different</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">size_t</span> <span class="function-name">d_HashBinary</span>(<span class="param">const void* key, size_t key_size</span>)</div>
+                <div class="brief">General-purpose hash function for binary data using FNV-1a.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">key</span>
+                        <span class="param-desc">Pointer to binary data</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key_size</span>
+                        <span class="param-desc">Size of the data in bytes</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Hash value
+Example:
+```c
+typedef struct { int x, y; } Point;
+dTable_t* table = d_TableInit(sizeof(Point), sizeof(int),
+                              d_HashBinary, d_CompareBinary, 16, 0.75f);
+```</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">size_t</span> <span class="function-name">d_HashDouble</span>(<span class="param">const void* key, size_t key_size</span>)</div>
+                <div class="brief">Hash function for double-precision floating-point numbers.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">key</span>
+                        <span class="param-desc">Pointer to double value</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key_size</span>
+                        <span class="param-desc">Size of the key (should be sizeof(double))</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Hash value</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">size_t</span> <span class="function-name">d_HashFloat</span>(<span class="param">const void* key, size_t key_size</span>)</div>
+                <div class="brief">Hash function for floating-point numbers.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">key</span>
+                        <span class="param-desc">Pointer to float value</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key_size</span>
+                        <span class="param-desc">Size of the key (should be sizeof(float))</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Hash value
+Example:
+```c
+dTable_t* table = d_TableInit(sizeof(float), sizeof(int),
+                              d_HashFloat, d_CompareFloat, 16, 0.75f);
+```</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">size_t</span> <span class="function-name">d_HashInt</span>(<span class="param">const void* key, size_t key_size</span>)</div>
+                <div class="brief">Hash function for 32-bit integers using Knuth's multiplicative method.</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">key</span>
+                        <span class="param-desc">Pointer to integer key</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key_size</span>
+                        <span class="param-desc">Size of the key (should be sizeof(int))</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Hash value
+Example:
+```c
+dTable_t* table = d_TableInit(sizeof(int), sizeof(char*),
+                              d_HashInt, d_CompareInt, 16, 0.75f);
+```</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">size_t</span> <span class="function-name">d_HashPointer</span>(<span class="param">const void* key, size_t key_size</span>)</div>
+                <div class="brief">Hash function for pointers (memory addresses).</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">key</span>
+                        <span class="param-desc">Pointer to pointer value</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key_size</span>
+                        <span class="param-desc">Size of pointer (should be sizeof(void*))</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Hash value</div>
+            </div>
+
+            <div class="function">
+                <div class="function-signature"><span class="return-type">size_t</span> <span class="function-name">d_HashSmallInt</span>(<span class="param">const void* key, size_t key_size</span>)</div>
+                <div class="brief">Hash function optimized for small positive integers (0-999).</div>
+                <div class="section-title">Parameters</div>
+                <ul class="param-list">
+                    <li class="param-item">
+                        <span class="param-name">key</span>
+                        <span class="param-desc">Pointer to integer key</span>
+                    </li>
+                    <li class="param-item">
+                        <span class="param-name">key_size</span>
+                        <span class="param-desc">Size of the key (should be sizeof(int))</span>
+                    </li>
+                </ul>
+                <div class="section-title">Returns</div>
+                <div class="returns">Hash value</div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stats-title">Documented Functions</div>
+            <div class="stats-value">124</div>
+            <div class="footer">Generated from Doxygen comments • Daedalus Library</div>
+        </div>
+    </div>
+</body>
+</html>

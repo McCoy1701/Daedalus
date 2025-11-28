@@ -1,31 +1,8 @@
-// File: src/dStaticArrays.c - Static Array Implementation for Daedalus Library
-// Fixed-size array data structure with no dynamic resizing capabilities
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include "Daedalus.h"
 
-// =============================================================================
-// STATIC ARRAY INITIALIZATION AND DESTRUCTION
-// =============================================================================
-
-/**
- * @brief Initialize a new static array with fixed capacity
- *
- * @param capacity: Maximum number of elements the array can hold
- * @param element_size: Size of each element in bytes
- * 
- * @return: Pointer to new static array, or NULL on allocation failure
- *
- * -- Allocates memory for both the structure and the data buffer
- * -- Data buffer size = capacity * element_size
- * -- count is initialized to 0
- * -- capacity and element_size are fixed for the lifetime of the array
- * 
- * Example: `dStaticArray_t* array = d_InitStaticArray(10, sizeof(int));`
- * This creates a new static array with a capacity of 10 elements, each of size 4 bytes.
- */
 dStaticArray_t* d_InitStaticArray(size_t capacity, size_t element_size)
 {
     // Validate input parameters
@@ -61,19 +38,6 @@ dStaticArray_t* d_InitStaticArray(size_t capacity, size_t element_size)
     return array;
 }
 
-/**
- * @brief: Destroy a static array and free all associated memory
- *
- * @param array: Pointer to static array to destroy
- * @return: 0 on success, 1 on failure
- *
- * -- Safe to call with NULL pointer
- * -- Frees data buffer first, then structure
- * -- After calling, the pointer becomes invalid
- * 
- * Example: `d_StaticArrayDestroy(array);`
- * This destroys the static array and frees its memory.
- */
 int d_StaticArrayDestroy(dStaticArray_t* array)
 {
     if (!array) {
@@ -96,21 +60,6 @@ int d_StaticArrayDestroy(dStaticArray_t* array)
 // STATIC ARRAY ELEMENT MANAGEMENT (to) and (from) ARRAY
 // =============================================================================
 
-/** 
- * @brief Append an element to the end of the static array.
- * *
- * @param array: Pointer to static array
- * @param data: Pointer to element data to copy
- * @return: 0 on success, 1 on failure
- *
- * -- Fails if array is at maximum capacity
- * -- Fails if array or data is NULL
- * -- Copies element_size bytes from data
- * -- Increments count on successful append
- * 
- * Example: `d_StaticArrayAppend(array, &data);`
- * This appends a pointer to a data element to the end of the static array.
- */
 int d_StaticArrayAppend(dStaticArray_t* array, void* data)
 {
     // Validate input parameters
@@ -135,20 +84,6 @@ int d_StaticArrayAppend(dStaticArray_t* array, void* data)
     return 0; // Success
 }
 
-/**
- * @brief: Get a pointer to an element at the specified index
- *
- * @param array: Pointer to static array
- * @param index: Zero-based index of element to retrieve
- * @return: Pointer to element data, or NULL if out of bounds
- *
- * -- Returns NULL if array is NULL or index >= count
- * -- Performs bounds checking for safety
- * -- Returned pointer is valid until array is modified or destroyed
- * 
- * Example: `void* data = d_StaticArrayGet(array, 0);`
- * This retrieves the first element from the static array.
- */
 void* d_StaticArrayGet(dStaticArray_t* array, size_t index)
 {
     // Validate input parameters
@@ -166,20 +101,6 @@ void* d_StaticArrayGet(dStaticArray_t* array, size_t index)
     return (void*)element_ptr;
 }
 
-/**
- * @brief: Remove and return a pointer to the last element (LIFO behavior)
- *
- * @param array: Pointer to static array
- * @return: Pointer to last element data, or NULL if empty
- *
- * -- Returns NULL if array is NULL or empty
- * -- Decrements count but doesn't free memory
- * -- Element data remains in buffer but is no longer active
- * -- Returned pointer becomes invalid after next append
- * 
- * Example: `void* data = d_StaticArrayPop(array);`
- * This removes and returns the last element from the static array.
- */
 void* d_StaticArrayPop(dStaticArray_t* array)
 {
     // Validate input parameters

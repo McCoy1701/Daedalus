@@ -1,8 +1,8 @@
 @player {
     name: "Hero"
-    alive: true
     level: 5
     health: 100.5
+    alive: true
     items: ["sword", "shield"]
 }
 

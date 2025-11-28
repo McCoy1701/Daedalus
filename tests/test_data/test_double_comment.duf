@@ -1,0 +1,28 @@
+# Tutorial enemies for Card Fifty-Two
+# These enemies introduce core mechanics to the player
+
+@didact {
+    name: "The Didact"
+    hp: 500
+    image_path: "resources/enemies/didact.png"
+
+    # Tutorial enemy with teaching abilities
+    abilities: [
+        "ABILITY_THE_HOUSE_REMEMBERS",
+        "ABILITY_IRREGULARITY_DETECTED",
+        "ABILITY_SYSTEM_OVERRIDE"
+    ]
+}
+
+@daemon {
+    name: "The Daemon"
+    hp: 5000
+    image_path: "resources/enemies/daemon.png"
+
+    # Elite enemy with higher stats
+    abilities: [
+        "ABILITY_THE_HOUSE_REMEMBERS",
+        "ABILITY_IRREGULARITY_DETECTED",
+        "ABILITY_SYSTEM_OVERRIDE"
+    ]
+}

@@ -314,10 +314,27 @@ dArray_t* d_DUFLex(const char* input)
         return NULL;
     }
 
+    // Skip any leading comments/whitespace before main loop
+    // This handles consecutive comments at the start of the file
     while (lex.pos < lex.len) {
         lexer_skip_whitespace(&lex);
-        lexer_skip_comment(&lex);
-        lexer_skip_whitespace(&lex); // Skip whitespace after comment (including newline)
+        if (lexer_peek(&lex) == '#') {
+            lexer_skip_comment(&lex);
+        } else {
+            break;
+        }
+    }
+
+    while (lex.pos < lex.len) {
+        // Skip all consecutive whitespace and comments
+        while (lex.pos < lex.len) {
+            lexer_skip_whitespace(&lex);
+            if (lexer_peek(&lex) == '#') {
+                lexer_skip_comment(&lex);
+            } else {
+                break;
+            }
+        }
 
         if (lex.pos >= lex.len) {
             break;

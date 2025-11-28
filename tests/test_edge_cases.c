@@ -1,5 +1,7 @@
 /* test_edge_cases.c - Comprehensive edge case tests for DUF parser */
 
+#define _POSIX_C_SOURCE 200809L
+
 #include "Daedalus.h"
 #include <stdio.h>
 #include <assert.h>
@@ -14,6 +16,64 @@
 
 // Global test data
 static dDUFValue_t* g_data = NULL;
+
+// Helper function to navigate nested paths and array indices
+// Example: "edge_cases.complex.level1[2]" would navigate: edge_cases -> complex -> level1 -> child[2]
+static dDUFValue_t* navigate_path(dDUFValue_t* root, const char* path)
+{
+    if (root == NULL || path == NULL || path[0] == '\0') {
+        return NULL;
+    }
+
+    dDUFValue_t* current = root;
+    char buffer[256];
+    const char* p = path;
+
+    while (*p != '\0' && current != NULL) {
+        // Skip dots
+        if (*p == '.') {
+            p++;
+            continue;
+        }
+
+        // Extract key name
+        int i = 0;
+        while (*p != '\0' && *p != '.' && *p != '[' && i < 255) {
+            buffer[i++] = *p++;
+        }
+        buffer[i] = '\0';
+
+        // Navigate to the key
+        if (i > 0) {
+            current = d_DUFGetObjectItem(current, buffer);
+            if (current == NULL) {
+                return NULL;
+            }
+        }
+
+        // Handle array indexing
+        if (*p == '[') {
+            p++; // Skip '['
+            int index = 0;
+            while (*p >= '0' && *p <= '9') {
+                index = index * 10 + (*p - '0');
+                p++;
+            }
+            if (*p == ']') {
+                p++; // Skip ']'
+            }
+
+            // Navigate to array index
+            dDUFValue_t* elem = current->child;
+            for (int j = 0; j < index && elem != NULL; j++) {
+                elem = elem->next;
+            }
+            current = elem;
+        }
+    }
+
+    return current;
+}
 
 // Load test data once
 static int load_test_data(void)
@@ -47,43 +107,48 @@ void test_numeric_boundaries(void)
 {
     TEST_START("numeric boundaries");
 
+    dDUFValue_t* edge_cases = d_DUFGetObjectItem(g_data, "edge_cases");
+    assert(edge_cases != NULL);
+
     // INT64_MAX
-    int64_t max_int = d_DUFGetInt(g_data, "edge_cases.max_int", 0);
-    if (max_int != INT64_MAX) {
-        TEST_FAIL("INT64_MAX", "expected %lld, got %lld", (long long)INT64_MAX, (long long)max_int);
+    dDUFValue_t* max_int_node = d_DUFGetObjectItem(edge_cases, "max_int");
+    assert(max_int_node != NULL);
+    if (max_int_node->value_int != INT64_MAX) {
+        TEST_FAIL("INT64_MAX", "expected %lld, got %lld", (long long)INT64_MAX, (long long)max_int_node->value_int);
     }
     TEST_PASS("INT64_MAX");
 
     // INT64_MIN
-    int64_t min_int = d_DUFGetInt(g_data, "edge_cases.min_int", 0);
-    if (min_int != INT64_MIN) {
-        TEST_FAIL("INT64_MIN", "expected %lld, got %lld", (long long)INT64_MIN, (long long)min_int);
+    dDUFValue_t* min_int_node = d_DUFGetObjectItem(edge_cases, "min_int");
+    assert(min_int_node != NULL);
+    if (min_int_node->value_int != INT64_MIN) {
+        TEST_FAIL("INT64_MIN", "expected %lld, got %lld", (long long)INT64_MIN, (long long)min_int_node->value_int);
     }
     TEST_PASS("INT64_MIN");
 
     // Zero
-    int64_t zero = d_DUFGetInt(g_data, "edge_cases.zero", -1);
-    assert(zero == 0);
+    dDUFValue_t* zero_node = d_DUFGetObjectItem(edge_cases, "zero");
+    assert(zero_node != NULL && zero_node->value_int == 0);
     TEST_PASS("zero integer");
 
     // Negative
-    int64_t negative = d_DUFGetInt(g_data, "edge_cases.negative", 0);
-    assert(negative == -42);
+    dDUFValue_t* neg_node = d_DUFGetObjectItem(edge_cases, "negative");
+    assert(neg_node != NULL && neg_node->value_int == -42);
     TEST_PASS("negative integer");
 
     // Float zero
-    double float_zero = d_DUFGetFloat(g_data, "edge_cases.float_zero", -1.0);
-    assert(fabs(float_zero - 0.0) < 0.0001);
+    dDUFValue_t* fzero_node = d_DUFGetObjectItem(edge_cases, "float_zero");
+    assert(fzero_node != NULL && fabs(fzero_node->value_double - 0.0) < 0.0001);
     TEST_PASS("float zero");
 
     // Small float
-    double small_float = d_DUFGetFloat(g_data, "edge_cases.small_float", 0.0);
-    assert(fabs(small_float - 0.000001) < 0.0000001);
+    dDUFValue_t* small_node = d_DUFGetObjectItem(edge_cases, "small_float");
+    assert(small_node != NULL && fabs(small_node->value_double - 0.000001) < 0.0000001);
     TEST_PASS("small float");
 
     // Large float
-    double large_float = d_DUFGetFloat(g_data, "edge_cases.large_float", 0.0);
-    assert(fabs(large_float - 999999.999999) < 0.01);
+    dDUFValue_t* large_node = d_DUFGetObjectItem(edge_cases, "large_float");
+    assert(large_node != NULL && fabs(large_node->value_double - 999999.999999) < 0.01);
     TEST_PASS("large float");
 }
 
@@ -91,27 +156,32 @@ void test_string_edge_cases(void)
 {
     TEST_START("string edge cases");
 
+    dDUFValue_t* edge_cases = d_DUFGetObjectItem(g_data, "edge_cases");
+    assert(edge_cases != NULL);
+
     // Empty string
-    const char* empty = d_DUFGetString(g_data, "edge_cases.empty_string", NULL);
-    if (empty == NULL || strlen(empty) != 0) {
-        TEST_FAIL("empty string", "expected \"\", got %s", empty ? empty : "NULL");
+    dDUFValue_t* empty_node = d_DUFGetObjectItem(edge_cases, "empty_string");
+    if (empty_node == NULL || empty_node->value_string == NULL || strlen(empty_node->value_string) != 0) {
+        TEST_FAIL("empty string", "expected \"\", got %s", empty_node ? (empty_node->value_string ? empty_node->value_string : "NULL") : "NODE NULL");
     }
     TEST_PASS("empty string");
 
     // Escaped characters
-    const char* escaped = d_DUFGetString(g_data, "edge_cases.escaped", "");
-    if (strstr(escaped, "\"Hello\"") == NULL) {
+    dDUFValue_t* escaped_node = d_DUFGetObjectItem(edge_cases, "escaped");
+    assert(escaped_node != NULL && escaped_node->value_string != NULL);
+    if (strstr(escaped_node->value_string, "\"Hello\"") == NULL) {
         TEST_FAIL("escaped quotes", "string doesn't contain escaped quotes");
     }
-    if (strstr(escaped, "\\") == NULL) {
+    if (strstr(escaped_node->value_string, "\\") == NULL) {
         TEST_FAIL("escaped backslash", "string doesn't contain backslash");
     }
     TEST_PASS("escaped characters");
 
     // Single character
-    const char* single = d_DUFGetString(g_data, "edge_cases.single_char", "");
-    assert(strcmp(single, "x") == 0);
-    assert(strlen(single) == 1);
+    dDUFValue_t* single_node = d_DUFGetObjectItem(edge_cases, "single_char");
+    assert(single_node != NULL && single_node->value_string != NULL);
+    assert(strcmp(single_node->value_string, "x") == 0);
+    assert(strlen(single_node->value_string) == 1);
     TEST_PASS("single character");
 }
 
@@ -119,20 +189,25 @@ void test_empty_collections(void)
 {
     TEST_START("empty collections");
 
+    dDUFValue_t* edge_cases = d_DUFGetObjectItem(g_data, "edge_cases");
+    assert(edge_cases != NULL);
+
     // Empty array
-    dDUFValue_t* empty_arr = d_DUFGet(g_data, "edge_cases.empty_array");
+    dDUFValue_t* empty_arr = d_DUFGetObjectItem(edge_cases, "empty_array");
     if (empty_arr == NULL || d_DUFGetType(empty_arr) != D_DUF_ARRAY) {
         TEST_FAIL("empty array", "not found or wrong type");
     }
-    size_t arr_len = d_DUFArrayLength(empty_arr);
-    assert(arr_len == 0);
+    // Check child is NULL for empty array
+    assert(empty_arr->child == NULL);
     TEST_PASS("empty array");
 
     // Empty table
-    dDUFValue_t* empty_tbl = d_DUFGet(g_data, "edge_cases.empty_table");
+    dDUFValue_t* empty_tbl = d_DUFGetObjectItem(edge_cases, "empty_table");
     if (empty_tbl == NULL || d_DUFGetType(empty_tbl) != D_DUF_TABLE) {
         TEST_FAIL("empty table", "not found or wrong type");
     }
+    // Check child is NULL for empty table
+    assert(empty_tbl->child == NULL);
     TEST_PASS("empty table");
 }
 
@@ -141,15 +216,16 @@ void test_deep_nesting(void)
     TEST_START("deep nesting");
 
     // 4-level deep path
-    const char* deep = d_DUFGetString(g_data, "edge_cases.complex.level1.level2.level3.deep_value", "");
-    if (strcmp(deep, "nested") != 0) {
-        TEST_FAIL("4-level nesting", "expected 'nested', got '%s'", deep);
+    dDUFValue_t* deep_node = navigate_path(g_data, "edge_cases.complex.level1.level2.level3.deep_value");
+    assert(deep_node != NULL && deep_node->value_string != NULL);
+    if (strcmp(deep_node->value_string, "nested") != 0) {
+        TEST_FAIL("4-level nesting", "expected 'nested', got '%s'", deep_node->value_string);
     }
     TEST_PASS("4-level nested table");
 
     // Deep array access
-    int64_t deep_arr_val = d_DUFGetInt(g_data, "edge_cases.complex.level1.level2.level3.deep_array[1]", 0);
-    assert(deep_arr_val == 2);
+    dDUFValue_t* deep_arr_node = navigate_path(g_data, "edge_cases.complex.level1.level2.level3.deep_array[1]");
+    assert(deep_arr_node != NULL && deep_arr_node->value_int == 2);
     TEST_PASS("deep nested array access");
 }
 
@@ -158,31 +234,37 @@ void test_array_stress(void)
     TEST_START("array stress tests");
 
     // Array of tables
-    const char* config_name = d_DUFGetString(g_data, "array_stress.configs[0].name", "");
-    assert(strcmp(config_name, "config1") == 0);
-    int64_t config_val = d_DUFGetInt(g_data, "array_stress.configs[1].value", 0);
-    assert(config_val == 20);
+    dDUFValue_t* config0_name = navigate_path(g_data, "array_stress.configs[0].name");
+    assert(config0_name != NULL && strcmp(config0_name->value_string, "config1") == 0);
+    dDUFValue_t* config1_val = navigate_path(g_data, "array_stress.configs[1].value");
+    assert(config1_val != NULL && config1_val->value_int == 20);
     TEST_PASS("array of tables");
 
     // Array of arrays (matrix)
-    int64_t matrix_val = d_DUFGetInt(g_data, "array_stress.matrix[1][1]", 0);
-    assert(matrix_val == 5); // Middle of matrix
+    dDUFValue_t* matrix_val = navigate_path(g_data, "array_stress.matrix[1][1]");
+    assert(matrix_val != NULL && matrix_val->value_int == 5); // Middle of matrix
     TEST_PASS("array of arrays (matrix)");
 
-    // Large array
-    dDUFValue_t* range = d_DUFGet(g_data, "array_stress.range");
-    size_t range_len = d_DUFArrayLength(range);
-    assert(range_len == 21); // 0-20 inclusive
-    int64_t last_elem = d_DUFGetInt(g_data, "array_stress.range[20]", -1);
-    assert(last_elem == 20);
+    // Large array - count children
+    dDUFValue_t* range = navigate_path(g_data, "array_stress.range");
+    assert(range != NULL);
+    int count = 0;
+    dDUFValue_t* elem = range->child;
+    while (elem != NULL) {
+        count++;
+        elem = elem->next;
+    }
+    assert(count == 21); // 0-20 inclusive
+    dDUFValue_t* last_elem = navigate_path(g_data, "array_stress.range[20]");
+    assert(last_elem != NULL && last_elem->value_int == 20);
     TEST_PASS("large array (21 elements)");
 
     // Single element array
-    dDUFValue_t* singleton = d_DUFGet(g_data, "array_stress.singleton");
-    size_t single_len = d_DUFArrayLength(singleton);
-    assert(single_len == 1);
-    int64_t single_val = d_DUFGetInt(g_data, "array_stress.singleton[0]", 0);
-    assert(single_val == 42);
+    dDUFValue_t* singleton = navigate_path(g_data, "array_stress.singleton");
+    assert(singleton != NULL);
+    assert(singleton->child != NULL && singleton->child->next == NULL); // Only 1 child
+    dDUFValue_t* single_val = navigate_path(g_data, "array_stress.singleton[0]");
+    assert(single_val != NULL && single_val->value_int == 42);
     TEST_PASS("singleton array");
 }
 
@@ -191,29 +273,33 @@ void test_multiline_strings(void)
     TEST_START("multi-line strings");
 
     // Simple multi-line
-    const char* simple = d_DUFGetString(g_data, "multiline_strings.simple", "");
-    if (strstr(simple, "multi-line") == NULL || strstr(simple, "\n") == NULL) {
+    dDUFValue_t* simple_node = navigate_path(g_data, "multiline_strings.simple");
+    assert(simple_node != NULL && simple_node->value_string != NULL);
+    if (strstr(simple_node->value_string, "multi-line") == NULL || strstr(simple_node->value_string, "\n") == NULL) {
         TEST_FAIL("simple multi-line", "doesn't contain expected text or newlines");
     }
     TEST_PASS("simple multi-line");
 
     // Multi-line with quotes (no escaping needed)
-    const char* with_quotes = d_DUFGetString(g_data, "multiline_strings.with_quotes", "");
-    if (strstr(with_quotes, "\"Quoted text\"") == NULL) {
+    dDUFValue_t* quotes_node = navigate_path(g_data, "multiline_strings.with_quotes");
+    assert(quotes_node != NULL && quotes_node->value_string != NULL);
+    if (strstr(quotes_node->value_string, "\"Quoted text\"") == NULL) {
         TEST_FAIL("multi-line with quotes", "doesn't contain unescaped quotes");
     }
     TEST_PASS("multi-line with quotes");
 
     // Code snippet (with braces)
-    const char* code = d_DUFGetString(g_data, "multiline_strings.code_snippet", "");
-    if (strstr(code, "function") == NULL || strstr(code, "{") == NULL) {
+    dDUFValue_t* code_node = navigate_path(g_data, "multiline_strings.code_snippet");
+    assert(code_node != NULL && code_node->value_string != NULL);
+    if (strstr(code_node->value_string, "function") == NULL || strstr(code_node->value_string, "{") == NULL) {
         TEST_FAIL("code snippet", "doesn't contain expected code syntax");
     }
     TEST_PASS("code snippet preservation");
 
     // Formatted with blank lines
-    const char* formatted = d_DUFGetString(g_data, "multiline_strings.formatted", "");
-    if (strstr(formatted, "===") == NULL || strstr(formatted, "Bullet point") == NULL) {
+    dDUFValue_t* formatted_node = navigate_path(g_data, "multiline_strings.formatted");
+    assert(formatted_node != NULL && formatted_node->value_string != NULL);
+    if (strstr(formatted_node->value_string, "===") == NULL || strstr(formatted_node->value_string, "Bullet point") == NULL) {
         TEST_FAIL("formatted text", "doesn't contain expected formatting");
     }
     TEST_PASS("formatted text with blank lines");
@@ -224,28 +310,28 @@ void test_special_keys(void)
     TEST_START("special identifier names");
 
     // Underscore prefix
-    const char* underscore = d_DUFGetString(g_data, "special_keys._underscore", "");
-    assert(strcmp(underscore, "starts with underscore") == 0);
+    dDUFValue_t* underscore_node = navigate_path(g_data, "special_keys._underscore");
+    assert(underscore_node != NULL && strcmp(underscore_node->value_string, "starts with underscore") == 0);
     TEST_PASS("underscore prefix");
 
     // All caps
-    const char* caps = d_DUFGetString(g_data, "special_keys.CAPS_KEY", "");
-    assert(strcmp(caps, "all caps") == 0);
+    dDUFValue_t* caps_node = navigate_path(g_data, "special_keys.CAPS_KEY");
+    assert(caps_node != NULL && strcmp(caps_node->value_string, "all caps") == 0);
     TEST_PASS("all caps key");
 
     // Mixed case
-    const char* mixed = d_DUFGetString(g_data, "special_keys.mixedCase", "");
-    assert(strcmp(mixed, "camelCase") == 0);
+    dDUFValue_t* mixed_node = navigate_path(g_data, "special_keys.mixedCase");
+    assert(mixed_node != NULL && strcmp(mixed_node->value_string, "camelCase") == 0);
     TEST_PASS("camelCase key");
 
     // Ends with numbers
-    const char* nums = d_DUFGetString(g_data, "special_keys.key_123", "");
-    assert(strcmp(nums, "ends with numbers") == 0);
+    dDUFValue_t* nums_node = navigate_path(g_data, "special_keys.key_123");
+    assert(nums_node != NULL && strcmp(nums_node->value_string, "ends with numbers") == 0);
     TEST_PASS("key ending with numbers");
 
     // Mixed alphanumeric
-    const char* alphanum = d_DUFGetString(g_data, "special_keys.key123abc", "");
-    assert(strcmp(alphanum, "mixed alphanumeric") == 0);
+    dDUFValue_t* alphanum_node = navigate_path(g_data, "special_keys.key123abc");
+    assert(alphanum_node != NULL && strcmp(alphanum_node->value_string, "mixed alphanumeric") == 0);
     TEST_PASS("mixed alphanumeric key");
 }
 
@@ -254,55 +340,70 @@ void test_realistic_structure(void)
     TEST_START("realistic complex enemy structure");
 
     // Basic fields
-    int64_t id = d_DUFGetInt(g_data, "realistic_enemy.id", 0);
-    assert(id == 999);
-    const char* name = d_DUFGetString(g_data, "realistic_enemy.name", "");
-    assert(strcmp(name, "Glitch Hound") == 0);
+    dDUFValue_t* id_node = navigate_path(g_data, "realistic_enemy.id");
+    assert(id_node != NULL && id_node->value_int == 999);
+    dDUFValue_t* name_node = navigate_path(g_data, "realistic_enemy.name");
+    assert(name_node != NULL && strcmp(name_node->value_string, "Glitch Hound") == 0);
     TEST_PASS("basic enemy fields");
 
     // Nested stats table
-    int64_t str = d_DUFGetInt(g_data, "realistic_enemy.stats.str", 0);
-    assert(str == 12);
-    int64_t dex = d_DUFGetInt(g_data, "realistic_enemy.stats.dex", 0);
-    assert(dex == 18);
+    dDUFValue_t* str_node = navigate_path(g_data, "realistic_enemy.stats.str");
+    assert(str_node != NULL && str_node->value_int == 12);
+    dDUFValue_t* dex_node = navigate_path(g_data, "realistic_enemy.stats.dex");
+    assert(dex_node != NULL && dex_node->value_int == 18);
     TEST_PASS("nested stats table");
 
     // Resistances (floats)
-    double fire_res = d_DUFGetFloat(g_data, "realistic_enemy.resistances.fire", 0.0);
-    assert(fabs(fire_res - 1.2) < 0.01);
+    dDUFValue_t* fire_res_node = navigate_path(g_data, "realistic_enemy.resistances.fire");
+    assert(fire_res_node != NULL && fabs(fire_res_node->value_double - 1.2) < 0.01);
     TEST_PASS("resistance floats");
 
     // Abilities array
-    dDUFValue_t* abilities = d_DUFGet(g_data, "realistic_enemy.abilities");
-    assert(d_DUFArrayLength(abilities) == 3);
-    const char* ability1 = d_DUFGetString(g_data, "realistic_enemy.abilities[1]", "");
-    assert(strcmp(ability1, "data_corruption") == 0);
+    dDUFValue_t* abilities = navigate_path(g_data, "realistic_enemy.abilities");
+    assert(abilities != NULL);
+    int ability_count = 0;
+    dDUFValue_t* ability = abilities->child;
+    while (ability != NULL) {
+        ability_count++;
+        ability = ability->next;
+    }
+    assert(ability_count == 3);
+    dDUFValue_t* ability1_node = navigate_path(g_data, "realistic_enemy.abilities[1]");
+    assert(ability1_node != NULL && strcmp(ability1_node->value_string, "data_corruption") == 0);
     TEST_PASS("abilities array");
 
     // Loot table (array of tables)
-    const char* loot_item = d_DUFGetString(g_data, "realistic_enemy.loot_table[0].item", "");
-    assert(strcmp(loot_item, "scrap_metal") == 0);
-    int64_t loot_weight = d_DUFGetInt(g_data, "realistic_enemy.loot_table[0].weight", 0);
-    assert(loot_weight == 50);
+    dDUFValue_t* loot_item_node = navigate_path(g_data, "realistic_enemy.loot_table[0].item");
+    assert(loot_item_node != NULL && strcmp(loot_item_node->value_string, "scrap_metal") == 0);
+    dDUFValue_t* loot_weight_node = navigate_path(g_data, "realistic_enemy.loot_table[0].weight");
+    assert(loot_weight_node != NULL && loot_weight_node->value_int == 50);
     TEST_PASS("loot table (array of tables)");
 
     // AI behavior nested table
-    double aggro = d_DUFGetFloat(g_data, "realistic_enemy.ai_behavior.aggro_range", 0.0);
-    assert(fabs(aggro - 15.5) < 0.01);
-    bool tactical = d_DUFGetBool(g_data, "realistic_enemy.ai_behavior.tactical", true);
-    assert(tactical == false);
+    dDUFValue_t* aggro_node = navigate_path(g_data, "realistic_enemy.ai_behavior.aggro_range");
+    assert(aggro_node != NULL && fabs(aggro_node->value_double - 15.5) < 0.01);
+    dDUFValue_t* tactical_node = navigate_path(g_data, "realistic_enemy.ai_behavior.tactical");
+    assert(tactical_node != NULL && tactical_node->value_int == 0); // false = 0
     TEST_PASS("AI behavior table");
 
     // Spawn conditions with array
-    dDUFValue_t* zones = d_DUFGet(g_data, "realistic_enemy.spawn_conditions.zones");
-    assert(d_DUFArrayLength(zones) == 3);
-    const char* zone = d_DUFGetString(g_data, "realistic_enemy.spawn_conditions.zones[1]", "");
-    assert(strcmp(zone, "corrupted_sector") == 0);
+    dDUFValue_t* zones = navigate_path(g_data, "realistic_enemy.spawn_conditions.zones");
+    assert(zones != NULL);
+    int zone_count = 0;
+    dDUFValue_t* zone_elem = zones->child;
+    while (zone_elem != NULL) {
+        zone_count++;
+        zone_elem = zone_elem->next;
+    }
+    assert(zone_count == 3);
+    dDUFValue_t* zone_node = navigate_path(g_data, "realistic_enemy.spawn_conditions.zones[1]");
+    assert(zone_node != NULL && strcmp(zone_node->value_string, "corrupted_sector") == 0);
     TEST_PASS("spawn conditions with array");
 
     // Flavor text (multi-line)
-    const char* flavor = d_DUFGetString(g_data, "realistic_enemy.flavor_text", "");
-    if (strstr(flavor, "Feral programs") == NULL || strstr(flavor, "\n") == NULL) {
+    dDUFValue_t* flavor_node = navigate_path(g_data, "realistic_enemy.flavor_text");
+    assert(flavor_node != NULL && flavor_node->value_string != NULL);
+    if (strstr(flavor_node->value_string, "Feral programs") == NULL || strstr(flavor_node->value_string, "\n") == NULL) {
         TEST_FAIL("flavor text", "multi-line text not preserved");
     }
     TEST_PASS("multi-line flavor text");
@@ -312,43 +413,47 @@ void test_type_coercion(void)
 {
     TEST_START("type coercion");
 
-    // Int to float implicit conversion
-    double zero_as_float = d_DUFGetFloat(g_data, "edge_cases.zero", -1.0);
-    assert(fabs(zero_as_float - 0.0) < 0.0001);
-    TEST_PASS("int to float coercion");
+    // With AUF-style API, we access the actual type directly
+    // Int stored in value_int field
+    dDUFValue_t* zero_node = navigate_path(g_data, "edge_cases.zero");
+    assert(zero_node != NULL && zero_node->type == D_DUF_INT);
+    assert(zero_node->value_int == 0);
+    TEST_PASS("int type stored correctly");
 
-    // Verify float stays float
-    int64_t float_as_int = d_DUFGetInt(g_data, "edge_cases.float_zero", 999);
-    assert(float_as_int == 999); // Should use fallback (wrong type)
-    TEST_PASS("float doesn't coerce to int");
+    // Float stored in value_double field
+    dDUFValue_t* float_zero = navigate_path(g_data, "edge_cases.float_zero");
+    assert(float_zero != NULL && float_zero->type == D_DUF_FLOAT);
+    assert(fabs(float_zero->value_double - 0.0) < 0.0001);
+    TEST_PASS("float type stored correctly");
 }
 
 void test_invalid_paths(void)
 {
     TEST_START("invalid path handling");
 
-    // Missing key
-    int64_t missing = d_DUFGetInt(g_data, "nonexistent.key.path", -999);
-    assert(missing == -999);
-    TEST_PASS("missing key uses fallback");
+    // Missing key - AUF-style returns NULL
+    dDUFValue_t* missing = navigate_path(g_data, "nonexistent.key.path");
+    assert(missing == NULL);
+    TEST_PASS("missing key returns NULL");
 
     // Out of bounds array
-    int64_t oob = d_DUFGetInt(g_data, "array_stress.range[999]", -1);
-    assert(oob == -1);
-    TEST_PASS("out of bounds array uses fallback");
+    dDUFValue_t* oob = navigate_path(g_data, "array_stress.range[999]");
+    assert(oob == NULL);
+    TEST_PASS("out of bounds array returns NULL");
 
-    // Wrong type access
-    const char* wrong_type = d_DUFGetString(g_data, "edge_cases.max_int", "FALLBACK");
-    assert(strcmp(wrong_type, "FALLBACK") == 0);
-    TEST_PASS("wrong type uses fallback");
+    // Wrong type access - with AUF style, user checks type themselves
+    dDUFValue_t* max_int_node = navigate_path(g_data, "edge_cases.max_int");
+    assert(max_int_node != NULL && max_int_node->type == D_DUF_INT);
+    // User would check type before accessing wrong field
+    TEST_PASS("can check type before access");
 
     // Null path
-    dDUFValue_t* null_path = d_DUFGet(g_data, NULL);
+    dDUFValue_t* null_path = navigate_path(g_data, NULL);
     assert(null_path == NULL);
     TEST_PASS("NULL path returns NULL");
 
     // Empty path
-    dDUFValue_t* empty_path = d_DUFGet(g_data, "");
+    dDUFValue_t* empty_path = navigate_path(g_data, "");
     assert(empty_path == NULL);
     TEST_PASS("empty path returns NULL");
 }
@@ -357,15 +462,16 @@ void test_boolean_arrays(void)
 {
     TEST_START("boolean arrays");
 
-    bool bool1 = d_DUFGetBool(g_data, "edge_cases.bool_array[0]", false);
-    bool bool2 = d_DUFGetBool(g_data, "edge_cases.bool_array[1]", true);
-    bool bool3 = d_DUFGetBool(g_data, "edge_cases.bool_array[2]", false);
-    bool bool4 = d_DUFGetBool(g_data, "edge_cases.bool_array[3]", true);
+    // Booleans stored as value_int (1=true, 0=false)
+    dDUFValue_t* bool1 = navigate_path(g_data, "edge_cases.bool_array[0]");
+    dDUFValue_t* bool2 = navigate_path(g_data, "edge_cases.bool_array[1]");
+    dDUFValue_t* bool3 = navigate_path(g_data, "edge_cases.bool_array[2]");
+    dDUFValue_t* bool4 = navigate_path(g_data, "edge_cases.bool_array[3]");
 
-    assert(bool1 == true);
-    assert(bool2 == false);
-    assert(bool3 == true);
-    assert(bool4 == false);
+    assert(bool1 != NULL && bool1->value_int == 1); // true
+    assert(bool2 != NULL && bool2->value_int == 0); // false
+    assert(bool3 != NULL && bool3->value_int == 1); // true
+    assert(bool4 != NULL && bool4->value_int == 0); // false
 
     TEST_PASS("boolean array values");
 }

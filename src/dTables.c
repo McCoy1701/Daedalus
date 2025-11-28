@@ -247,23 +247,6 @@ int d_TableDestroy(dTable_t** table)
 // HASH TABLE DATA MANAGEMENT
 // =============================================================================
 
-/**
- * @brief Insert or update a key-value pair in the hash table (upsert operation).
- *
- * Inserts a new key-value pair into the hash table, or updates the value if the
- * key already exists. Computes the hash, identifies the correct bucket, and either
- * updates an existing dTableEntry_t or creates a new one within that bucket's
- * linked list. Manages the table's count and triggers rehashing if needed.
- *
- * @param table A pointer to the hash table
- * @param key A pointer to the key data to set
- * @param value A pointer to the value data to set
- *
- * @return 0 on success, 1 on failure
- *
- * Example:
- * `int key = 42; char* value = "hello"; d_TableSet(table, &key, &value);`
- */
 int d_TableSet(dTable_t* table, const void* key, const void* value)
 {
     if (!table || !key || !value) {
@@ -351,21 +334,6 @@ int d_TableSet(dTable_t* table, const void* key, const void* value)
     return 0;
 }
 
-/**
- * @brief Retrieve a pointer to the value associated with a given key.
- *
- * Retrieves a pointer to the value associated with a given key from the hash table.
- * Computes the hash, finds the relevant bucket, and searches the linked list in that
- * bucket using the compare function to locate the entry with the matching key.
- *
- * @param table A pointer to the hash table
- * @param key A pointer to the key data to search for
- *
- * @return A void* pointer to the internally stored value data if found, or NULL if not found
- *
- * Example:
- * `int key = 42; char** value = (char**)d_TableGet(table, &key);`
- */
 void* d_TableGet(dTable_t* table, const void* key)
 {
     if (!table || !key) {
@@ -396,22 +364,6 @@ void* d_TableGet(dTable_t* table, const void* key)
     return NULL;
 }
 
-/**
- * @brief Remove a key-value pair from the hash table.
- *
- * Removes a key-value pair from the hash table based on the provided key.
- * Computes the hash, locates the correct bucket, and removes the entry with
- * the matching key from the linked list. Frees the key data, value data,
- * and the entry itself. Manages the table's count.
- *
- * @param table A pointer to the hash table
- * @param key A pointer to the key data to remove
- *
- * @return 0 on success, 1 on failure/key not found
- *
- * Example:
- * `int key = 42; d_TableRemove(table, &key);`
- */
 int d_TableRemove(dTable_t* table, const void* key)
 {
     if (!table || !key) {
@@ -478,21 +430,6 @@ int d_TableRemove(dTable_t* table, const void* key)
 // HASH TABLE UTILITY FUNCTIONS
 // =============================================================================
 
-/**
- * @brief Check if a specific key exists in the hash table.
- *
- * Determines if a specific key exists within the hash table. Calculates the
- * bucket and uses the compare function to check for the key's presence in
- * the corresponding linked list.
- *
- * @param table A pointer to the hash table
- * @param key A pointer to the key data to check for
- *
- * @return 0 if the key exists, 1 if not found or error occurred
- *
- * Example:
- * `int key = 42; if (d_TableHasKey(table, &key) == 0) { // key exists }`
- */
 int d_TableHasKey(const dTable_t* table, const void* key)
 {
     if (!table || !key) {
@@ -523,18 +460,6 @@ int d_TableHasKey(const dTable_t* table, const void* key)
     return 1; // Not found
 }
 
-/**
- * @brief Get the current number of key-value pairs in the hash table.
- *
- * Returns the current number of key-value pairs (entries) stored in the hash table.
- *
- * @param table A pointer to the hash table
- *
- * @return The total count of entries, or 0 if table is NULL
- *
- * Example:
- * `size_t count = d_TableGetCount(table);`
- */
 size_t d_TableGetCount(const dTable_t* table)
 {
     if (!table) {
@@ -545,20 +470,6 @@ size_t d_TableGetCount(const dTable_t* table)
     return table->count;
 }
 
-/**
- * @brief Clear all entries from the hash table but keep the structure intact.
- *
- * Empties the hash table, removing all key-value pairs and freeing their
- * associated memory, but keeps the underlying dTable_t structure (including
- * its buckets array and allocated num_buckets) intact for reuse.
- *
- * @param table A pointer to the hash table to clear
- *
- * @return 0 on success, 1 on failure
- *
- * Example:
- * `d_TableClear(table); // Table is now empty but ready for reuse`
- */
 int d_TableClear(dTable_t* table)
 {
     if (!table) {
@@ -596,26 +507,6 @@ int d_TableClear(dTable_t* table)
 // ADVANCED HASH TABLE UTILITY FUNCTIONS
 // =============================================================================
 
-/**
- * @brief Rehash the table with a new number of buckets to optimize performance.
- *
- * This function creates a new bucket array with the specified size, recalculates
- * the hash for all existing entries, and redistributes them across the new buckets.
- * This is essential for maintaining O(1) performance as the table grows.
- *
- * @param table A pointer to the hash table to rehash
- * @param new_num_buckets The new number of buckets (0 for auto-sizing to double current)
- *
- * @return 0 on success, 1 on failure
- *
- * @note If new_num_buckets is 0, the function will automatically double the current bucket count
- * @note The function will fail if new_num_buckets is not greater than the current bucket count
- * @note All existing entries are preserved and redistributed based on their recalculated hashes
- *
- * Example:
- * `d_TableRehash(table, 32); // Rehash to 32 buckets`
- * `d_TableRehash(table, 0);  // Auto-resize to double current bucket count`
- */
 int d_TableRehash(dTable_t* table, size_t new_num_buckets)
 {
     if (!table) {
@@ -722,26 +613,6 @@ int d_TableRehash(dTable_t* table, size_t new_num_buckets)
     return 0;
 }
 
-/**
- * @brief Get an array containing copies of all keys currently stored in the hash table.
- *
- * This function iterates through all buckets and collects all keys, returning them
- * in a newly allocated dArray_t. The keys are copied, so the returned array can
- * be modified independently of the hash table.
- *
- * @param table A pointer to the hash table
- *
- * @return A newly allocated dArray_t containing all keys, or NULL on failure
- *
- * @note The caller is responsible for destroying the returned array with d_ArrayDestroy
- * @note The keys are copied into the array, not referenced
- * @note If the table is empty, returns an empty array (not NULL)
- *
- * Example:
- * `dArray_t* keys = d_TableGetAllKeys(table);`
- * `// Use keys array...`
- * `d_ArrayDestroy(keys);`
- */
 dArray_t* d_TableGetAllKeys(const dTable_t* table)
 {
     if (!table) {

@@ -1,4 +1,6 @@
-/* dDUFParser.c - DUF recursive descent parser */
+/* dDUFParser.c - DUF recursive descent parser (AUF-style) */
+
+#define _POSIX_C_SOURCE 200809L
 
 #include "Daedalus.h"
 #include <stdlib.h>
@@ -107,6 +109,33 @@ static Token_t* parser_expect(Parser_t* p, TokenType_t type, dDUFError_t** err)
 }
 
 // =============================================================================
+// Helper - Add Child to Parent Node (AUF-style)
+// =============================================================================
+
+static void add_child(dDUFValue_t* parent, dDUFValue_t* child)
+{
+    if (parent == NULL || child == NULL) {
+        return;
+    }
+
+    child->next = NULL;
+    child->prev = NULL;
+
+    if (parent->child == NULL) {
+        // First child
+        parent->child = child;
+    } else {
+        // Find last child and append
+        dDUFValue_t* last = parent->child;
+        while (last->next != NULL) {
+            last = last->next;
+        }
+        last->next = child;
+        child->prev = last;
+    }
+}
+
+// =============================================================================
 // Parsing Functions
 // =============================================================================
 
@@ -193,8 +222,8 @@ static dDUFValue_t* parse_array(Parser_t* p, dDUFError_t** err)
             return NULL;
         }
 
-        // Append to array
-        d_ArrayAppend(array->array_val, &elem);
+        // Add element as child
+        add_child(array, elem);
 
         // Check for comma
         if (parser_match(p, TOK_COMMA)) {
@@ -252,8 +281,17 @@ static dDUFValue_t* parse_table(Parser_t* p, dDUFError_t** err)
             return NULL;
         }
 
-        // Add to table
-        d_DUFTableSet(table, key, value);
+        // Set the key name on the value node
+        value->string = strdup(key);
+        if (value->string == NULL) {
+            d_DUFFree(value);
+            d_DUFFree(table);
+            *err = parser_error(p, "Memory allocation failed");
+            return NULL;
+        }
+
+        // Add value as child
+        add_child(table, value);
 
         // No comma needed between entries in DUF
     }
@@ -280,23 +318,23 @@ static dDUFValue_t* parse_entry(Parser_t* p, dDUFError_t** err)
         return NULL;
     }
 
+    const char* entry_name = d_StringPeek(name_tok->value);
+
     // Parse the table body
     dDUFValue_t* table = parse_table(p, err);
     if (*err != NULL) {
         return NULL;
     }
 
-    // Return a table with the entry name as the only key
-    // This will be merged into the root table by the caller
-    dDUFValue_t* entry = d_DUFCreateTable();
-    if (entry == NULL) {
+    // Set the entry name on the table
+    table->string = strdup(entry_name);
+    if (table->string == NULL) {
         d_DUFFree(table);
-        *err = parser_error(p, "Failed to create entry wrapper");
+        *err = parser_error(p, "Memory allocation failed");
         return NULL;
     }
 
-    d_DUFTableSet(entry, d_StringPeek(name_tok->value), table);
-    return entry;
+    return table;
 }
 
 static dDUFValue_t* parse_document(Parser_t* p, dDUFError_t** err)
@@ -316,37 +354,8 @@ static dDUFValue_t* parse_document(Parser_t* p, dDUFError_t** err)
                 return NULL;
             }
 
-            // Merge entry into root (entry is a single-key table)
-            // Get the first (and only) key from entry
-            size_t num_buckets = entry->table_val->num_buckets;
-            dArray_t* buckets = entry->table_val->buckets;
-
-            for (size_t i = 0; i < num_buckets; i++) {
-                dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(buckets, i);
-                if (bucket_ptr == NULL || *bucket_ptr == NULL) {
-                    continue;
-                }
-
-                dLinkedList_t* node = *bucket_ptr;
-                while (node != NULL) {
-                    dTableEntry_t* tbl_entry = (dTableEntry_t*)node->data;
-                    if (tbl_entry != NULL) {
-                        char** key_ptr = (char**)tbl_entry->key_data;
-                        dDUFValue_t** val_ptr = (dDUFValue_t**)tbl_entry->value_data;
-
-                        if (key_ptr != NULL && val_ptr != NULL) {
-                            // Add to root (transfer ownership)
-                            d_DUFTableSet(root, *key_ptr, *val_ptr);
-
-                            // Prevent double-free by nulling the pointer
-                            *val_ptr = NULL;
-                        }
-                    }
-                    node = node->next;
-                }
-            }
-
-            d_DUFFree(entry);
+            // Add entry as child of root
+            add_child(root, entry);
         } else {
             *err = parser_error(p, "Expected '@' at start of entry");
             d_DUFFree(root);
