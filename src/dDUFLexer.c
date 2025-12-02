@@ -6,33 +6,6 @@
 #include <ctype.h>
 
 // =============================================================================
-// Token Types
-// =============================================================================
-
-typedef enum {
-    TOK_EOF,           // End of file
-    TOK_AT,            // @
-    TOK_LBRACE,        // {
-    TOK_RBRACE,        // }
-    TOK_LBRACKET,      // [
-    TOK_RBRACKET,      // ]
-    TOK_COLON,         // :
-    TOK_COMMA,         // ,
-    TOK_IDENTIFIER,    // name, key
-    TOK_STRING,        // "string" or """multiline"""
-    TOK_NUMBER,        // 123 or 1.5
-    TOK_BOOL,          // true or false
-    TOK_ERROR          // Lexical error
-} TokenType_t;
-
-typedef struct {
-    TokenType_t type;
-    dString_t* value;
-    int line;
-    int column;
-} Token_t;
-
-// =============================================================================
 // Lexer State
 // =============================================================================
 
