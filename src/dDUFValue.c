@@ -18,14 +18,6 @@ dDUFValue_t* d_DUFCreateTable(void)
     }
 
     val->type = D_DUF_TABLE;
-    val->next = NULL;
-    val->prev = NULL;
-    val->child = NULL;
-    val->string = NULL;
-    val->value_string = NULL;
-    val->value_int = 0;
-    val->value_double = 0.0;
-
     return val;
 }
 
@@ -37,14 +29,6 @@ dDUFValue_t* d_DUFCreateArray(void)
     }
 
     val->type = D_DUF_ARRAY;
-    val->next = NULL;
-    val->prev = NULL;
-    val->child = NULL;
-    val->string = NULL;
-    val->value_string = NULL;
-    val->value_int = 0;
-    val->value_double = 0.0;
-
     return val;
 }
 
@@ -57,13 +41,6 @@ dDUFValue_t* d_DUFCreateInt(int64_t int_val)
 
     val->type = D_DUF_INT;
     val->value_int = int_val;
-    val->next = NULL;
-    val->prev = NULL;
-    val->child = NULL;
-    val->string = NULL;
-    val->value_string = NULL;
-    val->value_double = 0.0;
-
     return val;
 }
 
@@ -76,13 +53,6 @@ dDUFValue_t* d_DUFCreateFloat(double float_val)
 
     val->type = D_DUF_FLOAT;
     val->value_double = float_val;
-    val->next = NULL;
-    val->prev = NULL;
-    val->child = NULL;
-    val->string = NULL;
-    val->value_string = NULL;
-    val->value_int = 0;
-
     return val;
 }
 
@@ -95,13 +65,6 @@ dDUFValue_t* d_DUFCreateBool(bool bool_val)
 
     val->type = D_DUF_BOOL;
     val->value_int = bool_val ? 1 : 0;  // Store bool as int
-    val->next = NULL;
-    val->prev = NULL;
-    val->child = NULL;
-    val->string = NULL;
-    val->value_string = NULL;
-    val->value_double = 0.0;
-
     return val;
 }
 
@@ -122,13 +85,6 @@ dDUFValue_t* d_DUFCreateString(const char* str)
         free(val);
         return NULL;
     }
-
-    val->next = NULL;
-    val->prev = NULL;
-    val->child = NULL;
-    val->string = NULL;
-    val->value_int = 0;
-    val->value_double = 0.0;
 
     return val;
 }

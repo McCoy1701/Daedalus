@@ -397,6 +397,39 @@ typedef struct {
     dString_t* message;    /**< Human-readable error message */
 } dDUFError_t;
 
+/**
+ * @brief Token types for DUF lexical analysis
+ *
+ * Represents all token types that can appear in DUF source code.
+ */
+typedef enum {
+    TOK_EOF,           /**< End of file */
+    TOK_AT,            /**< @ symbol */
+    TOK_LBRACE,        /**< Left brace { */
+    TOK_RBRACE,        /**< Right brace } */
+    TOK_LBRACKET,      /**< Left bracket [ */
+    TOK_RBRACKET,      /**< Right bracket ] */
+    TOK_COLON,         /**< Colon : */
+    TOK_COMMA,         /**< Comma , */
+    TOK_IDENTIFIER,    /**< Identifier (name, key) */
+    TOK_STRING,        /**< String literal ("string" or """multiline""") */
+    TOK_NUMBER,        /**< Number literal (123 or 1.5) */
+    TOK_BOOL,          /**< Boolean literal (true or false) */
+    TOK_ERROR          /**< Lexical error */
+} TokenType_t;
+
+/**
+ * @brief Lexical token with location information
+ *
+ * Represents a single token from the lexer with its type, value, and source location.
+ */
+typedef struct {
+    TokenType_t type;   /**< Token type */
+    dString_t* value;   /**< Token value (string content) */
+    int line;           /**< Line number in source (1-indexed) */
+    int column;         /**< Column number in source (1-indexed) */
+} Token_t;
+
 // =============================================================================
 // LOGGING SYSTEM TYPES AND STRUCTURES
 // =============================================================================
@@ -3497,6 +3530,27 @@ void d_FreeSplitStringArray(dArray_t* string_array);
 // =============================================================================
 // DUF (DAEDALUS UNIVERSAL FORMAT) FUNCTIONS
 // =============================================================================
+
+// --- Lexer (Tokenization) ---
+
+/**
+ * @brief Tokenize DUF source code into an array of tokens
+ *
+ * Performs lexical analysis on DUF input, breaking it into tokens for parsing.
+ *
+ * @param input Null-terminated string containing DUF source code
+ * @return Array of Token_t pointers, or NULL on failure. Must be freed with d_DUFLexFree()
+ */
+dArray_t* d_DUFLex(const char* input);
+
+/**
+ * @brief Free token array created by d_DUFLex
+ *
+ * Cleans up all tokens and the array itself.
+ *
+ * @param tokens Token array returned by d_DUFLex()
+ */
+void d_DUFLexFree(dArray_t* tokens);
 
 // --- Parsing ---
 

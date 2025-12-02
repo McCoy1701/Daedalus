@@ -7,21 +7,34 @@
 #include <string.h>
 #include <errno.h>
 
-// Forward declarations from lexer
-typedef enum {
-    TOK_EOF, TOK_AT, TOK_LBRACE, TOK_RBRACE, TOK_LBRACKET, TOK_RBRACKET,
-    TOK_COLON, TOK_COMMA, TOK_IDENTIFIER, TOK_STRING, TOK_NUMBER, TOK_BOOL, TOK_ERROR
-} TokenType_t;
+// =============================================================================
+// Internal Error Creation (with C source location for debugging)
+// =============================================================================
 
-typedef struct {
-    TokenType_t type;
-    dString_t* value;
-    int line;
-    int column;
-} Token_t;
+/**
+ * @brief Create an internal error with C source location for debugging
+ *
+ * Used for errors that occur in the parser infrastructure (not DUF parse errors).
+ * Includes __FILE__ and __LINE__ to help debug library issues.
+ */
+static dDUFError_t* create_internal_error(const char* message, const char* file, int line)
+{
+    dDUFError_t* err = (dDUFError_t*)calloc(1, sizeof(dDUFError_t));
+    if (err == NULL) {
+        return NULL;
+    }
 
-extern dArray_t* d_DUFLex(const char* input);
-extern void d_DUFLexFree(dArray_t* tokens);
+    err->line = 0;      // Internal errors don't have DUF source location
+    err->column = 0;
+    err->message = d_StringInit();
+    if (err->message != NULL) {
+        d_StringFormat(err->message, "[Internal] %s (at %s:%d)", message, file, line);
+    }
+
+    return err;
+}
+
+#define DUF_INTERNAL_ERROR(msg) create_internal_error(msg, __FILE__, __LINE__)
 
 // =============================================================================
 // Parser State
@@ -375,19 +388,13 @@ dDUFError_t* d_DUFParseString(const char* content, dDUFValue_t** out_value)
     *out_value = NULL;
 
     if (content == NULL) {
-        dDUFError_t* err = (dDUFError_t*)calloc(1, sizeof(dDUFError_t));
-        err->message = d_StringInit();
-        d_StringAppend(err->message, "NULL content provided", 0);
-        return err;
+        return DUF_INTERNAL_ERROR("NULL content provided");
     }
 
     // Tokenize
     dArray_t* tokens = d_DUFLex(content);
     if (tokens == NULL) {
-        dDUFError_t* err = (dDUFError_t*)calloc(1, sizeof(dDUFError_t));
-        err->message = d_StringInit();
-        d_StringAppend(err->message, "Lexer failed", 0);
-        return err;
+        return DUF_INTERNAL_ERROR("Lexer failed");
     }
 
     // Check for lexer errors
@@ -425,18 +432,18 @@ dDUFError_t* d_DUFParseFile(const char* filename, dDUFValue_t** out_value)
     *out_value = NULL;
 
     if (filename == NULL) {
-        dDUFError_t* err = (dDUFError_t*)calloc(1, sizeof(dDUFError_t));
-        err->message = d_StringInit();
-        d_StringAppend(err->message, "NULL filename provided", 0);
-        return err;
+        return DUF_INTERNAL_ERROR("NULL filename provided");
     }
 
     // Read file
     dString_t* content = d_StringCreateFromFile(filename);
     if (content == NULL) {
-        dDUFError_t* err = (dDUFError_t*)calloc(1, sizeof(dDUFError_t));
-        err->message = d_StringInit();
-        d_StringFormat(err->message, "Failed to read file: %s", filename);
+        dDUFError_t* err = create_internal_error("Failed to read file", __FILE__, __LINE__);
+        if (err != NULL && err->message != NULL) {
+            // Append filename to the error message
+            d_StringAppend(err->message, ": ", 0);
+            d_StringAppend(err->message, filename, 0);
+        }
         return err;
     }
 
