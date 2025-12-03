@@ -27,6 +27,15 @@
 
 #define PI 3.14159265
 
+#define D_ASSERT(condition, msg) \
+    do { \
+        if (!(condition)) { \
+            fprintf(stderr, "\n[DAEDALUS FATAL] %s\n", msg); \
+            fprintf(stderr, "  at %s:%d in %s()\n", __FILE__, __LINE__, __func__); \
+            abort(); \
+        } \
+    } while(0)
+
 /**
  * @brief Represents a 2D vector.
  *
