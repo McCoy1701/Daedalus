@@ -27,11 +27,11 @@
 
 #define PI 3.14159265
 
-#define D_ASSERT(condition, msg) \
+#define D_ASSERT(condition, msg, file, line, func) \
     do { \
         if (!(condition)) { \
             fprintf(stderr, "\n[DAEDALUS FATAL] %s\n", msg); \
-            fprintf(stderr, "  at %s:%d in %s()\n", __FILE__, __LINE__, __func__); \
+            fprintf(stderr, "  at %s:%d in %s()\n", file, line, func); \
             abort(); \
         } \
     } while(0)
@@ -388,7 +388,7 @@ typedef struct dDUFValue_t {
 
     int type;                     /**< Type from dDUFType_t enum */
 
-    char* string;                 /**< Key name (for table entries) or NULL */
+    char* key;                    /**< Key name (for table entries) or NULL */
     char* value_string;           /**< String value (D_DUF_STRING) or NULL */
     int64_t value_int;            /**< Integer value (D_DUF_INT) */
     double value_double;          /**< Float value (D_DUF_FLOAT) */
@@ -487,78 +487,18 @@ typedef struct {
     const char* context_separator;  // Separator for contexts (default: "::")
 } dLogConfig_t;
 
-// Filter rule types
-typedef enum {
-    D_LOG_FILTER_DIRECTORY,     // Match directory path
-    D_LOG_FILTER_PREFIX,        // Match filename prefix
-    D_LOG_FILTER_SUFFIX,        // Match filename suffix
-    D_LOG_FILTER_EXACT,         // Match exact filename
-    D_LOG_FILTER_GLOB,          // Match glob pattern
-    D_LOG_FILTER_REGEX          // Match regex pattern
-} dLogFilterType_t;
-
-// Individual filter rule
-typedef struct {
-    dLogFilterType_t type;          // Type of filter
-    const char* pattern;            // Pattern to match
-    size_t pattern_len;             // Pre-computed pattern length
-    dLogLevel_t level;              // Log level for matches
-    uint32_t priority;              // Higher priority overrides lower
-    uint32_t pattern_hash;          // Pre-computed hash for fast matching
-    bool recursive;                 // For directory filters
-} dLogFilterRule_t;
-
-// Fast filter engine for zero-overhead logging
-typedef struct {
-    // Bloom filter for fast negative matches
-    uint64_t bloom_filter[256];
-
-    // Sorted array of rules by priority
-    dArray_t* rules;                // Array of dLogFilterRule_t
-
-    // LRU cache for recent path lookups
-    struct {
-        uint32_t path_hash;
-        dLogLevel_t level;
-        uint64_t last_access;
-    } cache[1024];
-
-    // Cache statistics
-    uint32_t cache_hits;
-    uint32_t cache_misses;
-} dLogFilterEngine_t;
-
 // Global configuration for compile-time optimization
 #define D_MAX_SOURCE_FILES 4096
 #define D_LOG_BLOOM_SIZE 256
 #define D_LOG_CACHE_SIZE 1024
 
 typedef struct {
-    // Pre-computed log levels indexed by file ID (O(1) lookup)
-    dLogLevel_t file_log_levels[D_MAX_SOURCE_FILES];
-
-    // Filter engine for dynamic rules
-    dLogFilterEngine_t* filter_engine;
-
     // Default level for unknown files
     dLogLevel_t default_level;
 
     // Global enable flag
     bool logging_enabled;
-
-    // Statistics
-    uint64_t total_logs_processed;
-    uint64_t total_logs_suppressed;
 } dLogGlobalConfig_t;
-
-// Log statistics for monitoring
-typedef struct {
-    uint64_t logs_by_level[D_LOG_LEVEL_OFF];   // Count per level
-    uint64_t logs_suppressed;                    // Total suppressed
-    uint64_t logs_rate_limited;                  // Rate limited count
-    double total_log_time;                       // Time spent logging
-    uint32_t handler_errors;                     // Handler failures
-} dLogStats_t;
 
 // Main logger structure
 typedef struct {
@@ -566,29 +506,9 @@ typedef struct {
     dArray_t* handlers;             // Array of dLogHandlerReg_t
     dArray_t* contexts;             // Stack of context strings
     dString_t* format_buffer;       // Thread-local format buffer
-    dLogFilterEngine_t* filters;    // Filter rules engine
     void* mutex;                    // Optional mutex for thread safety
-    dLogStats_t* stats;             // Per-logger statistics
     bool is_global;                 // Is this the global logger
 } dLogger_t;
-
-// Log builder for zero-allocation complex messages
-typedef struct {
-    dString_t* buffer;              // Message buffer
-    dLogLevel_t level;              // Log level
-    dLogger_t* logger;              // Target logger
-    const char* file;               // Source file
-    int line;                       // Line number
-    const char* function;           // Function name
-    bool committed;                 // Prevent double commits
-} dLogBuilder_t;
-
-// Structured log builder for key-value logging
-typedef struct {
-    dLogBuilder_t base;             // Inherits from log builder
-    dArray_t* fields;               // Array of key-value pairs
-    bool in_json_mode;              // Output as JSON
-} dLogStructured_t;
 
 // Log context for hierarchical logging
 typedef struct dLogContext_t {
@@ -597,22 +517,6 @@ typedef struct dLogContext_t {
     uint64_t start_time;            // For timing contexts
     struct dLogContext_t* parent;   // Parent context for nesting
 } dLogContext_t;
-
-// Rate limiter for preventing log spam
-typedef struct {
-    uint32_t message_hash;          // Hash of the message
-    uint32_t count;                 // Times logged
-    uint32_t max_count;             // Maximum allowed
-    double time_window;             // Time window in seconds
-    double first_log_time;          // First log timestamp
-    double last_log_time;           // Last log timestamp
-} dLogRateLimit_t;
-
-// Log filter configuration builder
-typedef struct {
-    dArray_t* rules;                // Building list of rules
-    uint32_t next_priority;         // Auto-incrementing priority
-} dLogFilterBuilder_t;
 
 
 
@@ -1081,6 +985,9 @@ dTable_t* d_TableInit(size_t key_size, size_t value_size, dTableHashFunc hash_fu
                       dTableCompareFunc compare_func, size_t initial_num_buckets
                       );
 
+// macro wrapper for proper error handling
+#define d_TableDestroy(table) \
+    _d_TableDestroy_impl(table, __FILE__, __LINE__, __func__)
 /**
  * @brief Destroy a hash table and free all associated memory.
  *
@@ -1092,11 +999,8 @@ dTable_t* d_TableInit(size_t key_size, size_t value_size, dTableHashFunc hash_fu
  * @param table A pointer to the pointer of the hash table to destroy
  *
  * @return 0 on success, 1 on failure
- *
- * Example:
- * `d_TableDestroy(&my_table); // my_table will be NULL after this`
  */
-int d_TableDestroy(dTable_t** table);
+int _d_TableDestroy_impl(dTable_t** table, const char* file, int line, const char* func);
 
 /**
  * @brief Insert or update a key-value pair in the hash table (upsert operation).
@@ -1134,6 +1038,9 @@ int d_TableSet(dTable_t* table, const void* key, const void* value);
  */
 void* d_TableGet(dTable_t* table, const void* key);
 
+// macro wrapper for proper error handling
+#define d_TableRemove(table, key) \
+    _d_TableRemove_impl(table, key, __FILE__, __LINE__, __func__)
 /**
  * @brief Remove a key-value pair from the hash table.
  *
@@ -1146,11 +1053,8 @@ void* d_TableGet(dTable_t* table, const void* key);
  * @param key A pointer to the key data to remove
  *
  * @return 0 on success, 1 on failure/key not found
- *
- * Example:
- * `int key = 42; d_TableRemove(table, &key);`
  */
-int d_TableRemove(dTable_t* table, const void* key);
+int _d_TableRemove_impl(dTable_t* table, const void* key, const char* file, int line, const char* func);
 
 /**
  * @brief Check if a specific key exists in the hash table.
@@ -1935,24 +1839,6 @@ static inline bool d_IsStringInvalid(const dString_t* s)
  *         - file cannot be opened
  *         - memory allocation fails
  *         - file read operation fails
- * 
- * @note The caller is responsible for freeing the returned dString with d_StringDestroy()
- * @note Empty files (0 bytes) will return a valid, empty dString
- * @note The function preserves all bytes in the file, including embedded null bytes
- * 
- * @warning The file contents are loaded entirely into memory. Be cautious with large files.
- * 
- * Example usage:
- * @code
- * dString_t* config = d_StringCreateFromFile("config.txt");
- * if (config != NULL) {
- *     // Use the config...
- *     d_StringDestroy(config);
- * }
- * @endcode
- * 
- * @see d_StringDestroy
- * @see d_StringInit
  */
 dString_t* d_StringCreateFromFile(const char *filename);
 
@@ -1963,6 +1849,9 @@ dString_t* d_StringCreateFromFile(const char *filename);
  */
 dString_t *d_StringInit(void);
 
+// Macro to capture file/line info for debugging
+#define d_StringDestroy(sb) \
+    _d_StringDestroy_impl(sb, __FILE__, __LINE__, __func__)
 /**
  * @brief Destroy a string builder and free its memory.
  * 
@@ -1970,7 +1859,7 @@ dString_t *d_StringInit(void);
  * 
  * @return: Success/failure indicator.
  */
-void d_StringDestroy(dString_t* sb);
+void _d_StringDestroy_impl(dString_t* sb, const char* file, int line, const char* func);
 
 /**
  * @brief Add a C string to the string builder. 
@@ -1988,11 +1877,10 @@ void d_StringAppend(dString_t* sb, const char* str, size_t len);
  *
  * @param string: Pointer to existing dString_t structure.
  * @param content: C-string content to copy into the dString_t.
- * @param flags: Optional flags for string handling behavior.
  * 
  * @return: Success/failure indicator.
  */
-int d_StringSet(dString_t* string, const char* content, int flags);
+int d_StringSet(dString_t* string, const char* content);
 
 /**
  * @brief Create a new string builder with the same content as another string.
@@ -2078,6 +1966,10 @@ void d_StringDrop(dString_t* sb, size_t len);
  */
 size_t d_StringGetLength(const dString_t* sb);
 
+// User calls d_StringPeek(sb) - macro captures their location
+#define d_StringPeek(sb) \
+    _d_StringPeek_impl(sb, __FILE__, __LINE__, __func__)
+// Actual function declaration (note the underscore prefix)
 /**
  * @brief Get the internal C string without copying
  * 
@@ -2085,19 +1977,16 @@ size_t d_StringGetLength(const dString_t* sb);
  * 
  * @return Pointer to internal string, or NULL if sb is NULL
  */
-const char* d_StringPeek(const dString_t* sb);
-/*
- * Create a copy of the string builder's content
- *
- * `sb` - Pointer to string builder
- * `len` - Optional pointer to receive the length of the returned string
- *
- * `char*` - Newly allocated copy of the string, or NULL on error
- *
- * -- The caller is responsible for freeing the returned pointer
- * -- If len is not NULL, it receives the length of the string (excluding null terminator)
- * -- Returns NULL if sb is NULL or memory allocation fails
- * -- The returned string is always null-terminated
+const char* _d_StringPeek_impl(const dString_t* sb, const char* file, int line, const char* func);
+
+/**
+ * @brief Dump the string builder content to a newly allocated C string.
+ * 
+ * @param sb String builder to dump
+ * @param len Pointer to size_t to receive length of dumped string (excluding null terminator)
+ * 
+ * @return Newly allocated C string containing the content, or NULL on failure
+ * 
  */
 char *d_StringDump(const dString_t* sb, size_t* len);
 
@@ -2281,57 +2170,35 @@ int d_StringCompareToCString(const dString_t* d_str, const char* c_str);
  // CORE LOGGING FUNCTIONS
  // =============================================================================
 
- /*
-  * Log a message at the specified level
-  *
-  * `level` - Log level (DEBUG, INFO, WARNING, ERROR, FATAL)
-  * `message` - Message string to log
-  *
-  * -- Does nothing if global logger is not initialized
-  * -- Message is filtered based on current log level and file filters
-  * -- Automatically adds timestamp and other metadata based on configuration
+ /** @brief Log a message at the specified level
+  * @param level Log level (DEBUG, INFO, WARNING, ERROR, FATAL)
+  * @param message Message string to log
   */
  void d_Log(dLogLevel_t level, const char* message);
 
- /*
-  * Log a formatted message at the specified level (printf-style)
-  *
-  * `level` - Log level (DEBUG, INFO, WARNING, ERROR, FATAL)
-  * `format` - Printf-style format string
-  * `...` - Variable arguments corresponding to format specifiers
-  *
-  * -- Does nothing if global logger is not initialized or format is NULL
-  * -- Uses thread-local buffer to avoid allocations
-  * -- Supports all standard printf format specifiers
+ /** @brief Log a formatted message at the specified level (printf-style)
+  * @param level Log level (DEBUG, INFO, WARNING, ERROR, FATAL)
+  * @param format Printf-style format string
+  * @param ... Variable arguments for format specifiers
   */
  void d_LogF(dLogLevel_t level, const char* format, ...);
 
- /*
-  * Log with explicit file/line/function information
-  *
-  * `level` - Log level
-  * `file` - Source file path
-  * `line` - Line number
-  * `func` - Function name
-  * `message` - Message to log
-  *
-  * -- Internal function typically called through macros
-  * -- Provides full source location context
+ /** @brief Log with explicit file/line/function information
+  * @param level Log level
+  * @param file Source file path
+  * @param line Line number
+  * @param func Function name
+  * @param message Message to log
   */
  void d_LogEx(dLogLevel_t level, const char* file, int line, const char* func, const char* message);
 
- /*
-  * Log with explicit file/line/function and formatting
-  *
-  * `level` - Log level
-  * `file` - Source file path
-  * `line` - Line number
-  * `func` - Function name
-  * `format` - Printf-style format string
-  * `...` - Variable arguments
-  *
-  * -- Internal function typically called through macros
-  * -- Combines source location with formatted output
+ /** @brief Log with explicit file/line/function and formatting
+  * @param level Log level
+  * @param file Source file path
+  * @param line Line number
+  * @param func Function name
+  * @param format Printf-style format string
+  * @param ... Variable arguments
   */
  void d_LogExF(dLogLevel_t level, const char* file, int line, const char* func, const char* format, ...);
 
@@ -2339,241 +2206,109 @@ int d_StringCompareToCString(const dString_t* d_str, const char* c_str);
  // CONVENIENCE LOGGING FUNCTIONS
  // =============================================================================
 
- /*
-  * Log a debug message
-  *
-  * `message` - Message to log
-  *
-  * -- Convenience wrapper for d_Log(D_LOG_LEVEL_DEBUG, message)
-  * -- Typically compiled out in release builds
+ /** @brief Log a debug message
+  * @param message Message to log
   */
  void d_LogDebug(const char* message);
 
- /*
-  * Log an info message
-  *
-  * `message` - Message to log
-  *
-  * -- Convenience wrapper for d_Log(D_LOG_LEVEL_INFO, message)
-  * -- Standard informational logging
+ /** @brief Log an info message
+  * @param message Message to log
   */
  void d_LogInfo(const char* message);
 
- /*
-  * Log a warning message
-  *
-  * `message` - Message to log
-  *
-  * -- Convenience wrapper for d_Log(D_LOG_LEVEL_WARNING, message)
-  * -- For potentially problematic situations
+ /** @brief Log a warning message
+  * @param message Message to log
   */
  void d_LogWarning(const char* message);
 
- /*
-  * Log an error message
-  *
-  * `message` - Message to log
-  *
-  * -- Convenience wrapper for d_Log(D_LOG_LEVEL_ERROR, message)
-  * -- For recoverable error conditions
+ /** @brief Log an error message
+  * @param message Message to log
   */
  void d_LogError(const char* message);
 
- /*
-  * Log a fatal message
-  *
-  * `message` - Message to log
-  *
-  * -- Convenience wrapper for d_Log(D_LOG_LEVEL_FATAL, message)
-  * -- For unrecoverable errors
-  * -- May trigger application shutdown depending on configuration
+ /** @brief Log a fatal message
+  * @param message Message to log
   */
  void d_LogFatal(const char* message);
 
- // Formatted versions
+ /** @brief Log a formatted debug message
+  * @param format Printf-style format string
+  * @param ... Variable arguments
+  */
  void d_LogDebugF(const char* format, ...);
+
+ /** @brief Log a formatted info message
+  * @param format Printf-style format string
+  * @param ... Variable arguments
+  */
  void d_LogInfoF(const char* format, ...);
+
+ /** @brief Log a formatted warning message
+  * @param format Printf-style format string
+  * @param ... Variable arguments
+  */
  void d_LogWarningF(const char* format, ...);
+
+ /** @brief Log a formatted error message
+  * @param format Printf-style format string
+  * @param ... Variable arguments
+  */
  void d_LogErrorF(const char* format, ...);
+
+ /** @brief Log a formatted fatal message
+  * @param format Printf-style format string
+  * @param ... Variable arguments
+  */
  void d_LogFatalF(const char* format, ...);
 
  // =============================================================================
  // LOGGER MANAGEMENT
  // =============================================================================
 
- /*
-  * Create a new logger with the specified configuration
-  *
-  * `config` - Logger configuration settings
-  *
-  * `dLogger_t*` - Pointer to new logger, or NULL on allocation failure
-  *
-  * -- Must be destroyed with d_DestroyLogger() to free memory
-  * -- Can be set as global logger with d_SetGlobalLogger()
-  * -- Multiple loggers can exist simultaneously for different subsystems
+ /** @brief Create a new logger with the specified configuration
+  * @param config Logger configuration settings
+  * @return Pointer to new logger, or NULL on allocation failure
   */
  dLogger_t* d_CreateLogger(dLogConfig_t config);
 
- /*
-  * Destroy a logger and free all associated resources
-  *
-  * `logger` - Pointer to logger to destroy
-  *
-  * -- Safe to call with NULL pointer
-  * -- If this is the global logger, global logging is disabled
-  * -- All handlers are removed and their resources freed
+ /** @brief Destroy a logger and free all associated resources
+  * @param logger Pointer to logger to destroy
   */
  void d_DestroyLogger(dLogger_t* logger);
 
- /*
-  * Set a logger as the global default logger
-  *
-  * `logger` - Logger to set as global (can be NULL to disable)
-  *
-  * -- Previous global logger is not destroyed (caller's responsibility)
-  * -- NULL disables global logging
-  * -- All d_Log* functions use the global logger
+ /** @brief Set a logger as the global default logger
+  * @param logger Logger to set as global (can be NULL to disable)
   */
  void d_SetGlobalLogger(dLogger_t* logger);
 
- /*
-  * Get the current global logger
-  *
-  * `dLogger_t*` - Pointer to global logger, or NULL if none set
-  *
-  * -- Do not destroy the returned logger without unsetting it first
-  * -- Can be used to temporarily modify logger configuration
+ /** @brief Get the current global logger
+  * @return Pointer to global logger, or NULL if none set
   */
  dLogger_t* d_GetGlobalLogger(void);
 
  // =============================================================================
- // CONFIGURATION AND FILTERING
+ // CONFIGURATION
  // =============================================================================
 
- /*
-  * Create a new filter configuration builder
-  *
-  * `dLogFilterBuilder_t*` - New filter builder, or NULL on error
-  *
-  * -- Must be destroyed with d_DestroyFilterBuilder()
-  * -- Use to build complex filtering rules before applying
-  */
- dLogFilterBuilder_t* d_CreateFilterBuilder(void);
-
- /*
-  * Add a directory-based filter rule
-  *
-  * `builder` - Filter builder
-  * `path` - Directory path to match (e.g., "src/items/")
-  * `level` - Minimum log level for this directory
-  *
-  * -- Path should use forward slashes on all platforms
-  * -- Trailing slash determines if rule is recursive
-  * -- Higher priority than previously added rules
-  */
- void d_FilterBuilder_AddDirectory(dLogFilterBuilder_t* builder, const char* path, dLogLevel_t level);
-
- /*
-  * Add a file prefix filter rule
-  *
-  * `builder` - Filter builder
-  * `prefix` - Filename prefix to match (e.g., "test_")
-  * `level` - Minimum log level for matching files
-  *
-  * -- Matches beginning of filename only, not full path
-  * -- Case-sensitive matching
-  */
- void d_FilterBuilder_AddPrefix(dLogFilterBuilder_t* builder, const char* prefix, dLogLevel_t level);
-
- /*
-  * Add a file suffix filter rule
-  *
-  * `builder` - Filter builder
-  * `suffix` - Filename suffix to match (e.g., "Math.c")
-  * `level` - Minimum log level for matching files
-  *
-  * -- Matches end of filename including extension
-  * -- Period in suffix is matched literally
-  */
- void d_FilterBuilder_AddSuffix(dLogFilterBuilder_t* builder, const char* suffix, dLogLevel_t level);
-
- /*
-  * Apply filter configuration to a logger
-  *
-  * `logger` - Logger to configure (NULL for global logger)
-  * `builder` - Filter builder with rules
-  *
-  * -- Replaces any existing filter configuration
-  * -- Builder can be reused after applying
-  * -- Pre-computes hashes and optimizes for fast runtime checks
-  */
- void d_FilterBuilder_Apply(dLogger_t* logger, dLogFilterBuilder_t* builder);
-
- /*
-  * Load filter configuration from a string
-  *
-  * `logger` - Logger to configure (NULL for global logger)
-  * `config_str` - Configuration string in DSL format
-  *
-  * `int` - 0 on success, non-zero on parse error
-  *
-  * -- Format: "path/pattern: LEVEL" separated by semicolons or newlines
-  * -- Example: "src/all: INFO; test_*: OFF; *Math.c: WARNING"
-  * -- Comments start with # and continue to end of line
-  */
- int d_FilterBuilder_FromString(dLogger_t* logger, const char* config_str);
-
- /*
-  * Destroy a filter builder and free resources
-  *
-  * `builder` - Filter builder to destroy
-  *
-  * -- Safe to call with NULL pointer
-  * -- Does not affect already-applied configurations
-  */
- void d_DestroyFilterBuilder(dLogFilterBuilder_t* builder);
-
- /*
-  * Set the minimum log level for a logger
-  *
-  * `logger` - Logger to configure (NULL for global logger)
-  * `level` - Minimum level to log
-  *
-  * -- Messages below this level are discarded
-  * -- File-specific filters can override to allow lower levels
+ /** @brief Set the minimum log level for a logger
+  * @param logger Logger to configure (NULL for global logger)
+  * @param level Minimum level to log
   */
  void d_SetLogLevel(dLogger_t* logger, dLogLevel_t level);
 
- /*
-  * Get the current log level for a logger
-  *
-  * `logger` - Logger to get level from (NULL for global logger)
-  *
-  * Returns: Current minimum log level for the logger
-  *
-  * -- Returns the effective log level that determines message filtering
-  * -- File-specific filters may override this for specific sources
+ /** @brief Get the current log level for a logger
+  * @param logger Logger to get level from (NULL for global logger)
+  * @return Current minimum log level for the logger
   */
  dLogLevel_t d_GetLogLevel(dLogger_t* logger);
 
- /*
-  * Enable or disable logging globally
-  *
-  * `enabled` - true to enable, false to disable
-  *
-  * -- When disabled, all logging compiles to near-zero overhead
-  * -- Affects all loggers, not just global logger
-  * -- Useful for performance-critical sections
+ /** @brief Enable or disable logging globally
+  * @param enabled true to enable, false to disable
   */
  void d_SetLoggingEnabled(bool enabled);
 
- /*
-  * Check if logging is globally enabled
-  *
-  * Returns: true if logging is enabled, false if disabled
-  *
-  * -- Returns the current global logging state
-  * -- When false, all logging operations are no-ops
+ /** @brief Check if logging is globally enabled
+  * @return true if logging is enabled, false if disabled
   */
  bool d_IsLoggingEnabled(void);
 
@@ -2581,452 +2316,177 @@ int d_StringCompareToCString(const dString_t* d_str, const char* c_str);
  // LOG HANDLERS
  // =============================================================================
 
- /*
-  * Add a log handler to a logger
-  *
-  * `logger` - Logger to add handler to (NULL for global logger)
-  * `handler` - Handler function to call for each log entry
-  * `user_data` - Arbitrary data passed to handler
-  *
-  * -- Multiple handlers can be added to a single logger
-  * -- Handlers are called in order of registration
-  * -- user_data can be NULL if handler doesn't need it
+ /** @brief Add a log handler to a logger
+  * @param logger Logger to add handler to (NULL for global logger)
+  * @param handler Handler function to call for each log entry
+  * @param user_data Arbitrary data passed to handler
   */
  void d_AddLogHandler(dLogger_t* logger, dLogHandler_t handler, void* user_data);
 
- /*
-  * Remove a log handler from a logger
-  *
-  * `logger` - Logger to remove handler from (NULL for global logger)
-  * `handler` - Handler function to remove
-  *
-  * -- Removes first matching handler
-  * -- Does nothing if handler not found
+ /** @brief Remove a log handler from a logger
+  * @param logger Logger to remove handler from (NULL for global logger)
+  * @param handler Handler function to remove
   */
  void d_RemoveLogHandler(dLogger_t* logger, dLogHandler_t handler);
 
- /*
-  * Built-in console log handler
-  *
-  * `entry` - Log entry to output
-  * `user_data` - Unused (pass NULL)
-  *
-  * -- Outputs to stdout/stderr based on level
-  * -- Supports ANSI color codes if configured
-  * -- Thread-safe output
+ /** @brief Built-in console log handler
+  * @param entry Log entry to output
+  * @param user_data Unused (pass NULL)
   */
  void d_ConsoleLogHandler(const dLogEntry_t* entry, void* user_data);
 
- /*
-  * Built-in file log handler
-  *
-  * `entry` - Log entry to output
-  * `user_data` - FILE* to write to
-  *
-  * -- Writes formatted log entries to file
-  * -- user_data must be valid FILE* opened for writing
-  * -- Caller responsible for opening/closing file
+ /** @brief Built-in file log handler
+  * @param entry Log entry to output
+  * @param user_data FILE* to write to
   */
  void d_FileLogHandler(const dLogEntry_t* entry, void* user_data);
 
- /*
-  * Built-in string builder log handler
-  *
-  * `entry` - Log entry to output
-  * `user_data` - dString_t* to append to
-  *
-  * -- Appends formatted entries to string builder
-  * -- Useful for capturing logs in tests
-  * -- user_data must be valid dString_t*
+ /** @brief Built-in string builder log handler
+  * @param entry Log entry to output
+  * @param user_data dString_t* to append to
   */
  void d_StringLogHandler(const dLogEntry_t* entry, void* user_data);
-
- // =============================================================================
- // LOG BUILDER PATTERN
- // =============================================================================
-
- /*
-  * Begin building a log message
-  *
-  * `level` - Log level for the message
-  *
-  * `dLogBuilder_t*` - Log builder instance, or NULL on error
-  *
-  * -- Must call d_LogBuilder_End() or d_LogBuilder_Commit() to send
-  * -- Reuses thread-local buffers for zero allocation
-  * -- Can chain multiple append operations
-  */
- dLogBuilder_t* d_LogBegin(dLogLevel_t level);
-
- /*
-  * Append a string to the log builder
-  *
-  * `builder` - Log builder instance
-  * `text` - Text to append
-  *
-  * `dLogBuilder_t*` - Same builder for chaining
-  *
-  * -- Returns NULL if builder is NULL
-  * -- Can chain: d_LogBegin(INFO)->Append("Hello")->Append(" World")->End()
-  */
- dLogBuilder_t* d_LogBuilder_Append(dLogBuilder_t* builder, const char* text);
-
- /*
-  * Append an integer to the log builder
-  *
-  * `builder` - Log builder instance
-  * `value` - Integer value to append
-  *
-  * `dLogBuilder_t*` - Same builder for chaining
-  */
- dLogBuilder_t* d_LogBuilder_AppendInt(dLogBuilder_t* builder, int value);
-
- /*
-  * Append a float to the log builder
-  *
-  * `builder` - Log builder instance
-  * `value` - Float value to append
-  * `decimals` - Number of decimal places (0-10)
-  *
-  * `dLogBuilder_t*` - Same builder for chaining
-  */
- dLogBuilder_t* d_LogBuilder_AppendFloat(dLogBuilder_t* builder, float value, int decimals);
-
- /*
-  * Append formatted text to the log builder
-  *
-  * `builder` - Log builder instance
-  * `format` - Printf-style format string
-  * `...` - Variable arguments
-  *
-  * `dLogBuilder_t*` - Same builder for chaining
-  */
- dLogBuilder_t* d_LogBuilder_AppendF(dLogBuilder_t* builder, const char* format, ...);
-
- /*
-  * Finish building and send the log message
-  *
-  * `builder` - Log builder instance
-  *
-  * -- Sends the built message through normal logging pipeline
-  * -- Builder is automatically cleaned up after this call
-  * -- Do not use builder after calling End()
-  */
- void d_LogBuilder_End(dLogBuilder_t* builder);
-
- /*
-  * Alias for d_LogBuilder_End() for clearer intent
-  */
- void d_LogBuilder_Commit(dLogBuilder_t* builder);
-
- // =============================================================================
- // STRUCTURED LOGGING
- // =============================================================================
-
- /*
-  * Begin building a structured log entry
-  *
-  * `level` - Log level for the message
-  *
-  * `dLogStructured_t*` - Structured log builder, or NULL on error
-  *
-  * -- Must call d_LogStructured_Commit() to send
-  * -- Outputs in key=value or JSON format
-  * -- Ideal for machine-parseable logs
-  */
- dLogStructured_t* d_LogStructured(dLogLevel_t level);
-
- /*
-  * Add a string field to structured log
-  *
-  * `builder` - Structured log builder
-  * `key` - Field name
-  * `value` - Field value
-  *
-  * `dLogStructured_t*` - Same builder for chaining
-  */
- dLogStructured_t* d_LogStructured_Field(dLogStructured_t* builder, const char* key, const char* value);
-
- /*
-  * Add an integer field to structured log
-  *
-  * `builder` - Structured log builder
-  * `key` - Field name
-  * `value` - Integer value
-  *
-  * `dLogStructured_t*` - Same builder for chaining
-  */
- dLogStructured_t* d_LogStructured_FieldInt(dLogStructured_t* builder, const char* key, int value);
-
- /*
-  * Add a float field to structured log
-  *
-  * `builder` - Structured log builder
-  * `key` - Field name
-  * `value` - Float value
-  * `decimals` - Decimal places (0-10)
-  *
-  * `dLogStructured_t*` - Same builder for chaining
-  */
- dLogStructured_t* d_LogStructured_FieldFloat(dLogStructured_t* builder, const char* key, float value, int decimals);
-
- /*
-  * Set structured log output format
-  *
-  * `builder` - Structured log builder
-  * `json` - true for JSON format, false for key=value format
-  *
-  * `dLogStructured_t*` - Same builder for chaining
-  */
- dLogStructured_t* d_LogStructured_SetFormat(dLogStructured_t* builder, bool json);
-
- /*
-  * Finish and send the structured log
-  *
-  * `builder` - Structured log builder
-  *
-  * -- Formats and sends the structured data
-  * -- Builder is cleaned up after this call
-  */
- void d_LogStructured_Commit(dLogStructured_t* builder);
-
- /*
-  * Add a boolean field to structured log
-  *
-  * `builder` - Structured log builder
-  * `key` - Field name
-  * `value` - Boolean value
-  *
-  * `dLogStructured_t*` - Same builder for chaining
-  */
- dLogStructured_t* d_LogStructured_FieldBool(dLogStructured_t* builder, const char* key, bool value);
-
- /*
-  * Add a timestamp field to structured log
-  *
-  * `builder` - Structured log builder
-  * `key` - Field name
-  *
-  * `dLogStructured_t*` - Same builder for chaining
-  *
-  * -- Adds current timestamp in ISO 8601 format
-  * -- Timestamp is captured when this function is called
-  */
- dLogStructured_t* d_LogStructured_FieldTimestamp(dLogStructured_t* builder, const char* key);
-
- /*
-  * Clone an existing structured log for reuse
-  *
-  * `source` - Source structured log to clone
-  *
-  * `dLogStructured_t*` - New structured log with copied fields, or NULL on error
-  *
-  * -- Creates a new structured log with all fields from source
-  * -- Useful for creating logs with shared context
-  * -- Source log remains unchanged and usable
-  */
- dLogStructured_t* d_LogStructured_Clone(dLogStructured_t* source);
 
  // =============================================================================
  // LOG CONTEXTS
  // =============================================================================
 
- /*
-  * Push a new logging context onto the stack
-  *
-  * `name` - Context name (e.g., "Physics", "Renderer")
-  *
-  * `dLogContext_t*` - Context handle, or NULL on error
-  *
-  * -- All subsequent logs include this context
-  * -- Contexts can be nested
-  * -- Must call d_PopLogContext() to remove
+ /** @brief Push a new logging context onto the stack
+  * @param name Context name (e.g., "Physics", "Renderer")
+  * @return Context handle, or NULL on error
   */
  dLogContext_t* d_PushLogContext(const char* name);
 
- /*
-  * Pop a logging context from the stack
-  *
-  * `context` - Context handle from d_PushLogContext()
-  *
-  * -- Removes the context from subsequent logs
-  * -- Safe to call with NULL
-  * -- Contexts must be popped in LIFO order
+ /** @brief Pop a logging context from the stack
+  * @param context Context handle from d_PushLogContext()
   */
  void d_PopLogContext(dLogContext_t* context);
 
- /*
-  * Log the execution time of a context when popped
-  *
-  * `context` - Context to enable timing for
-  *
-  * -- When context is popped, logs execution time
-  * -- Useful for performance profiling
+ /** @brief Log the execution time of a context when popped
+  * @param context Context to enable timing for
   */
  void d_LogContext_EnableTiming(dLogContext_t* context);
 
  // =============================================================================
- // CONDITIONAL AND RATE-LIMITED LOGGING
+ // THROTTLED LOGGING - Per-Call-Site Rate Limiting
  // =============================================================================
- // Rate limiting behavior flags
- typedef enum {
-     // Hashes the final, fully-rendered message. Prone to issues with formatted strings.
-     D_LOG_RATE_LIMIT_FLAG_HASH_FINAL_MESSAGE = 0,
-     // Hashes the format string itself. Correctly limits repeated formatted calls.
-     D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING = 1
- } dLogRateLimitFlag_t;
- /*
-  * Log only if condition is true
-  *
-  * `condition` - Boolean condition to check
-  * `level` - Log level if condition is true
-  * `message` - Message to log
-  *
-  * -- Zero overhead when condition is false
-  * -- Useful for debug assertions and conditional warnings
-  */
- void d_LogIf(bool condition, dLogLevel_t level, const char* message);
 
- /*
-  * Log with printf formatting only if condition is true
-  *
-  * `condition` - Boolean condition to check
-  * `level` - Log level if condition is true
-  * `format` - Printf-style format string
-  * `...` - Variable arguments
+ /** @brief Log with per-call-site throttling (Debug level)
+  * @param interval Minimum seconds between logs at this call site
+  * @param fmt Printf-style format string
+  * @param ... Variable arguments
   */
- void d_LogIfF(bool condition, dLogLevel_t level, const char* format, ...);
+ #define d_LogDebugF_Throttle(interval, fmt, ...) do { \
+     static double _throttle_last = 0; \
+     double _throttle_now = d_GetTimestamp(); \
+     if (_throttle_now - _throttle_last >= (interval)) { \
+         _throttle_last = _throttle_now; \
+         d_LogDebugF(fmt, ##__VA_ARGS__); \
+     } \
+ } while(0)
 
- /*
-  * Log with rate limiting to prevent spam
-  *
-  * `level` - Log level
-  * `max_count` - Maximum logs allowed in time window
-  * `time_window` - Time window in seconds
-  * `message` - Message to log
-  *
-  * -- Prevents identical messages from flooding logs
-  * -- Uses message hash for comparison
-  * -- Resets counter after time window expires
+ /** @brief Log with per-call-site throttling (Info level)
+  * @param interval Minimum seconds between logs at this call site
+  * @param fmt Printf-style format string
+  * @param ... Variable arguments
   */
- void d_LogRateLimited(dLogLevel_t level, uint32_t max_count, double time_window, const char* message);
+ #define d_LogInfoF_Throttle(interval, fmt, ...) do { \
+     static double _throttle_last = 0; \
+     double _throttle_now = d_GetTimestamp(); \
+     if (_throttle_now - _throttle_last >= (interval)) { \
+         _throttle_last = _throttle_now; \
+         d_LogInfoF(fmt, ##__VA_ARGS__); \
+     } \
+ } while(0)
 
- /*
-  * Rate-limited logging with formatting
-  *
-  * `flag` - Determines what to hash for rate limiting (the format string or the final message)
-  * `level` - Log level
-  * `max_count` - Maximum logs allowed in time window
-  * `time_window` - Time window in seconds
-  * `format` - Printf-style format string
-  * `...` - Variable arguments
+ /** @brief Log with per-call-site throttling (Warning level)
+  * @param interval Minimum seconds between logs at this call site
+  * @param fmt Printf-style format string
+  * @param ... Variable arguments
   */
- void d_LogRateLimitedF(dLogRateLimitFlag_t flag, dLogLevel_t level, uint32_t max_count, double time_window, const char* format, ...);
+ #define d_LogWarningF_Throttle(interval, fmt, ...) do { \
+     static double _throttle_last = 0; \
+     double _throttle_now = d_GetTimestamp(); \
+     if (_throttle_now - _throttle_last >= (interval)) { \
+         _throttle_last = _throttle_now; \
+         d_LogWarningF(fmt, ##__VA_ARGS__); \
+     } \
+ } while(0)
 
+ /** @brief Log with per-call-site throttling (Error level)
+  * @param interval Minimum seconds between logs at this call site
+  * @param fmt Printf-style format string
+  * @param ... Variable arguments
+  */
+ #define d_LogErrorF_Throttle(interval, fmt, ...) do { \
+     static double _throttle_last = 0; \
+     double _throttle_now = d_GetTimestamp(); \
+     if (_throttle_now - _throttle_last >= (interval)) { \
+         _throttle_last = _throttle_now; \
+         d_LogErrorF(fmt, ##__VA_ARGS__); \
+     } \
+ } while(0)
+
+ /** @brief Log with per-call-site throttling (Fatal level)
+  * @param interval Minimum seconds between logs at this call site
+  * @param fmt Printf-style format string
+  * @param ... Variable arguments
+  */
+ #define d_LogFatalF_Throttle(interval, fmt, ...) do { \
+     static double _throttle_last = 0; \
+     double _throttle_now = d_GetTimestamp(); \
+     if (_throttle_now - _throttle_last >= (interval)) { \
+         _throttle_last = _throttle_now; \
+         d_LogFatalF(fmt, ##__VA_ARGS__); \
+     } \
+ } while(0)
 
  // =============================================================================
  // UTILITY FUNCTIONS
  // =============================================================================
 
- /*
-  * Get string representation of log level
-  *
-  * `level` - Log level enum value
-  *
-  * `const char*` - String like "DEBUG", "INFO", etc.
-  *
-  * -- Returns "UNKNOWN" for invalid levels
-  * -- Useful for custom handlers
+ /** @brief Get string representation of log level
+  * @param level Log level enum value
+  * @return String like "DEBUG", "INFO", etc. Returns "UNKNOWN" for invalid levels
   */
  const char* d_LogLevel_ToString(dLogLevel_t level);
 
- /*
-  * Parse log level from string
-  *
-  * `str` - String like "DEBUG", "INFO", etc.
-  *
-  * `dLogLevel_t` - Parsed level, or D_LOG_LEVEL_INFO on error
-  *
-  * -- Case-insensitive parsing
-  * -- Accepts full names or single letters (D, I, W, E, F)
+ /** @brief Parse log level from string
+  * @param str String like "DEBUG", "INFO", etc. Case-insensitive
+  * @return Parsed level, or D_LOG_LEVEL_INFO on error
   */
  dLogLevel_t d_LogLevel_FromString(const char* str);
 
- /*
-  * Get ANSI color code for log level
-  *
-  * `level` - Log level
-  *
-  * `const char*` - ANSI escape sequence, or empty string if colors disabled
-  *
-  * -- Returns escape codes like "\033[31m" for red
-  * -- Used by console handler for colored output
+ /** @brief Get ANSI color code for log level
+  * @param level Log level
+  * @return ANSI escape sequence, or empty string if colors disabled
   */
  const char* d_LogLevel_GetColor(dLogLevel_t level);
 
- /*
-  * Get current timestamp as Unix time
-  *
-  * `double` - Current time in seconds since epoch
-  *
-  * -- High precision timestamp for log entries
-  * -- Platform-independent implementation
+ /** @brief Get color reset sequence
+  * @return ANSI reset sequence, or empty string if colors disabled
+  */
+ const char* d_LogLevel_GetColorReset(void);
+
+ /** @brief Get gaming-themed prefix for log level
+  * @param level Log level
+  * @return Prefix string like "[DEBUG]", "[INFO] ", etc.
+  */
+ const char* d_LogLevel_GetGamePrefix(dLogLevel_t level);
+
+ /** @brief Get current timestamp as Unix time
+  * @return Current time in seconds since epoch
   */
  double d_GetTimestamp(void);
 
- /*
-  * Format timestamp into string
-  *
-  * `buffer` - Output buffer
-  * `buffer_size` - Size of buffer
-  * `timestamp` - Unix timestamp
-  * `format` - strftime format string (NULL for ISO-8601)
-  *
-  * -- Safe string formatting with bounds checking
-  * -- Default format: "YYYY-MM-DD HH:MM:SS.mmm"
+ /** @brief Format timestamp into string
+  * @param buffer Output buffer
+  * @param buffer_size Size of buffer
+  * @param timestamp Unix timestamp
+  * @param format strftime format string (NULL for ISO-8601)
   */
  void d_FormatTimestamp(char* buffer, size_t buffer_size, double timestamp, const char* format);
 
- /*
-  * Get logging statistics
-  *
-  * `logger` - Logger to get stats from (NULL for global)
-  * `stats` - Output structure to fill
-  *
-  * -- Provides counts of logs by level, suppressed logs, etc.
-  * -- Useful for monitoring and debugging
-  */
- void d_GetLogStats(dLogger_t* logger, dLogStats_t* stats);
-
- /*
-  * Reset logging statistics
-  *
-  * `logger` - Logger to reset stats for (NULL for global)
-  *
-  * -- Clears all counters back to zero
-  * -- Does not affect configuration
-  */
- void d_ResetLogStats(dLogger_t* logger);
-
- /*
-  * Resets the global rate limiter cache, clearing all tracked messages.
-  *
-  * -- FOR TESTING AND DEBUGGING USE ONLY.
-  * -- This function is not thread-safe and should be called when no other
-  * threads are performing logging.
-  * -- It clears all history, allowing rate-limited messages to be logged again.
-  */
- void d_ResetRateLimiterCache(void);
-
- /*
-  * Gets the current number of unique messages being tracked by the rate limiter.
-  *
-  * `size_t` - The number of entries in the rate limiter's cache.
-  *
-  * -- FOR TESTING AND DEBUGGING USE ONLY.
-  * -- Can be used to verify that the cache is growing as expected.
-  */
- size_t d_GetRateLimiterCacheEntryCount(void);
  // =============================================================================
  // ZERO-OVERHEAD MACROS
  // =============================================================================
@@ -3572,19 +3032,6 @@ void d_DUFLexFree(dArray_t* tokens);
  * @param filename Path to the DUF file to parse
  * @param out_value Pointer to store the parsed value tree (set to NULL on error)
  * @return Error information, or NULL on success
- *
- * Example:
- * @code
- * dDUFValue_t* data = NULL;
- * dDUFError_t* err = d_DUFParseFile("config.duf", &data);
- * if (err != NULL) {
- *     printf("Error at %d:%d - %s\n", err->line, err->column, d_StringPeek(err->message));
- *     d_DUFErrorFree(err);
- *     return -1;
- * }
- * // Use data...
- * d_DUFFree(data);
- * @endcode
  */
 dDUFError_t* d_DUFParseFile(const char* filename, dDUFValue_t** out_value);
 

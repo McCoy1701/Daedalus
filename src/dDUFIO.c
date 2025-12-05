@@ -87,8 +87,8 @@ static void serialize_table(dDUFValue_t* table, dString_t* out, int indent_level
         write_indent(out, indent_level + 1);
 
         // Write key
-        if (child->string != NULL) {
-            d_StringAppend(out, child->string, 0);
+        if (child->key != NULL) {
+            d_StringAppend(out, child->key, 0);
             d_StringAppend(out, ": ", 0);
         }
 
@@ -165,8 +165,8 @@ dString_t* d_DUFToString(dDUFValue_t* root)
         dDUFValue_t* child = root->child;
         while (child != NULL) {
             d_StringAppendChar(out, '@');
-            if (child->string != NULL) {
-                d_StringAppend(out, child->string, 0);
+            if (child->key != NULL) {
+                d_StringAppend(out, child->key, 0);
             }
             d_StringAppend(out, " ", 0);
 

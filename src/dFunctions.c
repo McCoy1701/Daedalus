@@ -71,16 +71,6 @@ size_t d_HashString(const void* key, size_t key_size)
     return hash;
 }
 
-/**
- * @brief Hash function for string literals (const char*).
- *
- * Similar to d_HashString but expects the key to be a char* directly,
- * not a pointer to a char*. Useful for string literal keys.
- *
- * @param key Pointer to string (char*)
- * @param key_size Length of the string (can be 0 for null-terminated)
- * @return Hash value
- */
 size_t d_HashStringLiteral(const void* key, size_t key_size)
 {
     if (!key) return 0;
@@ -106,22 +96,6 @@ size_t d_HashStringLiteral(const void* key, size_t key_size)
     return hash;
 }
 
-/**
- * @brief Hash function for floating-point numbers.
- *
- * Converts float to integer representation for hashing.
- * Note: Be careful with floating-point precision when using as keys.
- *
- * @param key Pointer to float value
- * @param key_size Size of the key (should be sizeof(float))
- * @return Hash value
- *
- * Example:
- * ```c
- * dTable_t* table = d_TableInit(sizeof(float), sizeof(int),
- *                               d_HashFloat, d_CompareFloat, 16);
- * ```
- */
 size_t d_HashFloat(const void* key, size_t key_size)
 {
     (void)key_size; // Unused parameter
@@ -140,16 +114,6 @@ size_t d_HashFloat(const void* key, size_t key_size)
     return (size_t)(converter.i * 2654435761U);
 }
 
-/**
- * @brief Hash function for double-precision floating-point numbers.
- *
- * Converts double to integer representation for hashing.
- * Note: Be careful with floating-point precision when using as keys.
- *
- * @param key Pointer to double value
- * @param key_size Size of the key (should be sizeof(double))
- * @return Hash value
- */
 size_t d_HashDouble(const void* key, size_t key_size)
 {
     (void)key_size; // Unused parameter
@@ -171,23 +135,6 @@ size_t d_HashDouble(const void* key, size_t key_size)
     return (size_t)((high ^ low) * 2654435761U);
 }
 
-/**
- * @brief General-purpose hash function for binary data using FNV-1a.
- *
- * Can hash any binary data of specified length. Useful for structs,
- * arrays, or any fixed-size binary data.
- *
- * @param key Pointer to binary data
- * @param key_size Size of the data in bytes
- * @return Hash value
- *
- * Example:
- * ```c
- * typedef struct { int x, y; } Point;
- * dTable_t* table = d_TableInit(sizeof(Point), sizeof(int),
- *                               d_HashBinary, d_CompareBinary, 16);
- * ```
- */
 size_t d_HashBinary(const void* key, size_t key_size)
 {
     if (!key || key_size == 0) return 0;
@@ -203,16 +150,6 @@ size_t d_HashBinary(const void* key, size_t key_size)
     return hash;
 }
 
-/**
- * @brief Hash function for pointers (memory addresses).
- *
- * Hashes the pointer value itself, not the data it points to.
- * Useful when you want to use memory addresses as keys.
- *
- * @param key Pointer to pointer value
- * @param key_size Size of pointer (should be sizeof(void*))
- * @return Hash value
- */
 size_t d_HashPointer(const void* key, size_t key_size)
 {
     (void)key_size; // Unused parameter

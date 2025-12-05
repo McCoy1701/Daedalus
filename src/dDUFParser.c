@@ -295,8 +295,8 @@ static dDUFValue_t* parse_table(Parser_t* p, dDUFError_t** err)
         }
 
         // Set the key name on the value node
-        value->string = strdup(key);
-        if (value->string == NULL) {
+        value->key = strdup(key);
+        if (value->key == NULL) {
             d_DUFFree(value);
             d_DUFFree(table);
             *err = parser_error(p, "Memory allocation failed");
@@ -340,8 +340,8 @@ static dDUFValue_t* parse_entry(Parser_t* p, dDUFError_t** err)
     }
 
     // Set the entry name on the table
-    table->string = strdup(entry_name);
-    if (table->string == NULL) {
+    table->key = strdup(entry_name);
+    if (table->key == NULL) {
         d_DUFFree(table);
         *err = parser_error(p, "Memory allocation failed");
         return NULL;
