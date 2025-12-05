@@ -124,24 +124,6 @@ static void _d_GenerateEntryName(const dTableEntry_t* entry, char* name_buffer, 
 // HASH TABLE CREATION AND DESTRUCTION
 // =============================================================================
 
-/**
- * @brief Initialize a new hash table structure.
- *
- * Allocates memory for the dTable_t structure, initializes its internal fields,
- * and allocates the initial array of dLinkedList_t pointers (buckets). Each
- * bucket is initially set to NULL.
- *
- * @param key_size The size in bytes of the keys that will be stored
- * @param value_size The size in bytes of the values that will be stored
- * @param hash_func A pointer to the user-provided hashing function
- * @param compare_func A pointer to the user-provided key comparison function
- * @param initial_num_buckets The initial number of buckets for the table
- *
- * @return A pointer to the newly initialized dTable_t instance, or NULL on failure
- *
- * Example:
- * `dTable_t* table = d_TableInit(sizeof(int), sizeof(char*), my_hash, my_compare, 16);`
- */
 dTable_t* d_TableInit(size_t key_size, size_t value_size, dTableHashFunc hash_func,
                       dTableCompareFunc compare_func, size_t initial_num_buckets
                     )
@@ -187,56 +169,35 @@ dTable_t* d_TableInit(size_t key_size, size_t value_size, dTableHashFunc hash_fu
     return table;
 }
 
-/**
- * @brief Destroy a hash table and free all associated memory.
- *
- * Deallocates all memory associated with a dTable_t instance. This includes
- * iterating through all buckets, destroying each dLinkedList_t (which frees
- * the dTableEntry_ts and their internal key and value data), then freeing
- * the buckets array, and finally the dTable_t structure itself.
- *
- * @param table A pointer to the pointer of the hash table to destroy
- *
- * @return 0 on success, 1 on failure
- *
- * Example:
- * `d_TableDestroy(&my_table); // my_table will be NULL after this`
- */
-int d_TableDestroy(dTable_t** table)
+int _d_TableDestroy_impl(dTable_t** table, const char* file, int line, const char* func)
 {
-    if (!table || !*table) {
-        d_LogError("Attempted to destroy NULL or invalid hash table.");
-        return 1;
-    }
+    D_ASSERT(table != NULL, "d_TableDestroy: NULL pointer to table pointer", file, line, func);
+    D_ASSERT(*table != NULL, "d_TableDestroy: table already NULL (double-free?)", file, line, func);
 
     dTable_t* t = *table;
+    
+    // Sanity check - catch obvious corruption
+    D_ASSERT(t->buckets != NULL, "d_TableDestroy: buckets is NULL (corruption?)", file, line, func);
 
     // Destroy all buckets and their entries
     for (size_t i = 0; i < t->num_buckets; i++) {
         dLinkedList_t** bucket_ptr = (dLinkedList_t**)d_ArrayGet(t->buckets, i);
         if (bucket_ptr && *bucket_ptr) {
-            // Manually destroy entries first, then the linked list structure
             dLinkedList_t* current = *bucket_ptr;
             while (current) {
                 dTableEntry_t* entry = (dTableEntry_t*)current->data;
                 if (entry) {
                     _d_DestroyTableEntry(entry);
-                    current->data = NULL; // Prevent double free by linked list
+                    current->data = NULL;
                 }
                 current = current->next;
             }
-            // Now destroy the linked list structure itself
             d_DestroyLinkedList(bucket_ptr);
         }
     }
 
-    // Free buckets array
     d_ArrayDestroy(t->buckets);
-
-    // Free table structure
     free(t);
-
-    // Set caller's pointer to NULL
     *table = NULL;
 
     d_LogDebug("Hash table destroyed successfully.");
@@ -364,12 +325,10 @@ void* d_TableGet(dTable_t* table, const void* key)
     return NULL;
 }
 
-int d_TableRemove(dTable_t* table, const void* key)
-{
-    if (!table || !key) {
-        d_LogError("Invalid parameters for removing data from hash table.");
-        return 1;
-    }
+int _d_TableRemove_impl(dTable_t* table, const void* key, const char* file, int line, const char* func) {
+    
+    D_ASSERT(table != NULL, "d_TableRemove: NULL table", file, line, func);
+    D_ASSERT(key != NULL, "d_TableRemove: NULL key", file, line, func);
 
     // Compute hash and bucket index
     size_t hash = table->hash_func(key, table->key_size);
@@ -657,26 +616,6 @@ dArray_t* d_TableGetAllKeys(const dTable_t* table)
     return all_keys_array;
 }
 
-/**
- * @brief Get an array containing copies of all values currently stored in the hash table.
- *
- * This function iterates through all buckets and collects all values, returning them
- * in a newly allocated dArray_t. The values are copied, so the returned array can
- * be modified independently of the hash table.
- *
- * @param table A pointer to the hash table
- *
- * @return A newly allocated dArray_t containing all values, or NULL on failure
- *
- * @note The caller is responsible for destroying the returned array with d_ArrayDestroy
- * @note The values are copied into the array, not referenced
- * @note If the table is empty, returns an empty array (not NULL)
- *
- * Example:
- * `dArray_t* values = d_TableGetAllValues(table);`
- * `// Use values array...`
- * `d_ArrayDestroy(values);`
- */
 dArray_t* d_TableGetAllValues(const dTable_t* table)
 {
     if (!table) {

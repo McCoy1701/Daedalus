@@ -18,7 +18,7 @@ dDUFValue_t* d_DUFGetObjectItem(dDUFValue_t* node, const char* key)
     // Traverse children looking for matching key
     dDUFValue_t* current = node->child;
     while (current != NULL) {
-        if (current->string != NULL && strcmp(current->string, key) == 0) {
+        if (current->key != NULL && strcmp(current->key, key) == 0) {
             return current;
         }
         current = current->next;

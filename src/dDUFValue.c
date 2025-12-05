@@ -120,8 +120,8 @@ void d_DUFFree(dDUFValue_t* val)
     }
 
     // Free string fields
-    if (val->string != NULL) {
-        free(val->string);
+    if (val->key != NULL) {
+        free(val->key);
     }
     if (val->value_string != NULL) {
         free(val->value_string);

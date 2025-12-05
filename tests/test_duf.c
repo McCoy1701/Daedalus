@@ -120,7 +120,7 @@ void test_parse_enemies(void)
     dDUFValue_t* enemy = data->child;
     while (enemy != NULL) {
         enemy_count++;
-        printf("    - %s\n", enemy->string);
+        printf("    - %s\n", enemy->key);
         enemy = enemy->next;
     }
     assert(enemy_count == 3);
@@ -139,11 +139,11 @@ void test_serialization(void)
     dDUFValue_t* player = d_DUFCreateTable();
 
     // Set player name
-    player->string = strdup("player");
+    player->key = strdup("player");
 
     // Add name
     dDUFValue_t* name = d_DUFCreateString("Hero");
-    name->string = strdup("name");
+    name->key = strdup("name");
     if (player->child == NULL) {
         player->child = name;
     } else {
@@ -155,7 +155,7 @@ void test_serialization(void)
 
     // Add level
     dDUFValue_t* level = d_DUFCreateInt(5);
-    level->string = strdup("level");
+    level->key = strdup("level");
     dDUFValue_t* last = player->child;
     while (last->next != NULL) last = last->next;
     last->next = level;
@@ -163,7 +163,7 @@ void test_serialization(void)
 
     // Add health
     dDUFValue_t* health = d_DUFCreateFloat(100.5);
-    health->string = strdup("health");
+    health->key = strdup("health");
     last = player->child;
     while (last->next != NULL) last = last->next;
     last->next = health;
@@ -171,7 +171,7 @@ void test_serialization(void)
 
     // Add alive
     dDUFValue_t* alive = d_DUFCreateBool(true);
-    alive->string = strdup("alive");
+    alive->key = strdup("alive");
     last = player->child;
     while (last->next != NULL) last = last->next;
     last->next = alive;
@@ -179,7 +179,7 @@ void test_serialization(void)
 
     // Add items array
     dDUFValue_t* items = d_DUFCreateArray();
-    items->string = strdup("items");
+    items->key = strdup("items");
 
     dDUFValue_t* sword = d_DUFCreateString("sword");
     items->child = sword;

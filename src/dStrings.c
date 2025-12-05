@@ -139,15 +139,12 @@ static void d_StringBuilderEnsureSpace(dString_t* sb, size_t add_len)
 
      return sb;
  }
-/*
- * Destroy a string builder and free its memory
- */
-void d_StringDestroy(dString_t* sb)
+void _d_StringDestroy_impl(dString_t* sb, const char* file, int line, const char* func)
 {
-    if (sb == NULL) {
-        LOG("d_StringDestroy: sb is NULL");
-        return;
-    }
+    D_ASSERT(sb != NULL, "d_StringDestroy: sb is NULL", file, line, func);
+    D_ASSERT(sb->str != NULL, "d_StringDestroy: sb->str is NULL (double-free or corruption?)", file, line, func);
+    D_ASSERT(sb->alloced >= 32, "d_StringDestroy: sb->alloced is impossibly small (corruption?)", file, line, func);
+    
     free(sb->str);
     free(sb);
 }
@@ -199,7 +196,7 @@ void d_StringDestroy(dString_t* sb)
 /*
  * Set the content of an existing dString_t to a new value
  */
-int d_StringSet(dString_t* string, const char* content, int flags)
+int d_StringSet(dString_t* string, const char* content)
 {
     // Check your inputs.
     if (!string)
@@ -254,7 +251,7 @@ dString_t* d_StringClone(const dString_t* source)
     // If source has content, copy it
     if (source->str && source->len > 0) {
         // Set the content using existing function
-        if (d_StringSet(clone, source->str, 0) != 0) {
+        if (d_StringSet(clone, source->str) != 0) {
             // Failed to set content, cleanup and return error
             d_StringDestroy(clone);
             return NULL;
@@ -398,9 +395,9 @@ size_t d_StringGetLength(const dString_t* sb)
     return sb->len;
 }
 
-const char* d_StringPeek(const dString_t* sb)
+const char* _d_StringPeek_impl(const dString_t* sb, const char* file, int line, const char* func)
 {
-    D_ASSERT(sb != NULL, "d_StringPeek: NULL string passed");
+    D_ASSERT(sb != NULL, "d_StringPeek: sb is NULL", file, line, func);
     return sb->str;
 }
 

@@ -106,24 +106,11 @@
 #define LOG_COLOR_GRAY_LIGHTER   "\033[38;2;168;181;178m" /* #a8b5b2 - Lighter gray */
 #define LOG_COLOR_GRAY_LIGHTEST  "\033[38;2;199;207;204m" /* #c7cfcc - Very light gray */
 
-// Semantic Color Mappings for Log Levels (matching your CSS semantic colors)
-#define LOG_COLOR_DEBUG_PREFIX   LOG_COLOR_BLUE_LIGHT LOG_COLOR_BOLD      /* --color-info: var(--color-blue-light) */
-#define LOG_COLOR_INFO_PREFIX    LOG_COLOR_GREEN_MEDIUM LOG_COLOR_BOLD     /* --color-success: var(--color-green-medium) */
-#define LOG_COLOR_WARNING_PREFIX LOG_COLOR_ORANGE_LIGHTER LOG_COLOR_BOLD   /* --color-warning: var(--color-orange-lighter) */
-#define LOG_COLOR_ERROR_PREFIX   LOG_COLOR_RED_LIGHT LOG_COLOR_BOLD       /* --color-error: var(--color-red-light) */
-#define LOG_COLOR_FATAL_PREFIX   LOG_COLOR_PURPLE_LIGHT LOG_COLOR_BOLD LOG_COLOR_BLINK /* --color-secondary: var(--color-purple-medium) */
-
-// CSS Variable Mapping Function - Direct correspondence to your root.css
-static const char* get_semantic_color_for_level(dLogLevel_t level) {
-    switch (level) {
-        case D_LOG_LEVEL_DEBUG:   return LOG_COLOR_BLUE_LIGHT;      /* var(--color-info) */
-        case D_LOG_LEVEL_INFO:    return LOG_COLOR_GREEN_MEDIUM;    /* var(--color-success) */
-        case D_LOG_LEVEL_WARNING: return LOG_COLOR_ORANGE_LIGHTER;  /* var(--color-warning) */
-        case D_LOG_LEVEL_ERROR:   return LOG_COLOR_RED_LIGHT;       /* var(--color-error) */
-        case D_LOG_LEVEL_FATAL:   return LOG_COLOR_PURPLE_LIGHT;    /* var(--color-secondary) */
-        default:                  return LOG_COLOR_GRAY_LIGHT;      /* var(--text-muted) */
-    }
-}
+#define LOG_COLOR_DEBUG_PREFIX   LOG_COLOR_BLUE_LIGHT LOG_COLOR_BOLD      
+#define LOG_COLOR_INFO_PREFIX    LOG_COLOR_GREEN_MEDIUM LOG_COLOR_BOLD     
+#define LOG_COLOR_WARNING_PREFIX LOG_COLOR_ORANGE_LIGHTER LOG_COLOR_BOLD   
+#define LOG_COLOR_ERROR_PREFIX   LOG_COLOR_RED_LIGHT LOG_COLOR_BOLD       
+#define LOG_COLOR_FATAL_PREFIX   LOG_COLOR_PURPLE_LIGHT LOG_COLOR_BOLD LOG_COLOR_BLINK 
 
 // Helper function to check if terminal supports colors
 static bool is_color_terminal(void)
@@ -158,16 +145,10 @@ static __thread dString_t* tls_format_buffer = NULL;
 
 // Global logger instance
 static dLogger_t* g_global_logger = NULL;
-#ifdef __EMSCRIPTEN__
-static int rate_limit_mutex = 0;
-#else
-static pthread_mutex_t rate_limit_mutex = PTHREAD_MUTEX_INITIALIZER;
-#endif// Global color support detection
+
+// Global color support detection
 static bool g_color_support_detected = false;
 static bool g_supports_color = false;
-
-// Forward declaration for stats function
-static void update_log_stats(dLogger_t* logger, dLogLevel_t level, double processing_time, bool was_suppressed, bool was_rate_limited, bool handler_error);
 
 // Context stack for tracking current logging context
 static dLogContext_t* g_context_stack = NULL;
@@ -211,25 +192,6 @@ static const char* get_current_context_name(void) {
 // =============================================================================
 // UTILITY FUNCTIONS
 // =============================================================================
-// Rate limit cache declaration (moved here to be accessible)
-static dArray_t* rate_limit_cache = NULL;
-
-static void init_rate_limit_cache() {
-    if (!rate_limit_cache) {
-        rate_limit_cache = d_ArrayInit(100, sizeof(dLogRateLimit_t));
-    }
-}
-
-static uint32_t hash_message(const char* message) {
-    if (!message) return 0;
-
-    uint32_t hash = 5381;
-    int c;
-    while ((c = *message++)) {
-        hash = ((hash << 5) + hash) + c;
-    }
-    return hash;
-}
 
 /*
  * Get string representation of log level
@@ -527,7 +489,6 @@ dLogger_t* d_CreateLogger(dLogConfig_t config)
     logger->handlers = d_ArrayInit(4, sizeof(dLogHandlerReg_t));
     logger->contexts = d_ArrayInit(8, sizeof(char*));
     logger->format_buffer = d_StringInit();
-    logger->stats = (dLogStats_t*)calloc(1, sizeof(dLogStats_t));
 
     // Initialize mutex for thread safety
     logger->mutex = malloc(sizeof(dMutex_t));
@@ -535,7 +496,7 @@ dLogger_t* d_CreateLogger(dLogConfig_t config)
         MUTEX_INIT((dMutex_t*)logger->mutex);
     }
 
-    if (!logger->handlers || !logger->contexts || !logger->format_buffer || !logger->stats) {
+    if (!logger->handlers || !logger->contexts || !logger->format_buffer) {
         d_DestroyLogger(logger);
         return NULL;
     }
@@ -572,20 +533,6 @@ void d_DestroyLogger(dLogger_t* logger)
     if (logger->handlers) d_ArrayDestroy(logger->handlers);
     if (logger->contexts) d_ArrayDestroy(logger->contexts);
     if (logger->format_buffer) d_StringDestroy(logger->format_buffer);
-    if (logger->stats) free(logger->stats);
-    if (logger->filters) {
-        // Clean up filter engine with thread safety
-        if (logger->mutex) {
-            MUTEX_LOCK((dMutex_t*)logger->mutex);
-        }
-        if (logger->filters->rules) {
-            d_ArrayDestroy(logger->filters->rules);
-        }
-        free(logger->filters);
-        if (logger->mutex) {
-            MUTEX_UNLOCK((dMutex_t*)logger->mutex);
-        }
-    }
     if (logger->mutex) {
         MUTEX_DESTROY((dMutex_t*)logger->mutex);
         free(logger->mutex);
@@ -752,9 +699,6 @@ static void process_log_entry(dLogger_t* logger, dLogEntry_t* entry)
         MUTEX_LOCK((dMutex_t*)logger->mutex);
     }
 
-    // Update statistics
-    g_log_config.total_logs_processed++;
-
     // Process through each handler
     for (size_t i = 0; i < logger->handlers->count; i++) {
         dLogHandlerReg_t* reg = (dLogHandlerReg_t*)d_ArrayGet(logger->handlers, i);
@@ -780,8 +724,6 @@ void d_LogEx(dLogLevel_t level, const char* file, int line, const char* func, co
 
     // Check if this level should be logged
     if (level < logger->config.default_level) {
-        g_log_config.total_logs_suppressed++;
-        update_log_stats(logger, level, 0.0, true, false, false);
         return;
     }
 
@@ -810,9 +752,6 @@ void d_LogEx(dLogLevel_t level, const char* file, int line, const char* func, co
     // Clean up the temporary string
     d_StringDestroy(msg_buffer);
 
-    // Update performance stats
-    double processing_time = d_GetTimestamp() - start_time;
-    update_log_stats(logger, level, processing_time, false, false, false);
 }
 
 /*
@@ -828,8 +767,6 @@ void d_LogExF(dLogLevel_t level, const char* file, int line, const char* func, c
 
     // Check if this level should be logged
     if (level < logger->config.default_level) {
-        g_log_config.total_logs_suppressed++;
-        update_log_stats(logger, level, 0.0, true, false, false);
         return;
     }
 
@@ -873,9 +810,6 @@ void d_LogExF(dLogLevel_t level, const char* file, int line, const char* func, c
 
     process_log_entry(logger, &entry);
 
-    // Update performance stats
-    double processing_time = d_GetTimestamp() - start_time;
-    update_log_stats(logger, level, processing_time, false, false, false);
 }
 
 // =============================================================================
@@ -1048,519 +982,12 @@ void d_LogFatalF(const char* format, ...)
     va_end(args);
 }
 // =============================================================================
-// STATISTICS AND MONITORING
+// LOG CONTEXTS
 // =============================================================================
-
-static dLogStats_t global_log_stats = {0};
-static bool stats_initialized = false;
-
-void d_GetLogStats(dLogger_t* logger, dLogStats_t* stats) {
-    if (!stats) return;
-
-    if (logger && logger->stats) {
-        // Per-logger stats with thread safety
-        if (logger->mutex) {
-            MUTEX_LOCK((dMutex_t*)logger->mutex);
-        }
-        *stats = *logger->stats;
-        if (logger->mutex) {
-            MUTEX_UNLOCK((dMutex_t*)logger->mutex);
-        }
-    } else if (logger) {
-        // Logger exists but no stats allocated - return zero stats
-        memset(stats, 0, sizeof(dLogStats_t));
-    } else {
-        // Global stats
-        *stats = global_log_stats;
-    }
-}
-
-void d_ResetLogStats(dLogger_t* logger) {
-    if (logger && logger->stats) {
-        // Per-logger stats reset with thread safety
-        if (logger->mutex) {
-            MUTEX_LOCK((dMutex_t*)logger->mutex);
-        }
-        memset(logger->stats, 0, sizeof(dLogStats_t));
-        if (logger->mutex) {
-            MUTEX_UNLOCK((dMutex_t*)logger->mutex);
-        }
-    } else if (logger) {
-        // Logger exists but no stats - do nothing
-        return;
-    } else {
-        // Global stats reset
-        memset(&global_log_stats, 0, sizeof(dLogStats_t));
-        stats_initialized = false;
-    }
-}
-
-// Internal function to update stats - integrated into logging system
-static void update_log_stats(dLogger_t* logger, dLogLevel_t level, double processing_time, bool was_suppressed, bool was_rate_limited, bool handler_error) {
-    // Update global stats
-    if (!stats_initialized) {
-        memset(&global_log_stats, 0, sizeof(dLogStats_t));
-        stats_initialized = true;
-    }
-
-    global_log_stats.total_log_time += processing_time;
-    if (level < D_LOG_LEVEL_OFF && level >= 0) {
-        global_log_stats.logs_by_level[level]++;
-    }
-
-    if (was_suppressed) {
-        global_log_stats.logs_suppressed++;
-    }
-
-    if (was_rate_limited) {
-        global_log_stats.logs_rate_limited++;
-    }
-
-    if (handler_error) {
-        global_log_stats.handler_errors++;
-    }
-
-    // Update per-logger stats if logger exists and has stats
-    if (logger && logger->stats) {
-        if (logger->mutex) {
-            MUTEX_LOCK((dMutex_t*)logger->mutex);
-        }
-
-        logger->stats->total_log_time += processing_time;
-        if (level < D_LOG_LEVEL_OFF && level >= 0) {
-            logger->stats->logs_by_level[level]++;
-        }
-
-        if (was_suppressed) {
-            logger->stats->logs_suppressed++;
-        }
-
-        if (was_rate_limited) {
-            logger->stats->logs_rate_limited++;
-        }
-
-        if (handler_error) {
-            logger->stats->handler_errors++;
-        }
-
-        if (logger->mutex) {
-            MUTEX_UNLOCK((dMutex_t*)logger->mutex);
-        }
-    }
-}
 
 /*
  * Push a new logging context onto the stack
  */
-// =============================================================================
-// ENHANCED RATE LIMITING WITH STATS
-// =============================================================================
-
-
-// Enhanced rate limiting that properly tracks statistics
-void d_LogRateLimited_Enhanced(dLogLevel_t level, uint32_t max_count, double time_window, const char* message) {
-    if (!message) return;
-
-    init_rate_limit_cache();
-
-    uint32_t msg_hash = hash_message(message);
-    double current_time = d_GetTimestamp();
-    bool was_rate_limited = false;
-
-    // Find existing rate limit entry
-    dLogRateLimit_t* rate_limit = NULL;
-    for (size_t i = 0; i < rate_limit_cache->count; i++) {
-        dLogRateLimit_t* entry = (dLogRateLimit_t*)d_ArrayGet(rate_limit_cache, i);
-        if (entry->message_hash == msg_hash) {
-            rate_limit = entry;
-            break;
-        }
-    }
-
-    // Create new entry if not found
-    if (!rate_limit) {
-        dLogRateLimit_t new_entry = {
-            .message_hash = msg_hash,
-            .count = 0,
-            .max_count = max_count,
-            .time_window = time_window,
-            .first_log_time = current_time,
-            .last_log_time = current_time
-        };
-        d_ArrayAppend(rate_limit_cache, &new_entry);
-        rate_limit = (dLogRateLimit_t*)d_ArrayGet(rate_limit_cache,
-                                                                rate_limit_cache->count - 1);
-    }
-
-    // Check if we're still in the time window
-    // Check if we should reset the time window
-    if (current_time - rate_limit->first_log_time > time_window) {
-        rate_limit->count = 0;
-        rate_limit->first_log_time = current_time;
-    }
-
-    if (rate_limit->count < max_count) {
-        double start_time = d_GetTimestamp();
-        d_Log(level, message);
-        double processing_time = d_GetTimestamp() - start_time;
-
-        rate_limit->count++;
-        rate_limit->last_log_time = current_time;
-
-        // Update stats without rate limiting flag
-        update_log_stats(g_global_logger, level, processing_time, false, false, false);
-    } else {
-        // Rate limit less aggressively - only suppress after hitting limit multiple times
-        if (rate_limit->count == max_count) {
-            d_LogWarningF("⚠️  Rate limiting activated for message hash %u (max %u per %.1fs)",
-                         msg_hash, max_count, time_window);
-        }
-        rate_limit->count++;
-
-        // Allow some messages through even when rate limited (every 10th message)
-        if (rate_limit->count % 10 == 0) {
-            d_LogWarningF("🚫 Rate limited message (suppressed %u times): %s",
-                         rate_limit->count - max_count, message);
-        }
-
-        // Log was rate limited
-        was_rate_limited = true;
-        update_log_stats(g_global_logger, level, 0.0, false, was_rate_limited, false);
-    }
-}
-
-// =============================================================================
-// LOG FILTER BUILDER SYSTEM
-// =============================================================================
-
-dLogFilterBuilder_t* d_CreateFilterBuilder() {
-    dLogFilterBuilder_t* builder = malloc(sizeof(dLogFilterBuilder_t));
-    if (!builder) return NULL;
-
-    builder->rules = d_ArrayInit(50, sizeof(dLogFilterRule_t));
-    builder->next_priority = 1;
-
-    return builder;
-}
-
-void d_FilterBuilder_AddDirectory(dLogFilterBuilder_t* builder, const char* path, dLogLevel_t level) {
-    if (!builder || !path) return;
-
-    dLogFilterRule_t rule = {
-        .type = D_LOG_FILTER_DIRECTORY,
-        .pattern = strdup(path),
-        .pattern_len = strlen(path),
-        .level = level,
-        .priority = builder->next_priority++,
-        .pattern_hash = hash_message(path),
-        .recursive = true // Default to recursive for directory filtering
-    };
-
-    d_ArrayAppend(builder->rules, &rule);
-}
-
-void d_FilterBuilder_AddPrefix(dLogFilterBuilder_t* builder, const char* prefix, dLogLevel_t level) {
-    if (!builder || !prefix) return;
-
-    dLogFilterRule_t rule = {
-        .type = D_LOG_FILTER_PREFIX,
-        .pattern = strdup(prefix),
-        .pattern_len = strlen(prefix),
-        .level = level,
-        .priority = builder->next_priority++,
-        .pattern_hash = hash_message(prefix),
-        .recursive = false
-    };
-
-    d_ArrayAppend(builder->rules, &rule);
-}
-
-void d_FilterBuilder_AddSuffix(dLogFilterBuilder_t* builder, const char* suffix, dLogLevel_t level) {
-    if (!builder || !suffix) return;
-
-    dLogFilterRule_t rule = {
-        .type = D_LOG_FILTER_SUFFIX,
-        .pattern = strdup(suffix),
-        .pattern_len = strlen(suffix),
-        .level = level,
-        .priority = builder->next_priority++,
-        .pattern_hash = hash_message(suffix),
-        .recursive = false
-    };
-
-    d_ArrayAppend(builder->rules, &rule);
-}
-
-void d_FilterBuilder_Apply(dLogger_t* logger, dLogFilterBuilder_t* builder) {
-    if (!builder) return;
-
-    // Use global logger if none provided
-    if (!logger) {
-        logger = d_GetGlobalLogger();
-    }
-
-    if (!logger) return;
-
-    // Create filter engine if it doesn't exist
-    if (!logger->filters) {
-        logger->filters = malloc(sizeof(dLogFilterEngine_t));
-        if (!logger->filters) return;
-
-        logger->filters->rules = d_ArrayInit(builder->rules->count, sizeof(dLogFilterRule_t));
-        // Initialize other fields that exist in the struct
-        logger->filters->cache_hits = 0;
-        logger->filters->cache_misses = 0;
-    }
-
-    // Copy rules to logger's filter engine
-    for (size_t i = 0; i < builder->rules->count; i++) {
-        dLogFilterRule_t* rule = (dLogFilterRule_t*)d_ArrayGet(builder->rules, i);
-        d_ArrayAppend(logger->filters->rules, rule);
-    }
-}
-
-int d_FilterBuilder_FromString(dLogger_t* logger, const char* config_str) {
-    if (!config_str) return -1;
-
-    // Use global logger if none provided
-    if (!logger) {
-        logger = d_GetGlobalLogger();
-    }
-
-    if (!logger) return -1;
-
-    // Create a temporary builder
-    dLogFilterBuilder_t* builder = d_CreateFilterBuilder();
-    if (!builder) return -1;
-
-    // Simple parser for filter strings like "src/*:DEBUG,tests/*:INFO"
-    char* filter_copy = strdup(config_str);
-    char* token = strtok(filter_copy, ",");
-    int rules_added = 0;
-
-    while (token) {
-        char* colon = strchr(token, ':');
-        if (colon) {
-            *colon = '\0';
-            char* pattern = token;
-            char* level_str = colon + 1;
-
-            dLogLevel_t level = d_LogLevel_FromString(level_str);
-            if (level != D_LOG_LEVEL_OFF) {
-                if (strstr(pattern, "*") || strstr(pattern, "/")) {
-                    d_FilterBuilder_AddDirectory(builder, pattern, level);
-                } else {
-                    d_FilterBuilder_AddPrefix(builder, pattern, level);
-                }
-                rules_added++;
-            }
-        }
-        token = strtok(NULL, ",");
-    }
-
-    // Apply the rules
-    d_FilterBuilder_Apply(logger, builder);
-
-    // Cleanup
-    d_DestroyFilterBuilder(builder);
-    free(filter_copy);
-
-    return rules_added;
-}
-
-void d_DestroyFilterBuilder(dLogFilterBuilder_t* builder) {
-    if (!builder) return;
-
-    // Free all pattern strings
-    for (size_t i = 0; i < builder->rules->count; i++) {
-        dLogFilterRule_t* rule = (dLogFilterRule_t*)d_ArrayGet(builder->rules, i);
-        if (rule->pattern) {
-            free((void*)rule->pattern);
-        }
-    }
-
-    d_ArrayDestroy(builder->rules);
-    free(builder);
-}
-
-
-// =============================================================================
-// STRUCTURED LOGGING SYSTEM
-// =============================================================================
-
-typedef struct {
-    char* key;
-    char* value;
-} dLogField_t;
-
-dLogStructured_t* d_LogStructured(dLogLevel_t level) {
-    dLogStructured_t* structured = malloc(sizeof(dLogStructured_t));
-    if (!structured) return NULL;
-
-    // Initialize base builder
-    structured->base.buffer = d_StringInit();
-    structured->base.level = level;
-    structured->base.logger = d_GetGlobalLogger();
-    structured->base.file = NULL;
-    structured->base.line = 0;
-    structured->base.function = NULL;
-    structured->base.committed = false;
-
-    // Initialize structured fields
-    structured->fields = d_ArrayInit(20, sizeof(dLogField_t));
-    structured->in_json_mode = false;
-
-    return structured;
-}
-
-dLogStructured_t* d_LogStructured_Field(dLogStructured_t* structured, const char* key, const char* value) {
-    if (!structured || !key || !value || structured->base.committed) return structured;
-
-    dLogField_t field = {
-        .key = strdup(key),
-        .value = strdup(value)
-    };
-
-    d_ArrayAppend(structured->fields, &field);
-    return structured;
-}
-
-dLogStructured_t* d_LogStructured_FieldInt(dLogStructured_t* structured, const char* key, int value) {
-    if (!structured || !key || structured->base.committed) return structured;
-
-    char value_str[32];
-    snprintf(value_str, sizeof(value_str), "%d", value);
-
-    return d_LogStructured_Field(structured, key, value_str);
-}
-
-dLogStructured_t* d_LogStructured_FieldFloat(dLogStructured_t* structured, const char* key, float value, int decimals) {
-    if (!structured || !key || structured->base.committed) return structured;
-
-    char value_str[32];
-    snprintf(value_str, sizeof(value_str), "%.*f", decimals, value);
-
-    return d_LogStructured_Field(structured, key, value_str);
-}
-
-dLogStructured_t* d_LogStructured_SetFormat(dLogStructured_t* structured, bool json_format) {
-    if (!structured || structured->base.committed) return structured;
-
-    structured->in_json_mode = json_format;
-    return structured;
-}
-
-void d_LogStructured_Commit(dLogStructured_t* structured) {
-    if (!structured || structured->base.committed) return;
-
-    // Ensure we have fields to process
-    if (!structured->fields || structured->fields->count == 0) {
-        d_LogWarning("🔍 [DEBUG] Structured log commit called with no fields");
-        structured->base.committed = true;
-        return;
-    }
-
-    // Build the structured message
-    if (structured->in_json_mode) {
-        d_StringAppend(structured->base.buffer, "{", 0);
-        for (size_t i = 0; i < structured->fields->count; i++) {
-            dLogField_t* field = (dLogField_t*)d_ArrayGet(structured->fields, i);
-            if (!field || !field->key || !field->value) continue;
-            if (i > 0) d_StringAppend(structured->base.buffer, ",", 0);
-            d_StringAppend(structured->base.buffer, "\"", 0);
-            d_StringAppend(structured->base.buffer, field->key, 0);
-            d_StringAppend(structured->base.buffer, "\":\"", 0);
-            d_StringAppend(structured->base.buffer, field->value, 0);
-            d_StringAppend(structured->base.buffer, "\"", 0);
-        }
-        d_StringAppend(structured->base.buffer, "}", 0);
-    } else {
-        // Key-value format
-        for (size_t i = 0; i < structured->fields->count; i++) {
-            dLogField_t* field = (dLogField_t*)d_ArrayGet(structured->fields, i);
-            if (!field || !field->key || !field->value) continue;
-            if (i > 0) d_StringAppend(structured->base.buffer, " ", 0);
-            d_StringAppend(structured->base.buffer, field->key, 0);
-            d_StringAppend(structured->base.buffer, "=", 0);
-            d_StringAppend(structured->base.buffer, field->value, 0);
-        }
-    }
-
-    // Add debug indicator for structured logs
-    const char* format_type = structured->in_json_mode ? "JSON" : "KV";
-
-    // Commit the log using the correct d_LogEx signature
-    d_LogEx(structured->base.level, structured->base.file, structured->base.line,
-            structured->base.function, d_StringPeek(structured->base.buffer));
-
-    structured->base.committed = true;
-
-    // Cleanup
-    for (size_t i = 0; i < structured->fields->count; i++) {
-        dLogField_t* field = (dLogField_t*)d_ArrayGet(structured->fields, i);
-        free(field->key);
-        free(field->value);
-    }
-
-    d_ArrayDestroy(structured->fields);
-    d_StringDestroy(structured->base.buffer);
-    free(structured);
-}
-
-dLogStructured_t* d_LogStructured_FieldBool(dLogStructured_t* structured, const char* key, bool value) {
-    if (!structured || !key || structured->base.committed) return structured;
-
-    const char* value_str = value ? "true" : "false";
-    return d_LogStructured_Field(structured, key, value_str);
-}
-
-dLogStructured_t* d_LogStructured_FieldTimestamp(dLogStructured_t* structured, const char* key) {
-    if (!structured || !key || structured->base.committed) return structured;
-
-    // Get current timestamp
-    double timestamp = d_GetTimestamp();
-
-    // Convert to ISO 8601 format
-    time_t time_secs = (time_t)timestamp;
-    int milliseconds = (int)((timestamp - time_secs) * 1000);
-
-    struct tm* tm_info = gmtime(&time_secs);
-    char timestamp_str[32];
-    snprintf(timestamp_str, sizeof(timestamp_str),
-             "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
-             tm_info->tm_year + 1900,
-             tm_info->tm_mon + 1,
-             tm_info->tm_mday,
-             tm_info->tm_hour,
-             tm_info->tm_min,
-             tm_info->tm_sec,
-             milliseconds);
-
-    return d_LogStructured_Field(structured, key, timestamp_str);
-}
-
-dLogStructured_t* d_LogStructured_Clone(dLogStructured_t* source) {
-    if (!source || source->base.committed) return NULL;
-
-    // Create new structured log with same level
-    dLogStructured_t* clone = d_LogStructured(source->base.level);
-    if (!clone) return NULL;
-
-    // Copy format setting
-    clone->in_json_mode = source->in_json_mode;
-
-    // Copy all fields from source
-    if (source->fields && source->fields->count > 0) {
-        for (size_t i = 0; i < source->fields->count; i++) {
-            dLogField_t* field = (dLogField_t*)d_ArrayGet(source->fields, i);
-            if (field && field->key && field->value) {
-                d_LogStructured_Field(clone, field->key, field->value);
-            }
-        }
-    }
-
-    return clone;
-}
 
 // =============================================================================
 // BUILT-IN LOG HANDLERS
@@ -1637,120 +1064,6 @@ void d_StringLogHandler(const dLogEntry_t* entry, void* user_data) {
 }
 
 // =============================================================================
-// LOG BUILDER PATTERN IMPLEMENTATION
-// =============================================================================
-
-/*
- * Begin building a log message
- */
-dLogBuilder_t* d_LogBegin(dLogLevel_t level) {
-    if (!g_log_config.logging_enabled) return NULL;
-
-    dLogger_t* logger = g_global_logger;
-    if (!logger || level < logger->config.default_level) return NULL;
-
-    dLogBuilder_t* builder = malloc(sizeof(dLogBuilder_t));
-    if (!builder) return NULL;
-
-    builder->buffer = d_StringInit();
-    if (!builder->buffer) {
-        free(builder);
-        return NULL;
-    }
-
-    builder->level = level;
-    builder->logger = logger;
-    builder->file = NULL;
-    builder->line = 0;
-    builder->function = NULL;
-    builder->committed = false;
-
-    return builder;
-}
-
-/*
- * Append a string to the log builder
- */
-dLogBuilder_t* d_LogBuilder_Append(dLogBuilder_t* builder, const char* text) {
-    if (!builder || !text) return builder;
-
-    d_StringAppend(builder->buffer, text, 0);
-    return builder;
-}
-
-/*
- * Append an integer to the log builder
- */
-dLogBuilder_t* d_LogBuilder_AppendInt(dLogBuilder_t* builder, int value) {
-    if (!builder) return builder;
-
-    d_StringAppendInt(builder->buffer, value);
-    return builder;
-}
-
-/*
- * Append a float to the log builder
- */
-dLogBuilder_t* d_LogBuilder_AppendFloat(dLogBuilder_t* builder, float value, int decimals) {
-    if (!builder) return builder;
-
-    d_StringAppendFloat(builder->buffer, value, decimals);
-    return builder;
-}
-
-/*
- * Append formatted text to the log builder
- */
-dLogBuilder_t* d_LogBuilder_AppendF(dLogBuilder_t* builder, const char* format, ...) {
-    if (!builder || !format) return builder;
-
-    va_list args;
-    va_start(args, format);
-
-    // Calculate required size
-    va_list args_copy;
-    va_copy(args_copy, args);
-    int needed = vsnprintf(NULL, 0, format, args_copy);
-    va_end(args_copy);
-
-    if (needed > 0) {
-        char* temp_buffer = malloc(needed + 1);
-        if (temp_buffer) {
-            vsnprintf(temp_buffer, needed + 1, format, args);
-            d_StringAppend(builder->buffer, temp_buffer, 0);
-            free(temp_buffer);
-        }
-    }
-
-    va_end(args);
-    return builder;
-}
-
-/*
- * End/commit the log builder
- */
-void d_LogBuilder_End(dLogBuilder_t* builder) {
-    if (!builder || builder->committed) return;
-
-    // Log the message
-    d_LogEx(builder->level, builder->file, builder->line, builder->function,
-            d_StringPeek(builder->buffer));
-
-    builder->committed = true;
-
-    // Cleanup
-    d_StringDestroy(builder->buffer);
-    free(builder);
-}
-
-/*
- * Alias for d_LogBuilder_End()
- */
-void d_LogBuilder_Commit(dLogBuilder_t* builder) {
-    d_LogBuilder_End(builder);
-}
-
-// =============================================================================
 // LOG CONTEXT IMPLEMENTATION
 // =============================================================================
 
@@ -1824,46 +1137,6 @@ void d_LogContext_EnableTiming(dLogContext_t* context) {
 }
 
 // =============================================================================
-// CONDITIONAL LOGGING IMPLEMENTATION
-// =============================================================================
-
-/*
- * Log only if condition is true
- */
-void d_LogIf(bool condition, dLogLevel_t level, const char* message) {
-    if (condition) {
-        d_Log(level, message);
-    }
-}
-
-/*
- * Log with printf formatting only if condition is true
- */
-void d_LogIfF(bool condition, dLogLevel_t level, const char* format, ...) {
-    if (!condition || !format) return;
-
-    va_list args;
-    va_start(args, format);
-
-    // Calculate required size
-    va_list args_copy;
-    va_copy(args_copy, args);
-    int needed = vsnprintf(NULL, 0, format, args_copy);
-    va_end(args_copy);
-
-    if (needed > 0) {
-        char* temp_buffer = malloc(needed + 1);
-        if (temp_buffer) {
-            vsnprintf(temp_buffer, needed + 1, format, args);
-            d_Log(level, temp_buffer);
-            free(temp_buffer);
-        }
-    }
-
-    va_end(args);
-}
-
-// =============================================================================
 // RATE LIMITED LOGGING
 // =============================================================================
 
@@ -1892,94 +1165,3 @@ void d_FormatStringV(dString_t* sb, const char* format, va_list args) {
 }
 
 
-void d_ResetRateLimiterCache() {
-    if (rate_limit_cache) {
-        d_ArrayDestroy(rate_limit_cache);
-        rate_limit_cache = NULL;
-    }
-}
-
-size_t d_GetRateLimiterCacheEntryCount(void) {
-    if (!rate_limit_cache) return 0;
-    return rate_limit_cache->count;
-}
-
-
-void d_LogRateLimited(dLogLevel_t level, uint32_t max_count, double time_window, const char* message) {
-    d_LogRateLimitedF(D_LOG_RATE_LIMIT_FLAG_HASH_FINAL_MESSAGE, level, max_count, time_window, "%s", message);
-}
-
-// In src/dLogs.c
-
-void d_LogRateLimitedF(dLogRateLimitFlag_t flag, dLogLevel_t level, uint32_t max_count, double time_window, const char* format, ...) {
-    if (!format) return;
-
-    // The entire logic is one atomic, thread-safe operation.
-    MUTEX_LOCK(&rate_limit_mutex);        // ✨ WORKS IN ALL REALMS
-
-    dLogger_t* logger = g_global_logger;
-    if (!logger || level < logger->config.default_level) {
-        MUTEX_UNLOCK(&rate_limit_mutex);  // ✨ WORKS IN ALL REALMS
-        return;
-    }
-
-    init_rate_limit_cache();
-
-    va_list args;
-    va_start(args, format);
-
-    uint32_t message_hash;
-    dString_t* message_buffer = get_tls_buffer();
-
-    if (flag == D_LOG_RATE_LIMIT_FLAG_HASH_FINAL_MESSAGE) {
-        d_FormatStringV(message_buffer, format, args);
-        message_hash = hash_message(d_StringPeek(message_buffer));
-    } else {
-        message_hash = hash_message(format);
-    }
-
-    double current_time = d_GetTimestamp();
-    dLogRateLimit_t* rate_limit = NULL;
-    bool should_log = false;
-
-    for (size_t i = 0; i < rate_limit_cache->count; i++) {
-        dLogRateLimit_t* entry = (dLogRateLimit_t*)d_ArrayGet(rate_limit_cache, i);
-        if (entry && entry->message_hash == message_hash) {
-            rate_limit = entry;
-            break;
-        }
-    }
-
-    if (!rate_limit) {
-        // First time we've seen this message.
-        // ** THE FIX IS HERE: Check max_count BEFORE the first log. **
-        if (max_count > 0) {
-            should_log = true;
-            dLogRateLimit_t new_entry = { .message_hash = message_hash, .count = 1, .max_count = max_count, .time_window = time_window, .first_log_time = current_time };
-            d_ArrayAppend(rate_limit_cache, &new_entry);
-        }
-    } else {
-        // We've seen this message before.
-        if (current_time - rate_limit->first_log_time > time_window) {
-            // Window expired. Allow one log and reset.
-            should_log = true;
-            rate_limit->count = 1;
-            rate_limit->first_log_time = current_time;
-        } else if (rate_limit->count < max_count) {
-            // Still in window, but under count. Allow.
-            should_log = true;
-            rate_limit->count++;
-        }
-    }
-
-    if (should_log && flag == D_LOG_RATE_LIMIT_FLAG_HASH_FORMAT_STRING) {
-        d_FormatStringV(message_buffer, format, args);
-    }
-
-    va_end(args);
-    MUTEX_UNLOCK(&rate_limit_mutex);      // ✨ WORKS IN ALL REALMS
-
-    if (should_log) {
-        d_Log(level, d_StringPeek(message_buffer));
-    }
-}

@@ -125,40 +125,7 @@ static void _d_GenerateStaticEntryName(const dTableEntry_t* entry, char* name_bu
 // STATIC HASH TABLE CREATION AND DESTRUCTION
 // =============================================================================
 
-/**
- * @brief Initialize a new static hash table with fixed key structure and initial data.
- *
- * Creates and fully initializes a dStaticTable_t structure with the specified parameters
- * and populates it with the provided keys and initial values. After this function succeeds,
- * the table is ready for use with only value update operations allowed.
- *
- * @param key_size The size in bytes of the keys that will be stored
- * @param value_size The size in bytes of the values that will be stored
- * @param hash_func A pointer to the user-provided hashing function
- * @param compare_func A pointer to the user-provided key comparison function
- * @param num_buckets The number of buckets for the table (should be optimized for expected key count)
- * @param keys Array of key data to initialize with (must contain exactly num_keys elements)
- * @param initial_values Array of initial value data (must contain exactly num_keys elements, parallel to keys)
- * @param num_keys Number of elements in both keys and initial_values arrays
- *
- * @return A pointer to the newly initialized dStaticTable_t instance, or NULL on failure
- *
- * @warning CRITICAL: The keys and initial_values arrays MUST contain exactly num_keys elements.
- *          C cannot validate array sizes at runtime - it is the caller's responsibility to ensure
- *          both arrays have the correct number of elements. Mismatched sizes will cause undefined behavior.
- *
- * @note The num_keys parameter is required because C arrays decay to pointers when passed as parameters,
- *       making automatic size detection impossible.
- *
- * Example:
- * ```c
- * int keys[] = {1, 2, 3}; 
- * char* values[] = {"a", "b", "c"};
- * size_t count = sizeof(keys)/sizeof(keys[0]); // Calculate array size safely
- * dStaticTable_t* table = d_InitStaticTable(sizeof(int), sizeof(char*), my_hash, my_compare, 16, 
- *                                           (const void**)keys, (const void**)values, count);
- * ```
- */
+
 dStaticTable_t* d_InitStaticTable(size_t key_size, size_t value_size, dTableHashFunc hash_func,
                                   dTableCompareFunc compare_func, size_t num_buckets,
                                   const void** keys, const void** initial_values, size_t num_keys)
@@ -379,19 +346,6 @@ int d_StaticTableSet(dStaticTable_t* table, const void* key, const void* new_val
     return 0; // Success
 }
 
-/**
- * @brief Retrieve a pointer to the value associated with a given key.
- *
- * Retrieves a pointer to the value associated with a given key from the static hash table.
- *
- * @param table A pointer to the static hash table
- * @param key A pointer to the key data to search for
- *
- * @return A void* pointer to the internally stored value data if found, or NULL if not found
- *
- * Example:
- * `int key = 42; char** value = (char**)d_StaticTableGet(table, &key);`
- */
 void* d_StaticTableGet(const dStaticTable_t* table, const void* key)
 {
     if (!table || !key) {
